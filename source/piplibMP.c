@@ -48,6 +48,7 @@ extern char dump_name[] ;
  * Cette fonction se charge d'imprimer sur le flux 'foo' les informations
  * que contient la structure de type PipMatrix qu'elle recoit en parametre.
  * Premiere version : Ced. 29 juillet 2001. 
+ * 24 octobre 2002 : premiere version MP.
  */
 void pip_matrix_print(FILE * foo, PipMatrix * Mat)
 { Entier * p;
@@ -58,7 +59,9 @@ void pip_matrix_print(FILE * foo, PipMatrix * Mat)
   for (i=0;i<NbRows;i++) 
   { p=*(Mat->p+i) ;
     for (j=0;j<NbColumns;j++)
-    fprintf(foo," %3d", *p++) ;
+    { fprintf(foo," ") ;
+      mpz_out_str(foo,10,*p++) ;
+    }
     fprintf(foo, "\n") ;
   }
 } 
@@ -68,6 +71,7 @@ void pip_matrix_print(FILE * foo, PipMatrix * Mat)
  * Cette fonction se charge d'imprimer sur le flux 'foo' les informations
  * que contient la structure de type PipVector qu'elle recoit en parametre.
  * Premiere version : Ced. 20 juillet 2001. 
+ * 24 octobre 2002 : premiere version MP.
  */
 void pip_vector_print(FILE * foo, PipVector * vector)
 { int i ;
@@ -76,10 +80,10 @@ void pip_vector_print(FILE * foo, PipVector * vector)
   { fprintf(foo,"#[") ;
     for (i=0;i<vector->nb_elements;i++)
     { fprintf(foo," ") ;
-      fprintf(foo,FORMAT,vector->the_vector[i]) ;
-      if (vector->the_deno[i] != UN)
+      mpz_out_str(foo,10,vector->the_vector[i]) ;
+      if (mpz_cmp(vector->the_deno[i],UN) != 0)
       { fprintf(foo,"/") ;
-        fprintf(foo,FORMAT,vector->the_deno[i]) ;
+        mpz_out_str(foo,10,vector->the_deno[i]) ;
       }
     }
     fprintf(foo,"]") ;
@@ -94,6 +98,7 @@ void pip_vector_print(FILE * foo, PipVector * vector)
  * ligne avant indentation. Une valeur negative de indent signifie qu'on ne
  * desire pas d'indentation.
  * Premiere version : Ced. 18 octobre 2001. 
+ * 24 octobre 2002 : premiere version MP.
  */
 void pip_newparm_print(FILE * foo, PipNewparm * newparm, int indent)
 { int i ;
@@ -106,7 +111,7 @@ void pip_newparm_print(FILE * foo, PipNewparm * newparm, int indent)
       fprintf(foo," (div ") ;
       pip_vector_print(foo,newparm->vector) ;
       fprintf(foo," ") ;
-      fprintf(foo,FORMAT,newparm->deno) ;
+      mpz_out_str(foo,10,newparm->deno) ;
       fprintf(foo,"))\n") ;
     }
     while ((newparm = newparm->next) != NULL) ;
@@ -194,9 +199,18 @@ void pip_quast_print(FILE * foo, PipQuast * solution, int indent)
  * Cette fonction libere la memoire reservee a la structure de type PipMatrix
  * que pointe son parametre.
  * Premiere version : Ced. 29 juillet 2001. 
+ * 24 octobre 2002 : premiere version MP.
  */
 void pip_matrix_free(PipMatrix * matrix)
-{ if (matrix != NULL)
+{ int i, j ;
+  Entier * p ;
+
+  p = matrix->p_Init ;
+  for (i=0;i<matrix->NbRows;i++) 
+  for (j=0;j<matrix->NbColumns;j++) 
+  mpz_clear(*p++) ;
+  
+  if (matrix != NULL)
   { free(matrix->p_Init) ;
     free(matrix->p) ;
     free(matrix) ;
@@ -209,9 +223,16 @@ void pip_matrix_free(PipMatrix * matrix)
  * que pointe son parametre.
  * 20 juillet 2001 : Premiere version, Ced.
  * 18 octobre 2001 : simplification suite a l'eclatement de PipVector.
+ * 24 octobre 2002 : premiere version MP.
  */
 void pip_vector_free(PipVector * vector)
-{ free(vector->the_vector) ;
+{ int i ;
+  
+  for (i=0;i<vector->nb_elements;i++)
+  { mpz_clear(vector->the_vector[i]);
+    mpz_clear(vector->the_deno[i]);
+  }
+  free(vector->the_vector) ;
   free(vector->the_deno) ;
   free(vector) ;
 }
@@ -222,12 +243,14 @@ void pip_vector_free(PipVector * vector)
  * que pointe son parametre. Sont liberes aussi tous les elements de la
  * liste chainee dont il pouvait etre le depart.
  * Premiere version : Ced. 18 octobre 2001. 
+ * 24 octobre 2002 : premiere version MP.
  */
 void pip_newparm_free(PipNewparm * newparm)
 { PipNewparm * next ;
 
   while (newparm != NULL)
   { next = newparm->next ;
+    mpz_clear(newparm->deno);
     pip_vector_free(newparm->vector) ;
     free(newparm) ;
     newparm = next ;
@@ -289,6 +312,7 @@ void pip_quast_free(PipQuast * solution)
  * et de NbColumns colonnes, et initialise les valeurs a 0. Elle retourne un
  * pointeur sur l'espace memoire alloue.
  * Premiere version : Ced. 18 octobre 2001. 
+ * 24 octobre 2002 : premiere version MP.
  */
 PipMatrix * pip_matrix_alloc(unsigned NbRows, unsigned NbColumns)
 { PipMatrix * matrix ;
@@ -304,7 +328,7 @@ PipMatrix * pip_matrix_alloc(unsigned NbRows, unsigned NbColumns)
   matrix->NbColumns = NbColumns ;
   if (NbRows == 0) 
   { matrix->p = NULL ;
-    matrix->p_Init= NULL ;
+    matrix->p_Init = NULL ;
   }  
   else 
   { if (NbColumns == 0) 
@@ -327,7 +351,7 @@ PipMatrix * pip_matrix_alloc(unsigned NbRows, unsigned NbColumns)
       for (i=0;i<NbRows;i++) 
       { *p++ = q ;
 	for (j=0;j<NbColumns;j++)   
-	*(q+j) = 0 ; /* Attention dans le cas multiple precision ! */
+	mpz_init_set_si(*(q+j),0) ;
 	q += NbColumns ;
       }
     }
@@ -347,10 +371,14 @@ PipMatrix * pip_matrix_alloc(unsigned NbRows, unsigned NbColumns)
  * - des lignes de la matrice, chaque ligne devant etre sur sa propre ligne de
  *   texte et eventuellement suivies d'un commentaire.
  * Premiere version : Ced. 18 octobre 2001. 
+ * 24 octobre 2002 : premiere version MP, attention, uniquement capable de
+ *                   lire des long long pour l'instant. On utilise pas
+ *                   mpz_inp_str car on lit depuis des char * et non des FILE.
  */
 PipMatrix * pip_matrix_read(FILE * foo)
 { unsigned NbRows, NbColumns ;
   int i, j, n ;
+  long long val ;
   char *c, s[1024], str[1024] ;
   PipMatrix * matrix ;
   Entier * p ;
@@ -384,7 +412,8 @@ PipMatrix * pip_matrix_read(FILE * foo)
       { fprintf(stderr, "Not enough rows.\n") ;
         exit(1) ;
       }
-      sscanf(str,FORMAT,p++) ; /* Attention dans le cas multiple precision ! */
+      sscanf(str,FORMAT,&val) ;
+      mpz_init_set_si(*p++,val) ;
       c += n ;
     }
   }
@@ -418,6 +447,7 @@ PipMatrix * pip_matrix_read(FILE * foo)
  *                   c'est que Np vaut 0. S'il y a des parametres mais pas de
  *                   contraintes dessus, ineqpar sera une matrice de 0 lignes
  *                   mais du bon nombre de colonnes (Np + 2).
+ * 24 octobre 2002 : premiere version MP.
  */
 PipQuast * pip_solve(inequnk, ineqpar, Bg, Nq, Verbose, Simplify, Max)
 PipMatrix * inequnk, * ineqpar ;
@@ -426,8 +456,10 @@ int Bg, Nq, Verbose, Simplify, Max ;
   int i, Np, Nn, Nl, Nm, p, q, xq, non_vide ;
   char * g ;
   struct high_water_mark hq ;
-  Entier D ;
   PipQuast * solution ;
+
+  mpz_init_set_si(UN, 1);
+  mpz_init_set_si(ZERO, 0);
   	
   /* initialisations diverses :
    * - la valeur de Verbose est placee dans sa variable globale. Dans le cas
@@ -454,7 +486,7 @@ int Bg, Nq, Verbose, Simplify, Max ;
       dump = fopen(dump_name, "w") ;
     }
   }
-  limit = ZERO ;
+  limit = 0LL ;
   sol_init() ;
   tab_init() ;
 
@@ -491,14 +523,13 @@ int Bg, Nq, Verbose, Simplify, Max ;
       for (i=0;i<ineqpar->NbRows;i++)
       if (**(ineqpar->p + i) == 0)
       Nm ++ ;
-      
       context = tab_Matrix2Tableau(ineqpar,Nm,Np,0) ;
       if (Nm)
       { /* Traduction du format de matrice de la polylib vers celui de
          * traitement de Pip. Puis traitement proprement dit.
          */
 	ctxt = expanser(context, Np, Nm, Np+1, Np, 0, 0) ;
-        traiter(ctxt, NULL, True, UN, Np, 0, Nm, 0, -1) ;
+        traiter(ctxt, NULL, True, Np, 0, Nm, 0, -1) ;
         non_vide = is_not_Nil(p) ;
         sol_reset(p) ;
       }
@@ -520,7 +551,7 @@ int Bg, Nq, Verbose, Simplify, Max ;
     if (non_vide)
     { ineq = tab_Matrix2Tableau(inequnk,Nl,Nn,Nn) ;
       compa_count = 0 ;
-      D = traiter(ineq, context, Nq, UN, Nn, Np, Nl, Nm, Bg) ;
+      traiter(ineq, context, Nq, Nn, Np, Nl, Nm, Bg) ;
 
       if (Simplify)
       sol_simplify(xq) ;

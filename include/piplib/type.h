@@ -26,6 +26,11 @@
 
 #define SOL_SIZE 4096
 
+#if defined(LINEAR_VALUE_IS_MP)
+extern Entier UN;
+extern Entier ZERO;
+#endif
+
 #define True 1
 #define False 0
 

@@ -28,19 +28,25 @@
 
 
 #if !defined(LINEAR_VALUE_IS_LONGLONG) && !defined(LINEAR_VALUE_IS_INT)
+#if !defined(LINEAR_VALUE_IS_MP)
 # error Please define LINEAR_VALUE_IS_* or #include polylib32.h or polylib64.h
-# endif
+#endif
+#endif
 
 #if defined(LINEAR_VALUE_IS_LONGLONG)
-# define Entier long long
-# define FORMAT "%lld"
-# define UN     1LL
-# define ZERO   0LL
+# define Entier   long long
+# define FORMAT   "%lld"
+# define UN   1LL
+# define ZERO 0LL
 #elif defined(LINEAR_VALUE_IS_INT) 
-# define Entier long int
-# define FORMAT "%ld"
-# define UN     1L
-# define ZERO   0L
+# define Entier   long int
+# define FORMAT   "%ld"
+# define UN   1L
+# define ZERO 0L
+#elif defined(LINEAR_VALUE_IS_MP) 
+# include <gmp.h>
+# define Entier   mpz_t
+# define FORMAT   "%lld"
 #endif
 
 # include <piplib/type.h>

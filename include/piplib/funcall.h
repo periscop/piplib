@@ -24,7 +24,16 @@
  *                                                                            *
  ******************************************************************************/
 
+#if defined(LINEAR_VALUE_IS_MP)
+void traiter(Tableau *, Tableau *, int, int, int, int, int, int);
+int integrer(Tableau **, Tableau **, int *, int *, int *, int *);
+#else
 Entier pgcd(Entier, Entier);
+Entier mod(Entier,Entier);
+int llog(Entier);
+Entier traiter(Tableau *, Tableau *, int, Entier, int, int, int, int, int);
+int integrer(Tableau **, Tableau **, Entier, int *, int *, int *, int *);
+#endif
 int sol_hwm(void);
 void sol_simplify(int);
 int is_not_Nil(int);
@@ -40,13 +49,9 @@ void sol_forme(int);
 void sol_val(Entier, Entier);
 void sol_nil(void);
 void sol_error(int);
-int integrer(Tableau **, Tableau **, Entier, int *, int *, int *, int *);
 Tableau * tab_alloc(int, int, int);
 void sol_list(int);
 void tab_display(Tableau *, FILE *);
-Entier traiter(Tableau *, Tableau *, int, Entier, int, int, int, int, int);
 Tableau * expanser(Tableau *, int, int, int, int, int, int);
-int llog(Entier);
-Entier mod(Entier,Entier);
 void sol_new(int);
 void sol_div(void);

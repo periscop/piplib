@@ -36,14 +36,20 @@ EXEC_SUFFIX = @EXEC_SUFFIX@
 EXTRA_FLAGS = @EXTRA_FLAGS@
 #             Extra libraries
 EXTRA_LIBS  = @EXTRA_LIBS@
+#             Extra includes
+EXTRA_INC   = @EXTRA_INC@
 #             Bits for integers
 INT_BITS    = @INT_BITS@
 #             Flags fos integers
 INT_DFLAGS  = @INT_DFLAGS@
 #             Bits for long long
 LONG_BITS   = @LONG_BITS@
-#             Flags fos long long
+#             Flags for long long
 LONG_DFLAGS = @LONG_DFLAGS@
+#             Bits for mp
+MP_BITS     = @MP_BITS@
+#             Flags for mp
+MP_DFLAGS   = @MP_DFLAGS@
 #             Installation directory.     
 PIPLIB_INS  = @prefix@
 #             Installation software. 
@@ -77,7 +83,7 @@ PIPLIB_INS_INC = $(PIPLIB_INS)/include
 # *****************************************************************************/
 
 
-INCFLAGS = -I $(PIPLIB_INC)
+INCFLAGS = -I $(PIPLIB_INC) $(EXTRA_INC)
 LDFLAGS  = $(EXTRA_LIBS)
 CFLAGS   = -c $(INCFLAGS) -fomit-frame-pointer -O2 $(EXTRA_FLAGS) $(DFLAGS)
 
@@ -97,6 +103,9 @@ $(INT_BITS)all :
 
 $(LONG_BITS)all :
 	$(MAKE) "BITS=$(LONG_BITS)" "DFLAGS=$(LONG_DFLAGS)" tobuild
+	
+$(MP_BITS)all :
+	$(MAKE) "BITS=$(MP_BITS)" "DFLAGS=$(MP_DFLAGS)" "MP_SUF=MP" tobuild
 	
 tobuild : $(PACKAGES)
 
@@ -121,29 +130,32 @@ piplibstatic: $(PIPLIB_OBJ) $(OBJ)
 	$(AR) q $(PIPLIB_OBJ)/libpiplib$(BITS).a.$(VERSION) $(OBJ)
 	$(RANLIB) $(PIPLIB_OBJ)/libpiplib$(BITS).a.$(VERSION)
 
-$(PIPLIB_OBJ)/piplib.o : $(PIPLIB_SRC)/piplib.c $(PIPLIB_INC)/piplib/piplib.h
-	$(CC) $(CFLAGS) $(PIPLIB_SRC)/piplib.c \
+$(PIPLIB_OBJ)/piplib.o : $(PIPLIB_SRC)/piplib$(MP_SUF).c \
+	$(PIPLIB_INC)/piplib/piplib.h
+	$(CC) $(CFLAGS) $(PIPLIB_SRC)/piplib$(MP_SUF).c \
 	-o $(PIPLIB_OBJ)/piplib.o
 
-$(PIPLIB_OBJ)/integrer.o : $(PIPLIB_SRC)/integrer.c \
+$(PIPLIB_OBJ)/integrer.o : $(PIPLIB_SRC)/integrer$(MP_SUF).c \
 	$(PIPLIB_INC)/piplib/piplib.h
-	$(CC) $(CFLAGS) $(PIPLIB_SRC)/integrer.c \
+	$(CC) $(CFLAGS) $(PIPLIB_SRC)/integrer$(MP_SUF).c \
 	-o $(PIPLIB_OBJ)/integrer.o
 
-$(PIPLIB_OBJ)/maind.o : $(PIPLIB_SRC)/maind.c $(PIPLIB_INC)/piplib/piplib.h
-	$(CC) $(CFLAGS) $(PIPLIB_SRC)/maind.c \
+$(PIPLIB_OBJ)/maind.o : $(PIPLIB_SRC)/maind$(MP_SUF).c \
+	$(PIPLIB_INC)/piplib/piplib.h
+	$(CC) $(CFLAGS) $(PIPLIB_SRC)/maind$(MP_SUF).c \
 	-o $(PIPLIB_OBJ)/maind.o
 
-$(PIPLIB_OBJ)/tab.o : $(PIPLIB_SRC)/tab.c $(PIPLIB_INC)/piplib/piplib.h
-	$(CC) $(CFLAGS)  $(PIPLIB_SRC)/tab.c \
+$(PIPLIB_OBJ)/tab.o : $(PIPLIB_SRC)/tab$(MP_SUF).c $(PIPLIB_INC)/piplib/piplib.h
+	$(CC) $(CFLAGS)  $(PIPLIB_SRC)/tab$(MP_SUF).c \
 	-o $(PIPLIB_OBJ)/tab.o
 
-$(PIPLIB_OBJ)/traiter.o : $(PIPLIB_SRC)/traiter.c $(PIPLIB_INC)/piplib/piplib.h
-	$(CC) $(CFLAGS)  $(PIPLIB_SRC)/traiter.c \
+$(PIPLIB_OBJ)/traiter.o : $(PIPLIB_SRC)/traiter$(MP_SUF).c \
+	$(PIPLIB_INC)/piplib/piplib.h
+	$(CC) $(CFLAGS)  $(PIPLIB_SRC)/traiter$(MP_SUF).c \
 	-o $(PIPLIB_OBJ)/traiter.o
 
-$(PIPLIB_OBJ)/sol.o : $(PIPLIB_SRC)/sol.c $(PIPLIB_INC)/piplib/piplib.h
-	$(CC) $(CFLAGS)  $(PIPLIB_SRC)/sol.c \
+$(PIPLIB_OBJ)/sol.o : $(PIPLIB_SRC)/sol$(MP_SUF).c $(PIPLIB_INC)/piplib/piplib.h
+	$(CC) $(CFLAGS)  $(PIPLIB_SRC)/sol$(MP_SUF).c \
 	-o $(PIPLIB_OBJ)/sol.o
 
 
@@ -171,6 +183,9 @@ $(INT_BITS)install :
 
 $(LONG_BITS)install :
 	$(MAKE) "BITS=$(LONG_BITS)" "DFLAGS=$(LONG_DFLAGS)" toinstall
+	
+$(MP_BITS)install :
+	$(MAKE) "BITS=$(MP_BITS)" "DFLAGS=$(MP_DFLAGS)" "MP_SUF=MP" toinstall
 	
 toinstall : $(TO_INSTALL)
 
@@ -215,7 +230,8 @@ uninstall :
 	rm -f $(PIPLIB_INS_LIB)/libpiplib*
 	rm -rf $(PIPLIB_INS_INC)/piplib
 	rm -f $(PIPLIB_INS_BIN)/pip32$(EXEC_SUFFIX) \
-	$(PIPLIB_INS_BIN)/pip64$(EXEC_SUFFIX)
+	$(PIPLIB_INS_BIN)/pip64$(EXEC_SUFFIX) \
+	$(PIPLIB_INS_BIN)/pipMP$(EXEC_SUFFIX)
 	
 tgz: distclean
 	(cd .. && \
