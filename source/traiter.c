@@ -22,7 +22,7 @@
  *                                                                            *
  * Written by Paul Feautrier                                                  *
  *                                                                            *
- ******************************************************************************/
+ *****************************************************************************/
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -244,11 +244,7 @@ void compa_test(Tableau *tp, Tableau *context,
            #endif
 	   
 	   p = sol_hwm();
-           #if defined(LINEAR_VALUE_IS_MP)
 	   traiter(tPlus, NULL, Pip_True, nparm, 0, nc+1, 0, -1);
-           #else
-	   traiter(tPlus, NULL, Pip_True, UN, nparm, 0, nc+1, 0, -1);
-	   #endif
 	   cPlus = is_not_Nil(p);
 	   if(verbose>0){
 	     fprintf(dump, "\nThe positive case has been found ");
@@ -271,12 +267,11 @@ void compa_test(Tableau *tp, Tableau *context,
            #if defined(LINEAR_VALUE_IS_MP)
 	   mpz_set(Index(tMinus, nparm+nc, j),discr[j]);/* loop body. */
 	   mpz_set(Denom(tMinus, nparm+nc), UN);
-	   traiter(tMinus, NULL, Pip_True, nparm, 0, nc+1, 0, -1);
            #else
 	   Index(tMinus, nparm+nc, j) = discr[j];       /* loop body. */
 	   Denom(tMinus, nparm+nc) = UN;
-	   traiter(tMinus, NULL, Pip_True, UN, nparm, 0, nc+1, 0, -1);
            #endif
+	   traiter(tMinus, NULL, Pip_True, nparm, 0, nc+1, 0, -1);
 	   cMinus = is_not_Nil(p);
 	   if(verbose>0){
 	     fprintf(dump, "\nThe negative case has been found ");
@@ -385,12 +380,8 @@ int choisir_piv(Tableau *tp, int pivi, int nvar, int nligne)
 }
 
 
-#if defined(LINEAR_VALUE_IS_MP)
 int pivoter(Tableau *tp, int pivi, int nvar, int nparm, int ni, int iq)
-#else
-Entier pivoter(Tableau *tp, int pivi, Entier D, int nvar,
-	       int nparm, int ni, int iq)
-#endif
+
 {int pivj;
  int ncol = nvar + nparm + 1;
  int nligne = nvar + ni;
@@ -446,7 +437,7 @@ Entier pivoter(Tableau *tp, int pivi, Entier D, int nvar,
  dppiv = dpiv/d;
  #endif
  
- if(verbose>0){
+ if(verbose>1){
    #if defined(LINEAR_VALUE_IS_MP)
    fprintf(dump, "Pivot ");
    mpz_out_str(dump, 10, ppivot);
@@ -471,11 +462,10 @@ Entier pivoter(Tableau *tp, int pivi, Entier D, int nvar,
 
  #if defined(LINEAR_VALUE_IS_MP)
  if(mpz_sgn(y) != 0){ 
-   fprintf(stdout, "Computation error\n");
  #else
  if(dppiv != 1) {
-     fprintf(stderr, "Integer overflow : %d\n", D);
  #endif
+   fprintf(stderr, "Integer overflow\n");
    if(verbose>0) fflush(dump);
    exit(1);
  }
@@ -498,7 +488,7 @@ Entier pivoter(Tableau *tp, int pivi, Entier D, int nvar,
      }
  #endif
 
- if(verbose>0){
+ if(verbose>1){
    fprintf(dump, "determinant ");
    #if defined(LINEAR_VALUE_IS_MP)
    mpz_out_str(dump, 10, tp->determinant);
@@ -629,7 +619,7 @@ Entier pivoter(Tableau *tp, int pivi, Entier D, int nvar,
    Flag(tp, k) = ff;
  }
 
- if(verbose>0){
+ if(verbose>2){
    fprintf(dump, "just pivoted\n");
    tab_display(tp, dump);
  }
@@ -642,22 +632,15 @@ Entier pivoter(Tableau *tp, int pivi, Entier D, int nvar,
 
  for(i=0; i<ncol; i++)
    mpz_clear(new[i]);
+ #endif
 
  return(0);
- #else
- return(D);
- #endif
 }
 
 /* dans cette version, "traiter" modifie ineq; par contre
    le contexte est immediatement recopie' */
 
-#if defined(LINEAR_VALUE_IS_MP)
 void traiter(tp, ctxt, iq, nvar, nparm, ni, nc, bigparm)
-#else
-Entier traiter(tp, ctxt, iq, D, nvar, nparm, ni, nc, bigparm)
-Entier D;
-#endif
 Tableau *tp, *ctxt;
 int iq, nvar, nparm, ni, nc, bigparm;
 {
@@ -671,13 +654,18 @@ int iq, nvar, nparm, ni, nc, bigparm;
  struct L temp;
  Entier discr[MAXPARM];
 
+#if !defined(LINEAR_VALUE_IS_MP)
+ Entier D = UN;
+#endif
+
  #if defined(LINEAR_VALUE_IS_MP)
  for(i=0; i<MAXPARM; i++)
    mpz_init(discr[i]);
-
  dcw = mpz_sizeinbase(tp->determinant, 2);
  #else
- dcw = llog(D);
+ dcw = 0;
+ for(i=0; i<tp->l_determinant; i++)
+   dcw += llog(tp->determinant[i]);
  #endif
  dch = 2 * dcw + 1;
  x = tab_hwm();
@@ -686,7 +674,7 @@ int iq, nvar, nparm, ni, nc, bigparm;
  context = expanser(ctxt, 0, nc, nparm+1, 0, dch, dcw);
 /*
  sort the rows in increasing order of the largest coefficient
-*/
+
  smax = 0.;
 
  for(i=nvar; i<nligne; i++){
@@ -727,15 +715,10 @@ int iq, nvar, nparm, ni, nc, bigparm;
    }
  }   
 
-
- if(verbose>0){
-   fprintf(dump, "just sorted\n");
-   tab_display(tp, dump);
-   fflush(dump);
- }
+*/
    
  for(;;) {
-   if(verbose>0){
+   if(verbose>2){
      fprintf(dump, "debut for\n");
      tab_display(tp, dump);
      fflush(dump);
@@ -750,7 +733,7 @@ int iq, nvar, nparm, ni, nc, bigparm;
    
    pivi = exam_coef(tp, nvar, ncol, bigparm);
 
-   if(verbose>0){
+   if(verbose>2){
      fprintf(dump, "coefs examined\n");
      tab_display(tp, dump);
      fflush(dump);
@@ -759,7 +742,7 @@ int iq, nvar, nparm, ni, nc, bigparm;
    if(pivi < nligne) goto pirouette;
    /* There is a row whose coefficients are negative */
    compa_test(tp, context, ni, nvar, nparm, nc);
-   if(verbose>0){
+   if(verbose>2){
      fprintf(dump, "compatibility tested\n");
      tab_display(tp, dump);
      fflush(dump);
@@ -779,7 +762,9 @@ int iq, nvar, nparm, ni, nc, bigparm;
        #if defined(LINEAR_VALUE_IS_MP)
        dcw = mpz_sizeinbase(context->determinant,2);
        #else
-       dcw = llog(D);
+       dcw = 0;
+       for(i=0; i<tp->l_determinant; i++)
+	 dcw += llog(tp->determinant[i]);
        #endif
        dch = 2 * dcw + 1;
        context = expanser(context, 0, nc, nparm+1, 0, dch, dcw);
@@ -789,7 +774,7 @@ int iq, nvar, nparm, ni, nc, bigparm;
        exit(2);
      }
      q = tab_hwm();
-     if(verbose>0)
+     if(verbose>1)
        fprintf(stdout,"profondeur %d %lx\n", profondeur, q.top);
      ntp = expanser(tp, nvar, ni, ncol, 0, 0, 0);
      fflush(stdout);
@@ -835,7 +820,7 @@ int iq, nvar, nparm, ni, nc, bigparm;
      traiter(ntp, context, iq, nvar, nparm, ni, nc+1, bigparm);
      profondeur--;
      tab_reset(q);
-     if(verbose>0)
+     if(verbose>1)
        fprintf(stdout, "descente %d %lx\n", profondeur, tab_hwm().top);
      for(j = 0; j<nparm; j++)
        mpz_neg(Index(context, nc, j), Index(context, nc, j));
@@ -844,10 +829,10 @@ int iq, nvar, nparm, ni, nc, bigparm;
      Flag(tp, pivi) = Minus;
      mpz_set(Denom(context, nc), UN);
      #else
-     traiter(ntp, context, iq, D, nvar, nparm, ni, nc+1, bigparm);
+     traiter(ntp, context, iq, nvar, nparm, ni, nc+1, bigparm);
      profondeur--;
      tab_reset(q);
-     if(verbose>0)
+     if(verbose>1)
        fprintf(stderr, "descente %d %lx\n", profondeur, tab_hwm().top);
      for(j = 0; j<nparm; j++)
        Index(context, nc, j) = - Index(context, nc, j);
@@ -864,11 +849,7 @@ int iq, nvar, nparm, ni, nc, bigparm;
      break;
    }
 /* Yes we do! */
-   #if defined(LINEAR_VALUE_IS_MP)
    pivi = integrer(&tp, &context, &nvar, &nparm, &ni, &nc);
-   #else
-   pivi = integrer(&tp, &context, D, &nvar, &nparm, &ni, &nc);
-   #endif
    if(pivi > 0) goto pirouette;
 		    /* A cut has been inserted and is always negative */
 /* Here, either there is an integral solution, */
@@ -881,11 +862,7 @@ int iq, nvar, nparm, ni, nc, bigparm;
       a pivoting step                                                 */
 
 pirouette :
-     #if defined(LINEAR_VALUE_IS_MP)
      if(pivoter(tp, pivi, nvar, nparm, ni, iq) < 0) {
-     #else
-     if((D = pivoter(tp, pivi, D, nvar, nparm, ni, iq)) < 0) {
-     #endif
        sol_nil();
        break;
      }
@@ -895,8 +872,6 @@ pirouette :
  #if defined(LINEAR_VALUE_IS_MP)
  for(i=0; i<MAXPARM; i++)
    mpz_clear(discr[i]);
- return;
- #else
- return D;
  #endif
+ return;
 }

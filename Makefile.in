@@ -238,6 +238,9 @@ install_piplibstatic: install_preparation
 	$(LN_S) $(PIPLIB_INS_LIB)/libpiplib$(BITS).a.$(VERSION) \
 	$(PIPLIB_INS_LIB)/libpiplib$(BITS).a)
 	
+check:
+	$(MAKE) test -C test
+
 uninstall :
 	@echo "             /*-----------------------------------------------*"
 	@echo "              *             UNINSTALLING PIP/PipLib           *"

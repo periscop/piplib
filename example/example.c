@@ -8,18 +8,23 @@
 # include <piplib/piplib32.h>
 
 int main()
-{ PipMatrix * domain, * context  ;
-  PipQuast * solution ;
+{ PipMatrix  * domain, * context  ;
+  PipQuast   * solution ;
+  PipOptions * options ;
   
   printf("Enter the Matrices :\n") ;
   domain = pip_matrix_read(stdin) ;
   pip_matrix_print(stdout,domain) ;
+  
   context = pip_matrix_read(stdin) ;
   pip_matrix_print(stdout,context) ;
   printf("\n") ;
   
-  solution = pip_solve(domain,context,-1,1,0,0,0) ;
+  options = pip_options_init() ;
 
+  solution = pip_solve(domain,context,-1,options) ;
+
+  pip_options_free(options) ;
   pip_matrix_free(domain) ;
   pip_matrix_free(context) ;
 

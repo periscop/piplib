@@ -26,13 +26,6 @@
 
 /* Premiere version du 18 septembre 2002. */
 
-#ifndef PIPLIB_H
-#define PIPLIB_H
-#if defined(__cplusplus)
-extern "C" 
-  {
-#endif 
-
 #if !defined(LINEAR_VALUE_IS_LONGLONG) && !defined(LINEAR_VALUE_IS_INT)
 #if !defined(LINEAR_VALUE_IS_MP)
 # error Please define LINEAR_VALUE_IS_* or #include polylib32.h or polylib64.h
@@ -54,6 +47,13 @@ extern "C"
 # define Entier   mpz_t
 # define FORMAT   "%d"
 #endif
+
+#ifndef PIPLIB_H
+#define PIPLIB_H
+#if defined(__cplusplus)
+extern "C" 
+  {
+#endif 
 
 # include <piplib/type.h>
 # include <piplib/sol.h>
@@ -130,6 +130,34 @@ struct pipquast
 typedef struct pipquast PipQuast ;
 
 
+/* Structure pipoptions:
+ * This structure contains each option that can be set to change the PIP
+ * behaviour.
+ */
+struct pipoptions
+{ int Nq ;                      /* 1 if an integer solution is needed,
+                                 * 0 otherwise.
+				 */
+  int Verbose ;                 /* -1 -> absolute silence,
+                                 *  0 -> relative silence,
+                                 *  1 -> information on cuts when an integer
+				 *       solution is needed,
+                                 *  2 -> information sur les pivots et les
+				 *       déterminants,
+                                 *  3 -> information on arrays,
+                                 * Each option include the preceding.
+				 */
+  int Simplify ;                /* Set to 1 to eliminate some trivial
+                                 * solutions, 0 otherwise.
+				 */
+  int Deepest_cut ;             /* Set to 1 to include deepest cut
+                                 * algorithm.
+				 */
+  int Max ;                     /* Set to 0. */
+} ;      
+typedef struct pipoptions PipOptions ;
+
+
 /* Prototypes des fonctions d'affichages des structures de la PipLib. */
 void pip_matrix_print(FILE *, PipMatrix *) ;
 void pip_vector_print(FILE *, PipVector *) ;
@@ -144,11 +172,15 @@ void pip_vector_free(PipVector *) ;
 void pip_newparm_free(PipNewparm *) ;
 void pip_list_free(PipList *) ;
 void pip_quast_free(PipQuast *) ;
+void pip_options_free(PipOptions *) ;
 
 
-/* Prototypes des fonctions d'acquisition de matrices de contraintes.*/
+/* Prototypes des fonctions d'acquisition de matrices de contraintes et
+ * options.
+ */
 PipMatrix * pip_matrix_alloc(unsigned, unsigned) ;
 PipMatrix * pip_matrix_read(FILE *) ;
+PipOptions * pip_options_init(void) ;
 
 
 /* Prototype de la fonction de resolution :
@@ -156,16 +188,13 @@ PipMatrix * pip_matrix_read(FILE *) ;
  * options elles aussi en parametre. Elle renvoie la solution sous forme
  * d'un arbre de PipQuast. Parametres :
  * - probleme :
- * 1 PipMatrix : systeme des inequations definissant le domaine des inconnues,
- * 2 PipMatrix : systeme des inequations satisfaites par les parametres,
- * 3 int       : Bg le bignum,
- * - options :
- * 4 int       : Nq pour savoir si on cherche une solution entiere.
- * 5 int       : Verbose pour savoir si on veut creer un fichier de tracage.
- * 6 int       : Simplify pour demander a Pip de simplifier sa solution.
- * 7 int       : Max encore inutilise, doit etre mis a 0.
+ * 1 PipMatrix  : systeme des inequations definissant le domaine des inconnues,
+ * 2 PipMatrix  : systeme des inequations satisfaites par les parametres,
+ * 3 int        : column rank of the bignum, or negative value if there
+ *                is no big parameter.
+ * 4 PipOptions : options for PIP.
  */ 
-PipQuast * pip_solve(PipMatrix *, PipMatrix *, int, int, int, int, int) ;
+PipQuast * pip_solve(PipMatrix *, PipMatrix *, int, PipOptions *) ;
 
 /* Ced : ajouts specifiques a la PipLib pour funcall. */
 Tableau * tab_Matrix2Tableau(PipMatrix *, int, int, int) ;

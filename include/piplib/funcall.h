@@ -22,7 +22,7 @@
  *                                                                            *
  * Written by Paul Feautrier                                                  *
  *                                                                            *
- ******************************************************************************/
+ *****************************************************************************/
 
 #ifndef FUNCALL_H
 #define FUNCALL_H
@@ -31,16 +31,15 @@ extern "C"
   {
 #endif 
 
-#if defined(LINEAR_VALUE_IS_MP)
 void traiter(Tableau *, Tableau *, int, int, int, int, int, int);
 int integrer(Tableau **, Tableau **, int *, int *, int *, int *);
+#if defined(LINEAR_VALUE_IS_MP)
 #else
 Entier pgcd(Entier, Entier);
 Entier mod(Entier,Entier);
 int llog(Entier);
-Entier traiter(Tableau *, Tableau *, int, Entier, int, int, int, int, int);
-int integrer(Tableau **, Tableau **, Entier, int *, int *, int *, int *);
 #endif
+
 int sol_hwm(void);
 void sol_simplify(int);
 int is_not_Nil(int);

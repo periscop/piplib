@@ -22,7 +22,7 @@
  *                                                                            *
  * Written by Cedric Bastoul                                                  *
  *                                                                            *
- ******************************************************************************/
+ *****************************************************************************/
 
 /* Premiere version du 30 juillet 2001. */
 
@@ -41,11 +41,16 @@ int allocation, comptage;
 int verbose = 0;
 int profondeur = 0;
 int compa_count;
+int deepest_cut = 0;
 
 FILE *dump = NULL;
 char dump_name[] = "PipXXXXXX";
 
-#define INLENGTH 1024
+/* Larger line buffer to accomodate Frédo Vivien exemples. A version
+handling arbitrary line length should be written ASAP.
+*/
+
+#define INLENGTH 2048
 
 char inbuff[INLENGTH];
 int inptr = 256;
@@ -65,7 +70,7 @@ int dgetc(FILE *foo)
     if(p == NULL) return EOF;
     proviso = min(INLENGTH, strlen(inbuff));
     inptr = 0;
-    if(verbose > 0) fprintf(dump, "-- %s", inbuff);
+    if(verbose > 2) fprintf(dump, "-- %s", inbuff);
   }
  return inbuff[inptr++];
 }
@@ -87,7 +92,7 @@ int dscanf(FILE *foo, Entier *val)
    {p = fgets(inbuff, 256, foo);
     if(p == NULL) return EOF;
     proviso = strlen(inbuff);
-    if(verbose > 0) {
+    if(verbose > 2) {
       fprintf(dump, ".. %s", inbuff);
       fflush(dump);
     }
@@ -270,6 +275,22 @@ void pip_quast_print(FILE * foo, PipQuast * solution, int indent)
 }    
   
 
+/* Function pip_options_print:
+ * This function prints the content of a PipOptions structure (options)
+ * into a file (foo, possibly stdout).
+ * March 17th 2003: first version.
+ */
+void * pip_options_print(FILE * foo, PipOptions * options)
+{ fprintf(foo,"Option setting is:\n") ;
+  fprintf(foo,"Nq          =%d\n",options->Nq) ;
+  fprintf(foo,"Verbose     =%d\n",options->Verbose) ;
+  fprintf(foo,"Simplify    =%d\n",options->Simplify) ;
+  fprintf(foo,"Deepest_cut =%d\n",options->Deepest_cut) ;
+  fprintf(foo,"Max         =%d\n",options->Max) ;
+  fprintf(foo,"\n") ;
+}
+
+
 /******************************************************************************
  *                       Fonctions de liberation memoire                      *
  ******************************************************************************/
@@ -385,7 +406,51 @@ void pip_quast_free(PipQuast * solution)
     free(solution) ;
   }
 }
-  
+
+
+/* Funtion pip_options_free:
+ * This function frees the allocated memory for a PipOptions structure.
+ * March 15th 2003: first version.
+ */
+void pip_options_free(PipOptions * options)
+{ free(options) ;
+}
+
+
+/******************************************************************************
+ *                     Fonction d'initialisation des options                  *
+ ******************************************************************************/
+
+
+/* Funtion pip_options_init:
+ * This function allocates the memory for a PipOptions structure and fill the
+ * options with the default values.
+ ********
+ * Nq est un booleen renseignant si on cherche
+ * une solution entiere (vrai=1) ou non (faux=0). Verbose est un booleen
+ * permettant de rendre Pip bavard (Verbose a vrai=1), il imprimera
+ * alors la plupart de ses traitements dans le fichier dont le nom est
+ * dans la variable d'environnement DEBUG, ou si DEBUG
+ * n'est pas placee, dans un nouveau fichier de nom genere par mkstemp, si
+ * Verbose est a faux=0, Pip restera muet. Simplify est un booleen permettant
+ * de demander a Pip de simplifier sa solution (en eliminant les formes de type
+ * 'if #[...] () ()') quand il est a vrai=1, ou non quand il est a faux=0. Max
+ * n'est pas encore utilise et doit etre mis a 0. 
+ ********
+ * March 15th 2003: first version.
+ */ 
+PipOptions * pip_options_init(void)
+{ PipOptions * options ;
+
+  options = (PipOptions *)malloc(sizeof(PipOptions)) ;
+  /* Default values of the options. */
+  options->Nq          = 1 ;  /* Integer solution. */
+  options->Verbose     = 0 ;  /* No comments. */
+  options->Simplify    = 0 ;  /* Do not simplify solutions. */
+  options->Deepest_cut = 0 ;  /* Do not use deepest cut algorithm. */
+  options->Max         = 0 ;  /* Set to 0 ! */
+}
+
 
 /******************************************************************************
  *                     Fonctions d'acquisition de matrices                    *
@@ -525,27 +590,30 @@ PipMatrix * pip_matrix_read(FILE * foo)
  * Cette fonction fait un appel a Pip pour la resolution d'un probleme. Le
  * probleme est fourni dans les arguments. Deux matrices de la forme de celles
  * utilisees dans la Polylib forment les systemes d'equations/inequations :
- * un pour les inconnues, l'autre pour les parametres. Bg est le 'bignum', Nq
- * est un booleen renseignant si on cherche une solution entiere (vrai=1) ou
- * non (faux=0). Verbose est un booleen permettant de rendre Pip bavard
- * (Verbose a vrai=1), il imprimera alors la plupart de ses traitements dans le
- * fichier dont le nom est dans la variable d'environnement DEBUG, ou si DEBUG
- * n'est pas placee, dans un nouveau fichier de nom genere par mkstemp, si
- * Verbose est a faux=0, Pip restera muet. Simplify est un booleen permettant
- * de demander a Pip de simplifier sa solution (en eliminant les formes de type
- * 'if #[...] () ()') quand il est a vrai=1, ou non quand il est a faux=0. Max
- * n'est pas encore utilise et doit etre mis a 0. Cette fonction retourne la
- * solution sous la forme d'un arbre de structures PipQuast.
+ * un pour les inconnues, l'autre pour les parametres. Bg est le 'bignum'.
+ * Le dernier argument contient les options guidant le comportement de PIP.
+ * Cette fonction retourne la solution sous la forme d'un arbre de structures
+ * PipQuast.
  * 30 juillet 2001 : Premiere version, Ced. 
  * 18 octobre 2001 : suppression de l'argument Np, le nombre de parametres. Il
  *                   est a present deduit de ineqpar. Si ineqpar vaut NULL,
  *                   c'est que Np vaut 0. S'il y a des parametres mais pas de
  *                   contraintes dessus, ineqpar sera une matrice de 0 lignes
  *                   mais du bon nombre de colonnes (Np + 2).
+ * 27 février 2003 : Verbose est maintenant gradué.
+ *                  -1 -> silence absolu
+ *                   0 -> silence relatif
+ *                   1 -> information sur les coupures dans le cas ou on
+ *                        cherche une solution entière.
+ *                   2 -> information sur les pivots et les déterminants
+ *                   3 -> information sur les tableaux.
+ *                         Chaque option inclut les précédentes. [paf]
+ * 15 mars 2003    : passage a une structure d'options.
  */
-PipQuast * pip_solve(inequnk, ineqpar, Bg, Nq, Verbose, Simplify, Max)
+PipQuast * pip_solve(inequnk, ineqpar, Bg, options)
 PipMatrix * inequnk, * ineqpar ;
-int Bg, Nq, Verbose, Simplify, Max ;
+int Bg ;
+PipOptions * options ;
 { Tableau * ineq, * context, * ctxt ;
   int i, Np, Nn, Nl, Nm, p, q, xq, non_vide ;
   char * g ;
@@ -569,17 +637,18 @@ int Bg, Nq, Verbose, Simplify, Max ;
   }
    	
   /* initialisations diverses :
-   * - la valeur de Verbose est placee dans sa variable globale. Dans le cas
-   *   ou on doit etre en mode verbose, on ouvre le fichier dans lequel
-   *   ecrire les tracages. Si la variable d'environnement DEBUG est placee,
-   *   on ecrira dans le nom de fichier correspondant, sinon, dans un nouveau
-   *   fichier de nom genere par mkstemp,
+   * - la valeur de Verbose et Deepest_cut sont placees dans leurs variables
+   *   globales. Dans le cas ou on doit etre en mode verbose, on ouvre le
+   *   fichier dans lequel ecrire les tracages. Si la variable d'environnement
+   *   DEBUG est placee, on ecrira dans le nom de fichier correspondant, sinon,
+   *   dans un nouveau fichier de nom genere par mkstemp,
    * - limit est mis au 0 long int (sa valeur par defaut dans Pip original),
    * - on lance les initialisations pour tab et sol (autres mises en place
    *   de variables globales).
    */
-  verbose = Verbose ;
-  if (verbose)
+  verbose = options->Verbose ;
+  deepest_cut = options->Deepest_cut ;
+  if (verbose > 0)
   { g = getenv("DEBUG") ;
     if(g && *g)
     { dump = fopen(g, "w") ;
@@ -647,11 +716,7 @@ int Bg, Nq, Verbose, Simplify, Max ;
          * traitement de Pip. Puis traitement proprement dit.
          */
 	ctxt = expanser(context, Np, Nm, Np+1, Np, 0, 0) ;
-        #if defined(LINEAR_VALUE_IS_MP)
         traiter(ctxt, NULL, Pip_True, Np, 0, Nm, 0, -1) ;
-	#else
-        traiter(ctxt, NULL, Pip_True, UN, Np, 0, Nm, 0, -1) ;
-        #endif
         non_vide = is_not_Nil(p) ;
         sol_reset(p) ;
       }
@@ -666,20 +731,16 @@ int Bg, Nq, Verbose, Simplify, Max ;
       non_vide = Pip_True ;
     }
         
-    if (verbose)
-    fprintf(dump, "%d %d %d %d %d %d\n",Nn, Np, Nl, Nm, Bg, Nq) ;
+    if (verbose > 0)
+    fprintf(dump, "%d %d %d %d %d %d\n",Nn,Np,Nl,Nm,Bg,options->Nq) ;
     
     /* S'il est possible de trouver une solution, on passe au traitement. */
     if (non_vide)
     { ineq = tab_Matrix2Tableau(inequnk,Nl,Nn,Nn) ;
       compa_count = 0 ;
-      #if defined(LINEAR_VALUE_IS_MP)
-      traiter(ineq, context, Nq, Nn, Np, Nl, Nm, Bg) ;
-      #else
-      D = traiter(ineq, context, Nq, UN, Nn, Np, Nl, Nm, Bg) ;
-      #endif
+      traiter(ineq, context, options->Nq, Nn, Np, Nl, Nm, Bg) ;
 
-      if (Simplify)
+      if (options->Simplify)
       sol_simplify(xq) ;
       q = sol_hwm() ;
       /* On traduit la solution du format de solution de Pip vers un arbre

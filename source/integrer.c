@@ -22,7 +22,7 @@
  *                                                                            *
  * Written by Paul Feautrier                                                  *
  *                                                                            *
- ******************************************************************************/
+ *****************************************************************************/
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -34,7 +34,9 @@
 
 extern long int cross_product, limit;
 extern int verbose;
+extern int deepest_cut;
 extern FILE * dump;
+char compose[256];
 
 /* mod(x,y) computes the remainder of x when divided by y. The difference
    with x%y is that the result is guaranteed to be positive, which is not
@@ -67,6 +69,68 @@ Entier D;
  return(Pip_False);
 }
 
+/* This routine solve for z in the equation z.y = x (mod delta), provided
+   y and delta are mutually prime. Remember that for multiple precision
+   operation, the responsibility of creating and destroying <<z>> is the 
+   caller's.                                                                */
+
+void bezout(Entier x, Entier y, Entier delta, Entier *z){
+  Entier a, b, c, d, e, f, u, v, q, r;
+#if defined(LINEAR_VALUE_IS_MP)
+  mpz_init(a); mpz_init(b); mpz_init(c); mpz_init(d);
+  mpz_init(e); mpz_init(f); mpz_init(u); mpz_init(v);
+  mpz_init(q); mpz_init(r);
+  mpz_set_ui(a, 1); mpz_set_ui(b, 0); mpz_set_ui(c, 0);
+  mpz_set_ui(d, 1); mpz_set(u, y); mpz_set(v, delta);
+#else
+  a = 1; b = 0; c = 0; d = 1;
+  u = y; v = delta;
+#endif
+  for(;;){
+#if defined(LINEAR_VALUE_IS_MP)
+    mpz_fdiv_qr(q, r, u, v);
+    if(mpz_cmp_ui(r, 0) == 0) break;
+    mpz_set(u, v);
+    mpz_set(v, r);
+    mpz_mul(e, q, c);
+    mpz_sub(e, a, e);
+    mpz_mul(f, q, d);
+    mpz_sub(f, b, f);
+    mpz_set(a, c);
+    mpz_set(b, d);
+    mpz_set(c, e);
+    mpz_set(d, f);
+#else
+    q = u / v;
+    r = mod(u, v);
+    if(r == 0) break;
+    u = v;
+    v = r;
+    e = a - q*c;
+    f = b - q*d;
+    a = c;
+    b = d;
+    c = e;
+    d = f;
+#endif
+  }
+#if defined(LINEAR_VALUE_IS_MP)
+  if(mpz_cmp_ui(v, 1) != 0)
+    mpz_set_ui(*z, 0);
+  else {
+    mpz_mul(a, c, x);
+    mpz_mod(*z, a, delta);
+  }
+  mpz_clear(a); mpz_clear(b); mpz_clear(c); mpz_clear(d);
+  mpz_clear(e); mpz_clear(f); mpz_clear(u); mpz_clear(v);
+  mpz_clear(q); mpz_clear(r);
+  
+#else
+  if(v != 1) *z = 0; /* y and delta are not mutually prime */
+  else *z = mod(c*x, delta);
+#endif
+}
+
 Tableau *expanser();
 
 /* integrer(.....) add a cut to the problem tableau, or return 0 when an
@@ -79,16 +143,9 @@ Tableau *expanser();
    nc increases by 2.
 									 */
 
-#if defined(LINEAR_VALUE_IS_MP)
 int integrer(ptp, pcontext, pnvar, pnparm, pni, pnc)
 Tableau **ptp, **pcontext;
 int *pnvar, *pnparm, *pni, *pnc;
-#else
-int integrer(ptp, pcontext, D, pnvar, pnparm, pni, pnc)
-Tableau **ptp, **pcontext;
-int *pnvar, *pnparm, *pni, *pnc;
-Entier D;
-#endif
 {int ncol = *pnvar+*pnparm+1;
  int nligne = *pnvar + *pni;
  int nparm = *pnparm;
@@ -101,9 +158,9 @@ Entier D;
  int ok_var, ok_const, ok_parm;
  Entier discrp[MAXPARM], discrm[MAXPARM];
  int llog();
- #if defined(LINEAR_VALUE_IS_MP)
  Entier D;
- #endif
+
+ Entier t, delta, tau, lambda;
  
  #if defined(LINEAR_VALUE_IS_MP)
  for(i=0; i<=ncol; i++)
@@ -115,6 +172,7 @@ Entier D;
  }
 
  mpz_init(x); mpz_init(d); mpz_init(D);
+ mpz_init(t); mpz_init(delta); mpz_init(tau); mpz_init(lambda);
  #endif
 
 
@@ -217,7 +275,42 @@ ok_var   ok_parm   ok_const
                   dth = d;
 		  *ptp = expanser(*ptp, nvar, ni, ncol, 0, dth, 0);
                   }
-                         /* The cut has a negative <<constant>> part      */                                     
+	      /* Find the deepest cut*/
+	      if(deepest_cut){
+#if defined(LINEAR_VALUE_IS_MP)
+	      mpz_neg(t, coupure[nvar]);
+              mpz_gcd(delta, t, D);
+	      mpz_divexact(tau, t, delta);
+	      mpz_divexact(d, D, delta);
+              mpz_sub_ui(t, d, 1);
+              bezout(t, tau, d, &lambda);
+	      mpz_gcd(t, lambda, D);
+              while(mpz_cmp_ui(t, 1) != 0){
+		mpz_add(lambda, lambda, d);
+		mpz_gcd(t, lambda, D);
+	      }
+	      for(j=0; j<nvar; j++){
+		mpz_mul(t, lambda, coupure[j]);
+		mpz_fdiv_r(coupure[j], t, D);
+	      }
+	      mpz_mul(t, coupure[nvar], lambda);
+	      mpz_mod(t, t, D);
+	      mpz_sub(t, D, t);
+	      mpz_neg(coupure[nvar], t);
+#else
+	      t = -coupure[nvar];
+	      delta = pgcd(t,D);
+	      tau = t/delta;
+	      d = D/delta;
+	      bezout(d-1, tau, d, &lambda);
+	      while(pgcd(lambda, D) != 1)
+		lambda += d;
+	      for(j=0; j<nvar; j++)
+		coupure[j] = mod(lambda*coupure[j], D);
+	      coupure[nvar] = -mod(-lambda*coupure[nvar], D);
+#endif
+	      }
+                         /* The cut has a negative <<constant>> part      */
               Flag(*ptp, nligne) = Minus; 
               #if defined(LINEAR_VALUE_IS_MP)
               mpz_set(Denom(*ptp, nligne), D);
@@ -233,20 +326,74 @@ ok_var   ok_parm   ok_const
                   #endif
                       /* A new row has been added to the problem tableau. */
 	      (*pni)++;
-             #if defined(LINEAR_VALUE_IS_MP)
-             goto clear;
-             #else
-             return(nligne);
-             #endif
+              if(verbose > 0) {
+		fprintf(dump, "just cut ");
+                if(deepest_cut){
+		  fprintf(dump, "Bezout multiplier ");
+#if defined(LINEAR_VALUE_IS_MP)
+		  mpz_out_str(dump, 10, lambda);
+#else
+		  fprintf(dump, FORMAT, lambda);
+#endif
+		}
+                fprintf(dump, "\n");
+		k=0;
+                for(i=0; i<nvar; i++){
+                  if(Flag(*ptp, i) & Unit){
+#if defined(LINEAR_VALUE_IS_MP)
+		    fprintf(dump, "0 ");
+#else
+		    sprintf(compose+k, "0 ");
+#endif
+		    k += 2;
+		  }
+		  else {
+#if defined(LINEAR_VALUE_IS_MP)
+		    k += mpz_out_str(dump, 10, Index(*ptp, i, nvar));
+		    fprintf(dump, "/");
+		    k++;
+		    k += mpz_out_str(dump, 10, Denom(*ptp, i));
+		    fprintf(dump, " ");
+		    k++;
+		    if(k > 60){
+		      putc('\n', dump);
+		      k = 0;
+		    }
+#else
+		    sprintf(compose+k, FORMAT, Index(*ptp, i, nvar));
+		    k = strlen(compose);
+		    sprintf(compose+k, "/");
+		    k++;
+		    sprintf(compose+k, FORMAT, Denom(*ptp, i));
+		    k = strlen(compose);
+		    sprintf(compose+k, " ");
+		    k++;
+		    if(k>60)  {
+		      fputs(compose, dump);
+		      putc('\n', dump);
+		      k=0;
+		    }
+#endif
+		  }
+		}
+		fputs(compose, dump);
+		putc('\n', dump);
+	      }
+	      if(verbose > 2) tab_display(*ptp, dump);
+#if defined(LINEAR_VALUE_IS_MP)
+	      goto clear;
+#else
+	      return(nligne);
+#endif
               }
-          else                               /*   case (b)    */
-          #if defined(LINEAR_VALUE_IS_MP)
+          else                                                               /*   case (b)    */
+#if defined(LINEAR_VALUE_IS_MP)
           { nligne = -1; 
             goto clear;
           }
-          #else
+#else
           return -1;  
-          #endif
+#endif
 /* In cases (c) and (e), one has to introduce a new parameter and
    introduce its defining inequalities into the context.
    
@@ -446,16 +593,17 @@ ok_var   ok_parm   ok_const
  #if defined(LINEAR_VALUE_IS_MP)
  nligne = 0;
  clear : 
- for(i=0; i <= ncol; i++)
-   mpz_clear(coupure[i]);
- for(i=0; i <= nparm+1; i++){
-   mpz_clear(discrp[i]);
-   mpz_clear(discrm[i]);
- }
- mpz_clear(x); mpz_clear(d); mpz_clear(D);
+   for(i=0; i <= ncol; i++)
+     mpz_clear(coupure[i]);
+   for(i=0; i <= nparm+1; i++){
+     mpz_clear(discrp[i]);
+     mpz_clear(discrm[i]);
+   }
+   mpz_clear(x); mpz_clear(d); mpz_clear(D);
+   mpz_clear(t); mpz_clear(tau); mpz_clear(lambda); mpz_clear(delta);
  return(nligne);
  #else
- return 0;
+   return 0;
  #endif
 }
 
