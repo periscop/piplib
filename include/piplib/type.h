@@ -36,8 +36,8 @@ extern "C"
 extern Entier UN;
 extern Entier ZERO;
 
-#define True 1
-#define False 0
+#define Pip_True 1
+#define Pip_False 0
 
 
 #ifdef TC

@@ -12,7 +12,7 @@ dnl Input file for autoconf to build a configuration shellscript.
 
 AC_PREREQ(2.13)
 AC_INIT(./source/piplib.c)
-VERSION="1.2"
+VERSION="1.2.1"
 
 TO_BUILD_32="32"
 TO_BUILD_64="64"
@@ -235,6 +235,7 @@ AC_SUBST(MP_BITS)
 AC_SUBST(MP_DFLAGS)
 
 AC_SUBST(prefix)
+AC_SUBST(exec_prefix)
 AC_SUBST(INSTALL)
 AC_SUBST(PACKAGES)
 AC_SUBST(TO_INSTALL)
@@ -247,6 +248,6 @@ echo "             /*-----------------------------------------------*"
 echo "              *         PIP/PipLib configuration is OK        *"
 echo "              *-----------------------------------------------*/"
 echo "It appears that your system is OK to start PIP/PipLib compilation. You"
-echo "need now to type \"make\" to buid the program. Next, if your are"
-echo "upgrading an old version, then type \"make uninstall\". Lastly type"
-echo "\"make install\" to install it on your system."
+echo "need now to type \"make uninstall\" if your are upgrading an old version."
+echo "Next, type \"make\" to buid the program. Lastly type \"make install\" to"
+echo "install it on your system."

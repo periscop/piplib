@@ -34,6 +34,7 @@ extern "C"
 struct A
     {struct A *precedent;
      char *bout;
+     char *free;
     };
 
 struct L

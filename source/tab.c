@@ -61,6 +61,7 @@ void tab_init(void)
  tab_free += sizeof(struct A);
  tab_base->precedent = NULL;
  tab_base->bout = tab_top;
+ tab_base->free = tab_free;
  chunk_count = 1;
 }
 
@@ -108,7 +109,7 @@ void tab_reset(struct high_water_mark by_the_mark)
 
       /* Enumerate the included tableaux. */
       p = (char *)tab_base + sizeof(struct A);
-      while(p < tab_free){
+      while(p < tab_base->free){
         Tableau *pt;
         pt = (Tableau *) p;
 	tab_clear(pt);
@@ -121,7 +122,21 @@ void tab_reset(struct high_water_mark by_the_mark)
       tab_top = tab_base->bout;
       chunk_count--;
      }
- if(chunk_count > 0) tab_free = by_the_mark.top;
+ if(chunk_count > 0) {
+     #if defined(LINEAR_VALUE_IS_MP)
+     /* Do not forget to clear the tables in the current chunk above the
+        high water mark */
+     p = (char *)by_the_mark.top;
+     while(p < tab_base->free) {
+        Tableau *pt;
+        pt = (Tableau *) p;
+        tab_clear(pt);
+        p += pt->taille;
+        } 
+     #endif   
+     tab_free = by_the_mark.top;
+     tab_base->free = tab_free;
+     }
  else {
      fprintf(stderr, "Syserr: tab_reset : error in memory allocation\n");
      exit(1);
@@ -160,6 +175,7 @@ Tableau * tab_alloc(int h, int w, int n)
      }
  p = tab_free;
  tab_free += taille;
+ tab_base->free = tab_free;
  tp = (Tableau *)p;
  q = (Entier *)(p +  sizeof(struct T) + (h+n-1) * sizeof (struct L));
  #if defined(LINEAR_VALUE_IS_MP)
@@ -308,7 +324,11 @@ Tableau * tab_Matrix2Tableau(PipMatrix * matrix, int Nineq, int Nv, int n)
     #endif
     
     /* Et ici lors de l'ajout de -p(x) >= 0 quand on traite une egalite. */
+    #if defined(LINEAR_VALUE_IS_MP)
+    if (mpz_sgn(inequality) == 0)
+    #else
     if (!inequality)
+    #endif
     { decal ++ ;
       new = current + 1 ;
       Flag(p,new)= Unknown ;

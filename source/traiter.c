@@ -211,14 +211,14 @@ void compa_test(Tableau *tp, Tableau *context,
  for(i = 0; i<ni + nvar; i++)
      {ff = Flag(tp,i);
       if(ff & (Critic | Unknown))
-	  {isCritic = True;
+	  {isCritic = Pip_True;
 	   for(j = 0; j<nvar; j++)
                  #if defined(LINEAR_VALUE_IS_MP)
 		 if(mpz_sgn(Index(tp, i, j)) > 0)
                  #else
 	         if(Index(tp, i, j) > 0)
                  #endif
-		 {isCritic = False;
+		 {isCritic = Pip_False;
 		  break;
 		 }
            compa_count++;
@@ -245,9 +245,9 @@ void compa_test(Tableau *tp, Tableau *context,
 	   
 	   p = sol_hwm();
            #if defined(LINEAR_VALUE_IS_MP)
-	   traiter(tPlus, NULL, True, nparm, 0, nc+1, 0, -1);
+	   traiter(tPlus, NULL, Pip_True, nparm, 0, nc+1, 0, -1);
            #else
-	   traiter(tPlus, NULL, True, UN, nparm, 0, nc+1, 0, -1);
+	   traiter(tPlus, NULL, Pip_True, UN, nparm, 0, nc+1, 0, -1);
 	   #endif
 	   cPlus = is_not_Nil(p);
 	   if(verbose>0){
@@ -271,11 +271,11 @@ void compa_test(Tableau *tp, Tableau *context,
            #if defined(LINEAR_VALUE_IS_MP)
 	   mpz_set(Index(tMinus, nparm+nc, j),discr[j]);/* loop body. */
 	   mpz_set(Denom(tMinus, nparm+nc), UN);
-	   traiter(tMinus, NULL, True, nparm, 0, nc+1, 0, -1);
+	   traiter(tMinus, NULL, Pip_True, nparm, 0, nc+1, 0, -1);
            #else
 	   Index(tMinus, nparm+nc, j) = discr[j];       /* loop body. */
 	   Denom(tMinus, nparm+nc) = UN;
-	   traiter(tMinus, NULL, True, UN, nparm, 0, nc+1, 0, -1);
+	   traiter(tMinus, NULL, Pip_True, UN, nparm, 0, nc+1, 0, -1);
            #endif
 	   cMinus = is_not_Nil(p);
 	   if(verbose>0){
@@ -672,7 +672,7 @@ int iq, nvar, nparm, ni, nc, bigparm;
  Entier discr[MAXPARM];
 
  #if defined(LINEAR_VALUE_IS_MP)
- for(i=0; i<=MAXPARM; i++)
+ for(i=0; i<MAXPARM; i++)
    mpz_init(discr[i]);
 
  dcw = mpz_sizeinbase(tp->determinant, 2);

@@ -72,6 +72,7 @@ struct pipmatrix
 { unsigned NbRows, NbColumns ;
   Entier **p ;
   Entier *p_Init ;
+  int p_Init_size;	        /* Only for PolyLib compatibility. */
 } ;
 typedef struct pipmatrix PipMatrix ;
 

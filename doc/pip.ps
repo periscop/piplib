@@ -8,7 +8,7 @@
 %DVIPSWebPage: (www.radicaleye.com)
 %DVIPSCommandLine: dvips -o pip.ps pip.dvi
 %DVIPSParameters: dpi=600, compressed
-%DVIPSSource:  TeX output 2003.01.17:0003
+%DVIPSSource:  TeX output 2003.01.29:1411
 %%BeginProcSet: texc.pro
 %!
 /TeXDict 300 dict def TeXDict begin/N{def}def/B{bind def}N/S{exch}N/X{S
@@ -2950,165 +2950,169 @@ b(PipLib)44 b(data)i(structures)f(description)257 4284
 y Fg(3.1.1)113 b(PipMatrix)36 b(structure)257 4468 y
 Fl(struct)53 b(pipmatrix)257 4589 y({)f(unsigned)h(NbRows,)g(NbColumns)
 h(;)360 4709 y(Entier)f(**)f(p)f(;)360 4830 y(Entier)i(*)e(p_Init)i(;)
-257 4950 y(})f(;)257 5070 y(typedef)h(struct)g(pipmatrix)h(PipMatrix)g
-(;)257 5285 y Fn(The)49 b Fl(PipMatrix)h Fn(structure)f(is)f(dev)m
-(oted)h(to)e(represen)m(t)j(a)e(constrain)m(ts)g(matrix)e(in)h(the)257
-5406 y(P)m(olyLib)41 b(shap)s(e)h([3)o(].)70 b(The)42
+360 4950 y(int)f(p_Init_size)i(;)257 5070 y(})e(;)257
+5191 y(typedef)h(struct)g(pipmatrix)h(PipMatrix)g(;)257
+5406 y Fn(The)49 b Fl(PipMatrix)h Fn(structure)f(is)f(dev)m(oted)h(to)e
+(represen)m(t)j(a)e(constrain)m(ts)g(matrix)e(in)h(the)257
+5526 y(P)m(olyLib)41 b(shap)s(e)h([3)o(].)70 b(The)42
 b(whole)f(matrix)e(is)i(arranged)g(ro)m(w)h(after)e(ro)m(w)i(at)f(the)g
-Fl(p)p 3446 5406 31 4 v 38 w(Init)257 5526 y Fn(adress.)k
+Fl(p)p 3446 5526 31 4 v 38 w(Init)257 5646 y Fn(adress.)k
 Fl(p)33 b Fn(is)f(an)h(arra)m(y)g(of)f(p)s(oin)m(ters)g(in)g(whic)m(h)h
 Fl(p[i])h Fn(p)s(oin)m(ts)e(to)h(the)g(b)s(eginning)e(of)h(the)h(i)3613
-5490 y Ff(th)257 5646 y Fn(ro)m(w.)44 b Fl(NbRows)31
-b Fn(and)g Fl(NbColumns)i Fn(are)d(resp)s(ectiv)m(ely)h(the)g(n)m(um)m
-(b)s(er)g(of)f(ro)m(ws)h(and)f(columns)g(of)p eop
+5610 y Ff(th)p eop
 %%Page: 15 15
 15 14 bop 257 266 a Fj(3)98 b(USING)32 b(THE)i(PIP)f(LIBRAR)-8
-b(Y)1947 b Fn(15)257 573 y(the)38 b(matrix.)56 b(W)-8
-b(e)37 b(use)h(this)f(structure)i(to)d(carry)i(p)s(olyhedrons.)58
-b(Eac)m(h)38 b(ro)m(w)f(corresp)s(onds)257 693 y(to)c(a)f(constrain)m
-(t)h(whic)m(h)g(the)g(p)s(olyhedron)g(m)m(ust)g(satisfy)-8
-b(.)44 b(The)33 b(constrain)m(t)g(is)f(an)h(equalit)m(y)257
-814 y(if)e(the)i(\014rst)g(elemen)m(t)f(is)f(0,)h(an)g(inequalit)m(y)g
-Fk(p)p Fn(\()p Fk(x)p Fn(\))27 b Fm(\025)i Fn(0)i(if)h(the)g(\014rst)h
-(elemen)m(t)f(is)f(1.)43 b(The)34 b(next)257 934 y(elemen)m(ts)47
-b(are)e(the)i(unkno)m(wn)g(co)s(e\016cien)m(ts,)k(follo)m(w)m(ed)45
-b(b)m(y)i(the)f(parameter)f(co)s(e\016cien)m(ts.)257
-1054 y(The)38 b(last)d(elemen)m(t)h(is)g(the)g(constan)m(t)i(factor.)54
-b(F)-8 b(or)35 b(instance,)i(in)f(the)h(problem)e(of)g(section)257
-1175 y(2.1.1)d(the)h(domain)e(is)h(de\014ned)i(b)m(y)g(3)e(constrain)m
-(ts:)1608 1302 y Fd(8)1608 1377 y(>)1608 1402 y(<)1608
-1552 y(>)1608 1576 y(:)1723 1380 y Fm(\000)p Fk(i)23
-b Fn(+)f Fk(m)28 b Fm(\025)h Fn(0)1723 1501 y Fm(\000)p
-Fk(j)g Fn(+)22 b Fk(n)28 b Fm(\025)g Fn(0)1723 1621 y
-Fk(j)h Fn(+)22 b Fk(i)g Fm(\000)h Fk(k)30 b Fm(\025)f
-Fn(0)257 1829 y(the)k(ro)m(ws)h(corresp)s(onding)e(to)h(these)g
-(constrain)m(ts)g(w)m(ould)g(b)s(e:)257 2027 y Fl(#)52
-b(eq/in)104 b(i)154 b(j)g(k)g(m)g(n)g(cst)462 2147 y(1)206
-b(0)103 b(-1)154 b(0)g(1)g(0)205 b(0)462 2268 y(1)154
-b(-1)h(0)f(0)g(0)g(1)205 b(0)462 2388 y(1)h(1)154 b(1)103
-b(-1)154 b(0)g(0)205 b(0)257 2587 y Fn(The)34 b(con)m(text)g(is)e
-(de\014ned)i(b)m(y)f(one)g(constrain)m(t:)1547 2704 y
-Fd(n)1644 2800 y Fm(\000)p Fk(k)26 b Fn(+)c Fk(m)g Fn(+)g
-Fk(n)28 b Fm(\025)g Fn(0)257 3015 y(the)33 b(ro)m(w)g(corresp)s(onding)
-g(to)f(this)g(constrain)m(t)h(w)m(ould)f(b)s(e:)257 3213
-y Fl(#)52 b(eq/in)104 b(k)154 b(m)g(n)g(cst)462 3334
-y(1)g(-1)h(1)f(1)205 b(0)257 3593 y Fg(3.1.2)113 b(PipV)-9
-b(ector)35 b(structure)257 3777 y Fl(struct)53 b(pipvector)257
-3898 y({)f(int)g(nb_elements)i(;)360 4018 y(Entier)f(*)e(the_vector)j
-(;)360 4138 y(Entier)f(*)e(the_deno)j(;)257 4259 y(})e(;)257
-4379 y(typedef)h(struct)g(pipvector)h(PipVector)g(;)257
-4601 y Fn(The)34 b Fl(PipVector)g Fn(structure)g(represen)m(ts)h(a)d
+b(Y)1947 b Fn(15)257 573 y(ro)m(w.)44 b Fl(NbRows)31
+b Fn(and)g Fl(NbColumns)i Fn(are)d(resp)s(ectiv)m(ely)h(the)g(n)m(um)m
+(b)s(er)g(of)f(ro)m(ws)h(and)f(columns)g(of)257 693 y(the)38
+b(matrix.)56 b(W)-8 b(e)37 b(use)h(this)f(structure)i(to)d(carry)i(p)s
+(olyhedrons.)58 b(Eac)m(h)38 b(ro)m(w)f(corresp)s(onds)257
+814 y(to)c(a)f(constrain)m(t)h(whic)m(h)g(the)g(p)s(olyhedron)g(m)m
+(ust)g(satisfy)-8 b(.)44 b(The)33 b(constrain)m(t)g(is)f(an)h(equalit)m
+(y)257 934 y(if)e(the)i(\014rst)g(elemen)m(t)f(is)f(0,)h(an)g
+(inequalit)m(y)g Fk(p)p Fn(\()p Fk(x)p Fn(\))27 b Fm(\025)i
+Fn(0)i(if)h(the)g(\014rst)h(elemen)m(t)f(is)f(1.)43 b(The)34
+b(next)257 1054 y(elemen)m(ts)47 b(are)e(the)i(unkno)m(wn)g(co)s
+(e\016cien)m(ts,)k(follo)m(w)m(ed)45 b(b)m(y)i(the)f(parameter)f(co)s
+(e\016cien)m(ts.)257 1175 y(The)38 b(last)d(elemen)m(t)h(is)g(the)g
+(constan)m(t)i(factor.)54 b(F)-8 b(or)35 b(instance,)i(in)f(the)h
+(problem)e(of)g(section)257 1295 y(2.1.1)d(the)h(domain)e(is)h
+(de\014ned)i(b)m(y)g(3)e(constrain)m(ts:)1608 1429 y
+Fd(8)1608 1503 y(>)1608 1528 y(<)1608 1678 y(>)1608 1703
+y(:)1723 1507 y Fm(\000)p Fk(i)23 b Fn(+)f Fk(m)28 b
+Fm(\025)h Fn(0)1723 1627 y Fm(\000)p Fk(j)g Fn(+)22 b
+Fk(n)28 b Fm(\025)g Fn(0)1723 1747 y Fk(j)h Fn(+)22 b
+Fk(i)g Fm(\000)h Fk(k)30 b Fm(\025)f Fn(0)257 1961 y(the)k(ro)m(ws)h
+(corresp)s(onding)e(to)h(these)g(constrain)m(ts)g(w)m(ould)g(b)s(e:)257
+2164 y Fl(#)52 b(eq/in)104 b(i)154 b(j)g(k)g(m)g(n)g(cst)462
+2284 y(1)206 b(0)103 b(-1)154 b(0)g(1)g(0)205 b(0)462
+2405 y(1)154 b(-1)h(0)f(0)g(0)g(1)205 b(0)462 2525 y(1)h(1)154
+b(1)103 b(-1)154 b(0)g(0)205 b(0)257 2729 y Fn(The)34
+b(con)m(text)g(is)e(de\014ned)i(b)m(y)f(one)g(constrain)m(t:)1547
+2852 y Fd(n)1644 2948 y Fm(\000)p Fk(k)26 b Fn(+)c Fk(m)g
+Fn(+)g Fk(n)28 b Fm(\025)g Fn(0)257 3169 y(the)33 b(ro)m(w)g(corresp)s
+(onding)g(to)f(this)g(constrain)m(t)h(w)m(ould)f(b)s(e:)257
+3372 y Fl(#)52 b(eq/in)104 b(k)154 b(m)g(n)g(cst)462
+3492 y(1)g(-1)h(1)f(1)205 b(0)257 3696 y(p)p 314 3696
+31 4 v 38 w(Init)p 556 3696 V 38 w(size)37 b Fn(is)f(needed)h(b)m(y)h
+(the)e(p)s(olylib)e(to)i(free)h(the)f(memory)g(allo)s(cated)e(b)m(y)j
+(mpz)p 3507 3696 30 4 v 35 w(init)257 3816 y(in)32 b(the)h(m)m(ultiple)
+d(precision)i(release.)257 4076 y Fg(3.1.2)113 b(PipV)-9
+b(ector)35 b(structure)257 4261 y Fl(struct)53 b(pipvector)257
+4381 y({)f(int)g(nb_elements)i(;)360 4502 y(Entier)f(*)e(the_vector)j
+(;)360 4622 y(Entier)f(*)e(the_deno)j(;)257 4742 y(})e(;)257
+4863 y(typedef)h(struct)g(pipvector)h(PipVector)g(;)257
+5091 y Fn(The)34 b Fl(PipVector)g Fn(structure)g(represen)m(ts)h(a)d
 Fl(Vector)i Fn(as)e(describ)s(ed)i(in)d(grammar)f(2)i(in)g(sec-)257
-4721 y(tion)h(2.3.)45 b Fl(nb)p 764 4721 31 4 v 37 w(elements)36
+5211 y(tion)h(2.3.)45 b Fl(nb)p 764 5211 31 4 v 37 w(elements)36
 b Fn(is)c(the)i(n)m(um)m(b)s(er)g(of)f(v)m(ector)h(elemen)m(ts,)g
-Fl(the)p 2853 4721 V 38 w(vector)g Fn(is)f(an)g(arra)m(y)257
-4842 y(whic)m(h)e(con)m(tains)f(the)h(n)m(umerators)f(of)f(these)j
-(elemen)m(ts)e(and)g Fl(the)p 2688 4842 V 38 w(deno)h
-Fn(is)f(an)g(arra)m(y)g(whic)m(h)257 4962 y(con)m(tains)j(their)f
-(denominators:)42 b(the)33 b(i)1714 4926 y Ff(th)1816
-4962 y Fn(elemen)m(t)g(is)f Fl(the)p 2434 4962 V 38 w(vector[i]/the)p
-3135 4962 V 40 w(deno[i])p Fn(.)257 5221 y Fg(3.1.3)113
-b(PipNewparm)36 b(structure)257 5406 y Fl(struct)53 b(pipnewparm)257
-5526 y({)f(int)g(rank)g(;)360 5646 y(PipVector)i(*)d(vector)i(;)p
-eop
+Fl(the)p 2853 5211 V 38 w(vector)g Fn(is)f(an)g(arra)m(y)257
+5332 y(whic)m(h)e(con)m(tains)f(the)h(n)m(umerators)f(of)f(these)j
+(elemen)m(ts)e(and)g Fl(the)p 2688 5332 V 38 w(deno)h
+Fn(is)f(an)g(arra)m(y)g(whic)m(h)257 5452 y(con)m(tains)j(their)f
+(denominators:)42 b(the)33 b(i)1714 5416 y Ff(th)1816
+5452 y Fn(elemen)m(t)g(is)f Fl(the)p 2434 5452 V 38 w(vector[i]/the)p
+3135 5452 V 40 w(deno[i])p Fn(.)p eop
 %%Page: 16 16
 16 15 bop 257 266 a Fj(3)98 b(USING)32 b(THE)i(PIP)f(LIBRAR)-8
-b(Y)1947 b Fn(16)360 573 y Fl(Entier)53 b(deno)f(;)360
-693 y(struct)h(pipnewparm)h(*)d(next)i(;)257 814 y(})f(;)257
-934 y(typedef)h(struct)g(pipnewparm)h(PipNewparm)g(;)257
-1162 y Fn(The)29 b Fl(PipNewparm)h Fn(structure)f(represen)m(ts)h(a)d
-Fl(NULL)i Fn(terminated)d(link)m(ed)i(list)e(of)h Fl(Newparm)i
-Fn(as)257 1283 y(describ)s(ed)36 b(in)f(grammar)e(2)i(in)f(section)h
-(2.3.)51 b(F)-8 b(or)35 b(eac)m(h)h Fl(Newparm)p Fn(,)h(the)f(rank)f
-(is)g Fl(rank)p Fn(,)i(the)257 1403 y(v)m(ector)32 b(of)d(co)s
-(e\016cien)m(ts)j(is)d(p)s(oin)m(ted)h(b)m(y)h Fl(vector)p
-Fn(,)i(and)d(the)h(denominator)d(is)i Fl(deno)p Fn(.)44
-b Fl(next)31 b Fn(is)257 1523 y(a)i(p)s(oin)m(ter)f(to)g(the)h(next)g
-Fl(PipNewparm)j Fn(structure.)257 1783 y Fg(3.1.4)113
-b(PipList)35 b(structure)257 1968 y Fl(struct)53 b(piplist)257
-2088 y({)f(PipVector)i(*)d(vector)i(;)360 2209 y(struct)g(piplist)g(*)e
-(next)i(;)257 2329 y(})f(;)257 2449 y(typedef)h(struct)g(piplist)g
-(PipList)h(;)257 2678 y Fn(The)48 b Fl(PipList)g Fn(structure)f
+b(Y)1947 b Fn(16)257 573 y Fg(3.1.3)113 b(PipNewparm)36
+b(structure)257 758 y Fl(struct)53 b(pipnewparm)257 878
+y({)f(int)g(rank)g(;)360 998 y(PipVector)i(*)d(vector)i(;)360
+1119 y(Entier)g(deno)f(;)360 1239 y(struct)h(pipnewparm)h(*)d(next)i(;)
+257 1359 y(})f(;)257 1480 y(typedef)h(struct)g(pipnewparm)h(PipNewparm)
+g(;)257 1708 y Fn(The)29 b Fl(PipNewparm)h Fn(structure)f(represen)m
+(ts)h(a)d Fl(NULL)i Fn(terminated)d(link)m(ed)i(list)e(of)h
+Fl(Newparm)i Fn(as)257 1829 y(describ)s(ed)36 b(in)f(grammar)e(2)i(in)f
+(section)h(2.3.)51 b(F)-8 b(or)35 b(eac)m(h)h Fl(Newparm)p
+Fn(,)h(the)f(rank)f(is)g Fl(rank)p Fn(,)i(the)257 1949
+y(v)m(ector)32 b(of)d(co)s(e\016cien)m(ts)j(is)d(p)s(oin)m(ted)h(b)m(y)
+h Fl(vector)p Fn(,)i(and)d(the)h(denominator)d(is)i Fl(deno)p
+Fn(.)44 b Fl(next)31 b Fn(is)257 2069 y(a)i(p)s(oin)m(ter)f(to)g(the)h
+(next)g Fl(PipNewparm)j Fn(structure.)257 2329 y Fg(3.1.4)113
+b(PipList)35 b(structure)257 2514 y Fl(struct)53 b(piplist)257
+2634 y({)f(PipVector)i(*)d(vector)i(;)360 2755 y(struct)g(piplist)g(*)e
+(next)i(;)257 2875 y(})f(;)257 2995 y(typedef)h(struct)g(piplist)g
+(PipList)h(;)257 3224 y Fn(The)48 b Fl(PipList)g Fn(structure)f
 (represen)m(ts)i(a)d Fl(NULL)h Fn(terminated)e(link)m(ed)h(list)f(of)h
-Fl(Vector)h Fn(as)257 2798 y(describ)s(ed)38 b(in)d(grammar)f(2)i(in)g
+Fl(Vector)h Fn(as)257 3344 y(describ)s(ed)38 b(in)d(grammar)f(2)i(in)g
 (section)h(2.3.)54 b Fl(vector)38 b Fn(is)e(a)g(p)s(oin)m(ter)g(to)g
-(the)h(v)m(ector)g(of)f(the)257 2919 y(curren)m(t)e(no)s(de)f(and)g
+(the)h(v)m(ector)g(of)f(the)257 3464 y(curren)m(t)e(no)s(de)f(and)g
 Fl(next)g Fn(is)f(a)g(p)s(oin)m(ter)g(to)h(the)g(next)g
-Fl(PipList)i Fn(structure.)257 3178 y Fg(3.1.5)113 b(PipQuast)37
-b(structure)257 3363 y Fl(struct)53 b(pipquast)257 3483
-y({)f(PipNewparm)i(*)d(newparm)i(;)360 3604 y(PipList)g(*)f(list)g(;)
-360 3724 y(PipVector)i(*)d(condition)j(;)360 3845 y(struct)f(pipquast)g
-(*)f(next_then)h(;)360 3965 y(struct)g(pipquast)g(*)f(next_else)h(;)360
-4085 y(struct)g(pipquast)g(*)f(father)h(;)257 4206 y(})f(;)257
-4326 y(typedef)h(struct)g(pipquast)h(PipQuast)f(;)257
-4554 y Fn(The)29 b Fl(PipQuast)i Fn(represen)m(ts)f(a)e
+Fl(PipList)i Fn(structure.)257 3724 y Fg(3.1.5)113 b(PipQuast)37
+b(structure)257 3909 y Fl(struct)53 b(pipquast)257 4029
+y({)f(PipNewparm)i(*)d(newparm)i(;)360 4150 y(PipList)g(*)f(list)g(;)
+360 4270 y(PipVector)i(*)d(condition)j(;)360 4390 y(struct)f(pipquast)g
+(*)f(next_then)h(;)360 4511 y(struct)g(pipquast)g(*)f(next_else)h(;)360
+4631 y(struct)g(pipquast)g(*)f(father)h(;)257 4752 y(})f(;)257
+4872 y(typedef)h(struct)g(pipquast)h(PipQuast)f(;)257
+5100 y Fn(The)29 b Fl(PipQuast)i Fn(represen)m(ts)f(a)e
 Fl(Quast)h Fn(as)g(describ)s(ed)f(in)g(grammar)e(2)h(in)h(section)g
-(2.3.)42 b(Eac)m(h)257 4675 y Fl(Quast)24 b Fn(has)f(a)g(tree)g
+(2.3.)42 b(Eac)m(h)257 5221 y Fl(Quast)24 b Fn(has)f(a)g(tree)g
 (structure)h(and)f(b)s(egins)f(with)h(a)f(list)f(of)i
 Fl(Newparm)h Fn(\(\014eld)e Fl(newparm)p Fn(\).)42 b(If)23
-b(the)257 4795 y(p)s(oin)m(ter)37 b Fl(condition)j Fn(is)d(not)g
+b(the)257 5341 y(p)s(oin)m(ter)37 b Fl(condition)j Fn(is)d(not)g
 Fl(NULL)p Fn(,)i(the)e(list)f(of)h Fl(Newparm)i Fn(is)e(follo)m(w)m(ed)
-g(b)m(y)h(a)f(conditional)257 4916 y(structure)50 b(:)76
+g(b)m(y)h(a)f(conditional)257 5461 y(structure)50 b(:)76
 b(if)47 b(the)i(condition)e(p)s(oin)m(ted)h(b)m(y)i Fl(condition)h
-Fn(is)d(true,)53 b(then)c(the)g(solution)257 5036 y(con)m(tin)m(ues)28
+Fn(is)d(true,)53 b(then)c(the)g(solution)257 5582 y(con)m(tin)m(ues)28
 b(in)d(the)i Fl(Quast)h Fn(p)s(oin)m(ted)e(b)m(y)h Fl(next)p
-1917 5036 31 4 v 38 w(then)p Fn(,)h(in)e(the)h Fl(Quast)g
-Fn(p)s(oin)m(ted)f(b)m(y)i Fl(next)p 3446 5036 V 38 w(else)257
-5156 y Fn(otherwise.)61 b(If)38 b(the)h(p)s(oin)m(ter)e
-Fl(condition)k Fn(is)d Fl(NULL)p Fn(,)h(the)f(list)f(of)h
-Fl(Newparm)i Fn(is)d(follo)m(w)m(ed)h(b)m(y)257 5277
-y(a)e(list)f(of)h(v)m(ectors)h(\(\014eld)f Fl(list)p
-Fn(\).)55 b(F)-8 b(or)36 b Fl(Quast)h Fn(manipulation)c(con)m(v)m
-(enience,)39 b(a)d(p)s(oin)m(ter)g(to)257 5397 y(the)e(father)e(in)g
-(the)i(tree)f(is)f(pro)m(vided)h(\(\014eld)g Fl(father)p
-Fn(\),)h(ob)m(viously)f(the)g(father)g(of)f(the)h(ro)s(ot)257
-5518 y(is)f Fl(NULL)p Fn(.)p eop
+1917 5582 31 4 v 38 w(then)p Fn(,)h(in)e(the)h Fl(Quast)g
+Fn(p)s(oin)m(ted)f(b)m(y)i Fl(next)p 3446 5582 V 38 w(else)p
+eop
 %%Page: 17 17
 17 16 bop 257 266 a Fj(3)98 b(USING)32 b(THE)i(PIP)f(LIBRAR)-8
-b(Y)1947 b Fn(17)257 573 y Fh(3.2)136 b(PipLib)44 b(functions)h
-(description)257 758 y Fg(3.2.1)113 b(pip)p 763 758 34
-4 v 40 w(solv)m(e)37 b(function)257 942 y Fl(PipQuast)54
-b(*)d(pip_solve)257 1063 y(\()h(PipMatrix)i(*)d(domain,)360
-1183 y(PipMatrix)j(*)d(context,)360 1303 y(int)h(Bg,)360
-1424 y(int)g(Nq,)360 1544 y(int)g(Verbose,)360 1665 y(int)g(Simplify,)
-360 1785 y(int)g(Max)257 1905 y(\))g(;)257 2134 y Fn(The)47
-b Fl(pip)p 630 2134 31 4 v 37 w(solve)g Fn(function)e(solv)m(es)h(a)f
+b(Y)1947 b Fn(17)257 573 y(otherwise.)61 b(If)38 b(the)h(p)s(oin)m(ter)
+e Fl(condition)k Fn(is)d Fl(NULL)p Fn(,)h(the)f(list)f(of)h
+Fl(Newparm)i Fn(is)d(follo)m(w)m(ed)h(b)m(y)257 693 y(a)e(list)f(of)h
+(v)m(ectors)h(\(\014eld)f Fl(list)p Fn(\).)55 b(F)-8
+b(or)36 b Fl(Quast)h Fn(manipulation)c(con)m(v)m(enience,)39
+b(a)d(p)s(oin)m(ter)g(to)257 814 y(the)e(father)e(in)g(the)i(tree)f(is)
+f(pro)m(vided)h(\(\014eld)g Fl(father)p Fn(\),)h(ob)m(viously)f(the)g
+(father)g(of)f(the)h(ro)s(ot)257 934 y(is)f Fl(NULL)p
+Fn(.)257 1216 y Fh(3.2)136 b(PipLib)44 b(functions)h(description)257
+1401 y Fg(3.2.1)113 b(pip)p 763 1401 34 4 v 40 w(solv)m(e)37
+b(function)257 1586 y Fl(PipQuast)54 b(*)d(pip_solve)257
+1706 y(\()h(PipMatrix)i(*)d(domain,)360 1827 y(PipMatrix)j(*)d
+(context,)360 1947 y(int)h(Bg,)360 2067 y(int)g(Nq,)360
+2188 y(int)g(Verbose,)360 2308 y(int)g(Simplify,)360
+2428 y(int)g(Max)257 2549 y(\))g(;)257 2727 y Fn(The)47
+b Fl(pip)p 630 2727 31 4 v 37 w(solve)g Fn(function)e(solv)m(es)h(a)f
 (linear)f(problem)g(pro)m(vided)i(as)f(input.)82 b(The)46
-b(\014rst)257 2254 y(three)d(parameters)g(describ)s(e)f(the)h(problem)e
+b(\014rst)257 2847 y(three)d(parameters)g(describ)s(e)f(the)h(problem)e
 (that)h(the)h(user)g(w)m(an)m(ts)g(to)f(solv)m(e.)73
-b(The)43 b(last)257 2374 y(four)33 b(parameters)g(describ)s(e)h(the)f
+b(The)43 b(last)257 2967 y(four)33 b(parameters)g(describ)s(e)h(the)f
 (options)g(that)g(the)g(user)h(has)f(to)g(set.)46 b(These)35
-b(parameters)257 2495 y(are:)377 2698 y(1.)48 b Fl(domain)p
+b(parameters)257 3088 y(are:)377 3253 y(1.)48 b Fl(domain)p
 Fn(:)c(a)29 b(p)s(oin)m(ter)f(to)h(the)h(equations)f(and)h(inequations)
-e(system)j(whic)m(h)e(describ)s(es)501 2819 y(the)k(unkno)m(wn)i
+e(system)j(whic)m(h)e(describ)s(es)501 3373 y(the)k(unkno)m(wn)i
 (domain)30 b(in)i(the)h(P)m(olyLib)f(constrain)m(ts)h(matrix)e(shap)s
-(e,)377 3022 y(2.)48 b Fl(context)p Fn(:)64 b(a)41 b(p)s(oin)m(ter)h
+(e,)377 3564 y(2.)48 b Fl(context)p Fn(:)64 b(a)41 b(p)s(oin)m(ter)h
 (to)f(the)h(equations)g(and)g(inequations)g(system)g(satis\014ed)h(b)m
-(y)501 3142 y(the)34 b(parameters)g(con)m(text)h(in)e(the)h(P)m(olyLib)
+(y)501 3685 y(the)34 b(parameters)g(con)m(text)h(in)e(the)h(P)m(olyLib)
 f(constrain)m(ts)h(matrix)e(shap)s(e)i(\(it)e(can)i(b)s(e)501
-3263 y(NULL)f(if)e(there)j(is)e(no)g(con)m(text\),)377
-3466 y(3.)48 b Fl(Bg)p Fn(:)i(the)36 b(column)e(rank)i(of)f(the)g(bign)
+3805 y(NULL)f(if)e(there)j(is)e(no)g(con)m(text\),)377
+3996 y(3.)48 b Fl(Bg)p Fn(:)i(the)36 b(column)e(rank)i(of)f(the)g(bign)
 m(um)g(\(\014rst)g(column)g(rank)g(is)g(0\),)h(or)f(a)g(negativ)m(e)501
-3587 y(v)-5 b(alue)32 b(if)g(there)h(is)f(no)h(big)e(parameter)h(in)g
-(the)h(problem)e(to)i(b)s(e)f(solv)m(ed,)377 3790 y(4.)48
+4116 y(v)-5 b(alue)32 b(if)g(there)h(is)f(no)h(big)e(parameter)h(in)g
+(the)h(problem)e(to)i(b)s(e)f(solv)m(ed,)377 4307 y(4.)48
 b Fl(Nq)p Fn(:)c(a)33 b(b)s(o)s(olean)e(set)i(to)f(1)g(if)g(an)g(in)m
 (teger)h(solution)e(is)h(needed,)i(0)e(otherwise,)377
-3993 y(5.)48 b Fl(Verbose)p Fn(:)d(a)31 b(b)s(o)s(olean)e(set)j(to)e(1)
+4498 y(5.)48 b Fl(Verbose)p Fn(:)d(a)31 b(b)s(o)s(olean)e(set)j(to)e(1)
 h(if)f(debug)i(informations)c(are)j(needed)i(\(in)d(this)h(case,)501
-4114 y(most)i(of)h(the)g(pro)s(cessing)g(will)e(b)s(e)i(prin)m(ted)g
+4618 y(most)i(of)h(the)g(pro)s(cessing)g(will)e(b)s(e)i(prin)m(ted)g
 (in)f(a)g(\014le.)47 b(The)35 b(\014le)e(name)g(is)h(generated)501
-4234 y(at)e(random)g(\(b)m(y)i Fi(mkstemp)6 b Fn(\))31
+4738 y(at)e(random)g(\(b)m(y)i Fi(mkstemp)6 b Fn(\))31
 b(or)h(set)i(with)e(constan)m(t)h(DEBUG\),)g(0)f(if)f(not,)377
-4438 y(6.)48 b Fl(Simplify)p Fn(:)42 b(a)26 b(b)s(o)s(olean)e(set)i(to)
+4929 y(6.)48 b Fl(Simplify)p Fn(:)42 b(a)26 b(b)s(o)s(olean)e(set)i(to)
 g(1)f(if)g(some)g(trivial)e(quast)k(simpli\014cations)22
-b(are)k(needed)501 4558 y(\(recursiv)m(e)40 b(elimination)35
+b(are)k(needed)501 5050 y(\(recursiv)m(e)40 b(elimination)35
 b(of)j(degenerated)h(patterns)h(lik)m(e)e Fl(if)51 b(#[...])104
-b(\(\))52 b(\(\))p Fn(\),)41 b(0)501 4678 y(otherwise,)377
-4882 y(7.)48 b Fl(Max)p Fn(:)c(not)33 b(in)f(use)h(y)m(et,)h(please)f
+b(\(\))52 b(\(\))p Fn(\),)41 b(0)501 5170 y(otherwise,)377
+5361 y(7.)48 b Fl(Max)p Fn(:)c(not)33 b(in)f(use)h(y)m(et,)h(please)f
 (set)g(it)f(to)g(0)g(for)g(future)h(compatibilit)m(y)-8
-b(.)257 5085 y(This)33 b(function)f(returns)i(a)e(p)s(oin)m(ter)g(to)g
+b(.)257 5526 y(This)33 b(function)f(returns)i(a)e(p)s(oin)m(ter)g(to)g
 (a)g Fl(PipQuast)j Fn(structure)f(con)m(taining)d(the)i(solution,)257
-5205 y(it)f(will)e(b)s(e)j Fl(NULL)h Fn(if)d(the)i(con)m(text)h(is)e
+5646 y(it)f(will)e(b)s(e)j Fl(NULL)h Fn(if)d(the)i(con)m(text)h(is)e
 Fl(void)p Fn(.)p eop
 %%Page: 18 18
 18 17 bop 257 266 a Fj(3)98 b(USING)32 b(THE)i(PIP)f(LIBRAR)-8

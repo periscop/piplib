@@ -50,8 +50,10 @@ LONG_DFLAGS = @LONG_DFLAGS@
 MP_BITS     = @MP_BITS@
 #             Flags for mp
 MP_DFLAGS   = @MP_DFLAGS@
-#             Installation directory.     
-PIPLIB_INS  = @prefix@
+#             Architecture-independent installation directory.     
+prefix      = @prefix@
+#             Architecture-dependent installation directory.     
+exec_prefix = @exec_prefix@
 #             Installation software. 
 INSTALL     = @INSTALL@
 #             Packages to build.         
@@ -73,9 +75,9 @@ PIPLIB_INC = ./include
 # name depends on architecture and on operating system.
 PIPLIB_OBJ = ./obj$(BITS)_$(TARGET)
 # PipLib's installation subdirectories.
-PIPLIB_INS_BIN = $(PIPLIB_INS)/bin
-PIPLIB_INS_LIB = $(PIPLIB_INS)/lib
-PIPLIB_INS_INC = $(PIPLIB_INS)/include
+PIPLIB_INS_BIN = $(exec_prefix)/bin
+PIPLIB_INS_LIB = $(exec_prefix)/lib
+PIPLIB_INS_INC = $(prefix)/include
 
 
 #/*****************************************************************************

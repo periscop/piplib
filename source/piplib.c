@@ -505,7 +505,7 @@ PipMatrix * pip_matrix_read(FILE * foo)
       }
       #if defined(LINEAR_VALUE_IS_MP)
       sscanf(str,"%lld",&val) ;
-      mpz_init_set_si(*p++,val) ;
+      mpz_set_si(*p++,val) ;
       #else
       sscanf(str,FORMAT,p++) ;
       #endif
@@ -552,14 +552,21 @@ int Bg, Nq, Verbose, Simplify, Max ;
   struct high_water_mark hq ;
   Entier D ;
   PipQuast * solution ;
+  static int pip_initialized = 0;
   	
-  #if defined(LINEAR_VALUE_IS_MP)
-  mpz_init_set_si(UN, 1);
-  mpz_init_set_si(ZERO, 0);
-  #else
-  UN   = VAL_UN ;
-  ZERO = VAL_ZERO ;
-  #endif
+  /* Avoid initializing (and leaking) several times */
+  if (!pip_initialized) {
+    #if defined(LINEAR_VALUE_IS_MP)
+    mpz_init_set_si(UN, 1);
+    mpz_init_set_si(ZERO, 0);
+    #else
+    UN   = VAL_UN ;
+    ZERO = VAL_ZERO ;
+    #endif
+    sol_init() ;
+    tab_init() ;
+    pip_initialized = 1;
+  }
    	
   /* initialisations diverses :
    * - la valeur de Verbose est placee dans sa variable globale. Dans le cas
@@ -591,8 +598,6 @@ int Bg, Nq, Verbose, Simplify, Max ;
   #else
   limit = ZERO ;
   #endif
-  sol_init() ;
-  tab_init() ;
 
   /* Si inequnk est NULL, la solution est automatiquement void (NULL). */
   if (inequnk != NULL)
@@ -610,7 +615,11 @@ int Bg, Nq, Verbose, Simplify, Max ;
      */
     Nl = inequnk->NbRows ;
     for (i=0;i<inequnk->NbRows;i++)
+    #if defined(LINEAR_VALUE_IS_MP)
+    if (mpz_sgn(**(inequnk->p + i)) == 0)
+    #else
     if (**(inequnk->p + i) == 0)
+    #endif
     Nl ++ ;
       
     /* On prend les 'marques' de debut de traitement. */
@@ -625,7 +634,11 @@ int Bg, Nq, Verbose, Simplify, Max ;
     if (ineqpar != NULL)
     { Nm = ineqpar->NbRows ;
       for (i=0;i<ineqpar->NbRows;i++)
+      #if defined(LINEAR_VALUE_IS_MP)
+      if (mpz_sgn(**(ineqpar->p + i)) == 0)
+      #else
       if (**(ineqpar->p + i) == 0)
+      #endif
       Nm ++ ;
       
       context = tab_Matrix2Tableau(ineqpar,Nm,Np,0) ;
@@ -635,22 +648,22 @@ int Bg, Nq, Verbose, Simplify, Max ;
          */
 	ctxt = expanser(context, Np, Nm, Np+1, Np, 0, 0) ;
         #if defined(LINEAR_VALUE_IS_MP)
-        traiter(ctxt, NULL, True, Np, 0, Nm, 0, -1) ;
+        traiter(ctxt, NULL, Pip_True, Np, 0, Nm, 0, -1) ;
 	#else
-        traiter(ctxt, NULL, True, UN, Np, 0, Nm, 0, -1) ;
+        traiter(ctxt, NULL, Pip_True, UN, Np, 0, Nm, 0, -1) ;
         #endif
         non_vide = is_not_Nil(p) ;
         sol_reset(p) ;
       }
       else
-      non_vide = True ;
+      non_vide = Pip_True ;
     }
     else
     { Nm = 0 ;
       context = NULL ; /* ATTENTION, en toute rigueur on devrait faire un
                         * tab_Matrix2Tableau d'une matrice 0*0.
 			*/
-      non_vide = True ;
+      non_vide = Pip_True ;
     }
         
     if (verbose)

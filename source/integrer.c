@@ -60,11 +60,11 @@ Entier D;
  for(i = 0; i<nvar; i++)
      {ff = Flag(tp, i);
       if(bigparm > 0)
-	 {if(ff & Unit)return(True);
-          if(Index(tp, i, bigparm) != D) return(True);
+	 {if(ff & Unit)return(Pip_True);
+          if(Index(tp, i, bigparm) != D) return(Pip_True);
 	 }
       }
- return(False);
+ return(Pip_False);
 }
 
 Tableau *expanser();
@@ -141,7 +141,7 @@ Entier D;
 /*                          Here a portential candidate has been found.
                             Build the cut by reducing each coefficient
                             modulo D, the common denominator            */
-      ok_var = False;
+      ok_var = Pip_False;
       for(j = 0; j<nvar; j++) {
          #if defined(LINEAR_VALUE_IS_MP)
          mpz_fdiv_r(x, Index(*ptp, i, j), D);
@@ -149,7 +149,7 @@ Entier D;
          #else
          x = coupure[j] = mod(Index(*ptp, i, j), D);
          #endif
-          if(x > 0) ok_var = True;
+          if(x > 0) ok_var = Pip_True;
           }
 /*                          Done for the coefficient of the variables.  */
 
@@ -164,17 +164,17 @@ Entier D;
       ok_const = (x != 0);
       #endif
 /*                          This is the constant term                   */
-      ok_parm = False;
+      ok_parm = Pip_False;
       for(j = nvar+1; j<ncol; j++) {
          #if defined(LINEAR_VALUE_IS_MP)
          mpz_neg(x, Index(*ptp, i, j));
          mpz_fdiv_r(x, x, D);
          mpz_neg(x, x);
          mpz_set(coupure[j], x);
-         if(mpz_cmp_ui(x, 0) != 0) ok_parm = True;
+         if(mpz_cmp_ui(x, 0) != 0) ok_parm = Pip_True;
          #else
          x = coupure[j] = - mod(- Index(*ptp, i, j), D);         /* (1) */
-         if(x != 0) ok_parm = True;
+         if(x != 0) ok_parm = Pip_True;
          #endif
       }
 /*                          These are the parametric terms              */
