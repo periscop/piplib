@@ -1,8 +1,10 @@
 /******************************************************************************
  *                     PIP : Parametric Integer Programming                   *
  ******************************************************************************
+ *                                 traiter.h                                  *
+ ******************************************************************************
  *                                                                            *
- * Copyright Paul Feautrier, 1988, 1993, 1994, 1996                           *
+ * Copyright Paul Feautrier, 1988, 1993, 1994, 1996, 2002                     *
  *                                                                            *
  * This is free software; you can redistribute it and/or modify it under the  *
  * terms of the GNU General Public License as published by the Free Software  *
@@ -296,7 +298,7 @@ Entier pivoter(Tableau *tp, int pivi, Entier D, int nvar,
  d = pgcd(pivot, dpiv);
  ppivot = pivot/d;
  dppiv = dpiv/d;
- if(verbose){
+ if(verbose>0){
      fprintf(dump, format_format, ppivot, dppiv);
      fprintf(dump, "%d x %d\n", pivi, pivj);
      }
@@ -308,7 +310,7 @@ Entier pivoter(Tableau *tp, int pivi, Entier D, int nvar,
  if(dppiv != 1) {
      fprintf(stderr, "Integer overflow : %d\n", D);
 /*   tab_display(tp, stdout); */
-     if(verbose) fflush(dump);
+     if(verbose>0) fflush(dump);
      exit(1);
      }
  for(i=0; i<tp->l_determinant; i++)
@@ -324,7 +326,7 @@ Entier pivoter(Tableau *tp, int pivi, Entier D, int nvar,
 	 }
      tp->determinant[i] = ppivot;
      }
- if(verbose){
+ if(verbose>0){
     fprintf(dump, "determinant ");
     for(i=0; i<tp->l_determinant; i++)
 	fprintf(dump, FORMAT, tp->determinant[i]);
@@ -387,7 +389,7 @@ Entier pivoter(Tableau *tp, int pivi, Entier D, int nvar,
      Flag(tp, k) = ff;
     }
 /*
- if(verbose){
+ if(verbose>0){
      for(k=0; k<nligne; k++){
 	 if(Flag(tp,k) & Unit)
 	     fprintf(dump, "1 ");
@@ -399,7 +401,7 @@ Entier pivoter(Tableau *tp, int pivi, Entier D, int nvar,
      putc('\n', dump);
      }
 
- if(verbose){
+ if(verbose>0){
      for(i=0; i<nligne; i++){
          if(Flag(tp, i) & Unit)
                fprintf(dump, "0 ");
@@ -414,7 +416,7 @@ Entier pivoter(Tableau *tp, int pivi, Entier D, int nvar,
      putc('\n', dump);
      }
 */
- if(verbose){
+ if(verbose>0){
    fprintf(dump, "just pivoted\n");
    tab_display(tp, dump);
  }
@@ -482,7 +484,7 @@ Entier D;
            }
        }   
  
- if(verbose){
+ if(verbose>0){
    fprintf(dump, "just sorted\n");
    tab_display(tp, dump);
  }
@@ -531,7 +533,7 @@ Entier D;
 	     exit(2);
 	     }
 	 q = tab_hwm();
-	 if(verbose)
+	 if(verbose>0)
 	     fprintf(stderr,"profondeur %d %lx\n", profondeur, q.top);
 	 ntp = expanser(tp, nvar, ni, ncol, 0, 0, 0);
 	 sol_if();
@@ -555,7 +557,7 @@ Entier D;
         traiter(ntp, context, iq, D, nvar, nparm, ni, nc+1, bigparm);
  	 profondeur--;
 	 tab_reset(q);
-	 if(verbose)
+	 if(verbose>0)
 	     fprintf(stderr, "descente %d %lx\n", profondeur, tab_hwm().top);
 	 for(j = 0; j<nparm; j++)
 	     Index(context, nc, j) = - Index(context, nc, j);

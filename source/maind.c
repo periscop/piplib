@@ -1,8 +1,10 @@
 /******************************************************************************
  *                     PIP : Parametric Integer Programming                   *
  ******************************************************************************
+ *                                  maind.h                                   *
+ ******************************************************************************
  *                                                                            *
- * Copyright Paul Feautrier, 1988, 1993, 1994, 1996                           *
+ * Copyright Paul Feautrier, 1988, 1993, 1994, 1996, 2002                     *
  *                                                                            *
  * This is free software; you can redistribute it and/or modify it under the  *
  * terms of the GNU General Public License as published by the Free Software  *
@@ -39,7 +41,7 @@
 struct tms chrono;
 #endif
 
-char version[]="Version E.2\n";
+char version[]="Version E.2 $Revision: 1.3 $\n";
 
 long int cross_product, limit;
 int allocation, comptage;
@@ -48,7 +50,7 @@ int profondeur = 0;
 int compa_count;
 
 FILE *dump = NULL;
-char dump_name[] = "XXXXXX";
+char dump_name[] = "PipXXXXXX";
 
 #define INLENGTH 1024
 

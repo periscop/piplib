@@ -1,8 +1,10 @@
 /******************************************************************************
  *                     PIP : Parametric Integer Programming                   *
  ******************************************************************************
+ *                                   tab.h                                    *
+ ******************************************************************************
  *                                                                            *
- * Copyright Paul Feautrier, 1988, 1993, 1994, 1996                           *
+ * Copyright Paul Feautrier, 1988, 1993, 1994, 1996, 2002                     *
  *                                                                            *
  * This is free software; you can redistribute it and/or modify it under the  *
  * terms of the GNU General Public License as published by the Free Software  *
