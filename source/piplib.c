@@ -698,12 +698,22 @@ PipOptions * options ;
     hq = tab_hwm() ;
     xq = p = sol_hwm();
     
+    /* Si un maximum est demande, mais sans bignum, on crée le bignum. */
+    if ((options->Max != 0) && (Bg < 0))
+    { Bg = inequnk->NbColumns - 1 ; /* On choisit sa place. */
+      Np ++ ;                       /* On le compte comme parametre. */
+    }  
+    
     /* On s'assure d'abord que le systeme pour le contexte n'est pas vide
      * avant de commencer le traitement. Si c'est le cas, la solution est
      * void (NULL).
      */
     if (ineqpar != NULL)
-    { Nm = ineqpar->NbRows ;
+    { /* Calcul du nombre d'inequations sur les parametres. Le format de
+       * matrice de la polylib permet les egalites, on doit donc les compter
+       * double quand il y en a.
+       */
+      Nm = ineqpar->NbRows ;
       for (i=0;i<ineqpar->NbRows;i++)
       #if defined(LINEAR_VALUE_IS_MP)
       if (mpz_sgn(**(ineqpar->p + i)) == 0)
@@ -712,7 +722,8 @@ PipOptions * options ;
       #endif
       Nm ++ ;
       
-      context = tab_Matrix2Tableau(ineqpar,Nm,Np,0) ;
+      context = tab_Matrix2Tableau(ineqpar,Nm,Np,0,options->Max,Bg-Nn) ;
+      
       if (Nm)
       { /* Traduction du format de matrice de la polylib vers celui de
          * traitement de Pip. Puis traitement proprement dit.
@@ -738,7 +749,8 @@ PipOptions * options ;
     
     /* S'il est possible de trouver une solution, on passe au traitement. */
     if (non_vide)
-    { ineq = tab_Matrix2Tableau(inequnk,Nl,Nn,Nn) ;
+    { ineq = tab_Matrix2Tableau(inequnk,Nl,Nn,Nn,options->Max,Bg) ;
+  
       compa_count = 0 ;
       traiter(ineq, context, options->Nq, Nn, Np, Nl, Nm, Bg) ;
 

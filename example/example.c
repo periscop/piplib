@@ -8,21 +8,34 @@
 # include <piplib/piplib32.h>
 
 int main()
-{ PipMatrix  * domain, * context  ;
+{ int bignum ;
+  PipMatrix  * domain, * context  ;
   PipQuast   * solution ;
   PipOptions * options ;
   
-  printf("Enter the Matrices :\n") ;
-  domain = pip_matrix_read(stdin) ;
-  pip_matrix_print(stdout,domain) ;
-  
+  printf("[PIP2-like future input] Please enter:\n- the context matrix,\n") ;
   context = pip_matrix_read(stdin) ;
   pip_matrix_print(stdout,context) ;
+
+  printf("- the bignum column (start at 0, -1 if no bignum),\n") ;
+  fscanf(stdin," %d",&bignum) ;
+  printf("%d\n",bignum) ;
+
+  printf("- the constraint matrix.\n") ;
+  domain = pip_matrix_read(stdin) ;
+  pip_matrix_print(stdout,domain) ;
   printf("\n") ;
   
   options = pip_options_init() ;
+  /*options->Max = 1 ;*/
 
-  solution = pip_solve(domain,context,-1,options) ;
+  /* The bignum in PIP1 is fixed on the constraint matrix, here is
+   * the translation.
+   */
+  if (bignum > 0)
+  bignum += domain->NbColumns - context->NbColumns ;
+  
+  solution = pip_solve(domain,context,bignum,options) ;
 
   pip_options_free(options) ;
   pip_matrix_free(domain) ;

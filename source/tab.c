@@ -265,21 +265,33 @@ int h, w, n;
  * a dire que si les premiers coefficients dans les lignes de la matrice
  * sont ceux des inconnues, Nv est le nombre d'inconnues, resp. parametres).
  * n est le nombre de lignes 'virtuelles' contenues dans la matrice (c'est
- * a dire en fait le nombre d'inconnues).
+ * a dire en fait le nombre d'inconnues). Si Max vaut 0, on va rechercher
+ * le minimum lexicographique, sinon on recherche le maximum. La fonction
+ * met alors en place le bignum s'il n'y est pas deja et prepare les
+ * contraintes au calcul du maximum lexicographique.
  * 27 juillet 2001 : Premiere version, Ced.
  * 30 juillet 2001 : Nombreuses modifications. Le calcul du nombre total
  *                   d'inequations (Nineq) se fait a present a l'exterieur.
- *  3 octobre 2001 : Pas mal d'ameliorations. 
+ *  3 octobre 2001 : Pas mal d'ameliorations.
+ * 18 octobre 2003 : Mise en place de la possibilite de calculer le
+ *                   maximum lexicographique (parties 'if (Max)').
  */
-Tableau * tab_Matrix2Tableau(PipMatrix * matrix, int Nineq, int Nv, int n)
+Tableau * tab_Matrix2Tableau(matrix, Nineq, Nv, n, Max, Bg)
+PipMatrix * matrix ;
+int Nineq, Nv, n, Max, Bg ;
 { Tableau * p ;
-  unsigned i, j, end, current, new, nb_columns, decal=0 ;
-  Entier * entier, inequality ;
+  unsigned i, j, end, current, new, nb_columns, decal=0, bignum_is_new ;
+  Entier * entier, inequality, bignum ;
   
   #if defined(LINEAR_VALUE_IS_MP)
   mpz_init(inequality) ;
+  mpz_init(bignum) ;
   #endif
   nb_columns = matrix->NbColumns - 1 ;
+  /* S'il faut un BigNum et qu'il n'existe pas, on lui reserve sa place. */
+  if ((Max) && (bignum_is_new = (Bg > (matrix->NbColumns - 2))))
+  nb_columns ++ ;
+
   p = tab_alloc(Nineq,nb_columns,n) ;
     
   /* La variable decal sert a prendre en compte les lignes supplementaires
@@ -291,8 +303,12 @@ Tableau * tab_Matrix2Tableau(PipMatrix * matrix, int Nineq, int Nv, int n)
     Flag(p,current) = Unknown ;
     #if defined(LINEAR_VALUE_IS_MP)
     mpz_set_ui(Denom(p,current),1) ;
+    if (Max)
+    mpz_set_ui(bignum,0) ;
     #else
     Denom(p,current) = UN ;
+    if (Max)
+    bignum = 0 ;
     #endif
     entier = *(matrix->p + i - n) ;
     /* Pour passer l'indicateur d'egalite/inegalite. */
@@ -308,20 +324,64 @@ Tableau * tab_Matrix2Tableau(PipMatrix * matrix, int Nineq, int Nv, int n)
      * serie de variables (inconnues ou parametres). On remet donc les
      * choses dans l'ordre de Pip. Ici pour p(x) >= 0.
      */
-    for (j=0;j<Nv;j++)
-    #if defined(LINEAR_VALUE_IS_MP)
-    mpz_set(*(p->row[current].objet.val + j),*entier++) ;
-    #else
-    *(p->row[current].objet.val + j) = *entier++ ;
-    #endif
-    for (j=Nv+1;j<nb_columns;j++)
-    #if defined(LINEAR_VALUE_IS_MP)
-    mpz_set(*(p->row[current].objet.val + j),*entier++) ;
-    mpz_set(*(p->row[current].objet.val + Nv),*entier) ;
-    #else
-    *(p->row[current].objet.val + j) = *entier++ ;
-    *(p->row[current].objet.val + Nv) = *entier ;
-    #endif
+    if (Max)
+    { for (j=0;j<Nv;j++)
+      {
+        #if defined(LINEAR_VALUE_IS_MP)
+        mpz_add(bignum,bignum,*entier) ;
+	mpz_neg(*(p->row[current].objet.val + j),*entier++) ;
+	#else
+        bignum += *entier ;
+        *(p->row[current].objet.val + j) = -(*entier++) ;
+        #endif
+      }
+
+      for (j=Nv+1;j<Bg;j++)
+      #if defined(LINEAR_VALUE_IS_MP)
+      mpz_set(*(p->row[current].objet.val + j),*entier++) ;
+      #else
+      *(p->row[current].objet.val + j) = *entier++ ;
+      #endif
+
+      if (bignum_is_new)
+      #if defined(LINEAR_VALUE_IS_MP)
+      mpz_set(*(p->row[current].objet.val + Bg),bignum) ;
+      else
+      { mpz_add(*(p->row[current].objet.val + Bg),bignum,*entier++) ;
+        for (j=Bg+1;j<nb_columns;j++)
+        mpz_set(*(p->row[current].objet.val + j),*entier++) ;
+      }
+      #else
+      *(p->row[current].objet.val + Bg) = bignum ;
+      else
+      { *(p->row[current].objet.val + Bg) = bignum + *entier++ ;
+        for (j=Bg+1;j<nb_columns;j++)
+        *(p->row[current].objet.val + j) = *entier++ ;
+      }
+      #endif
+ 
+      #if defined(LINEAR_VALUE_IS_MP)
+      mpz_set(*(p->row[current].objet.val + Nv),*entier) ;
+      #else
+      *(p->row[current].objet.val + Nv) = *entier ;
+      #endif
+    }
+    else
+    { for (j=0;j<Nv;j++)
+      #if defined(LINEAR_VALUE_IS_MP)
+      mpz_set(*(p->row[current].objet.val + j),*entier++) ;
+      #else
+      *(p->row[current].objet.val + j) = *entier++ ;
+      #endif
+      for (j=Nv+1;j<nb_columns;j++)
+      #if defined(LINEAR_VALUE_IS_MP)
+      mpz_set(*(p->row[current].objet.val + j),*entier++) ;
+      mpz_set(*(p->row[current].objet.val + Nv),*entier) ;
+      #else
+      *(p->row[current].objet.val + j) = *entier++ ;
+      *(p->row[current].objet.val + Nv) = *entier ;
+      #endif
+    }
     
     /* Et ici lors de l'ajout de -p(x) >= 0 quand on traite une egalite. */
     #if defined(LINEAR_VALUE_IS_MP)
@@ -348,7 +408,9 @@ Tableau * tab_Matrix2Tableau(PipMatrix * matrix, int Nineq, int Nv, int n)
   }
   #if defined(LINEAR_VALUE_IS_MP)
   mpz_clear(inequality);
+  mpz_clear(bignum);
   #endif
+
   return(p);
 }
 

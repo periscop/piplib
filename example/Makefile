@@ -7,12 +7,14 @@ CC = gcc
 LDLIBS= -lpiplib32
 CFLAGS= -I $(PIPLIB_INC) -L $(PIPLIB_LIB)
 
-
-example: example.c
+example: example.c 
 	@echo "             /*-----------------------------------------------*"
 	@echo "              *                Making example                 *"
 	@echo "              *-----------------------------------------------*/"
 	$(CC) example.c -o example $(CFLAGS) $(LDLIBS)
+
+pip:
+	$(MAKE) total -C ../
 
 clean:
 	@echo "             /*-----------------------------------------------*"

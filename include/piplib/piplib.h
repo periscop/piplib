@@ -207,7 +207,8 @@ PipOptions * pip_options_init(void) ;
 PipQuast * pip_solve(PipMatrix *, PipMatrix *, int, PipOptions *) ;
 
 /* Ced : ajouts specifiques a la PipLib pour funcall. */
-Tableau * tab_Matrix2Tableau(PipMatrix *, int, int, int) ;
+Tableau * tab_Matrix2Tableau(PipMatrix *, int, int, int, int, int) ;
+Tableau * tab_Matrix2TableauMax(PipMatrix *, int, int, int, int) ;
 PipQuast * sol_quast_edit(int *, PipQuast *) ;
 
 #if defined(__cplusplus)

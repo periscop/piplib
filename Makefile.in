@@ -251,6 +251,15 @@ uninstall :
 	$(PIPLIB_INS_BIN)/pip64$(EXEC_SUFFIX) \
 	$(PIPLIB_INS_BIN)/pipMP$(EXEC_SUFFIX)
 	
+total:
+	@echo "             /*-----------------------------------------------*"
+	@echo "              *                   PIP/PipLib                  *"
+	@echo "              *-----------------------------------------------*/"
+	$(MAKE) uninstall
+	$(MAKE) clean
+	$(MAKE)
+	$(MAKE) install
+
 tgz: distclean
 	(cd .. && \
 	tar cvf piplib-$(VERSION).tar piplib-$(VERSION) && \
