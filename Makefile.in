@@ -93,19 +93,29 @@ CFLAGS   = -c $(INCFLAGS) -fomit-frame-pointer -O2 $(EXTRA_FLAGS) $(DFLAGS)
 # *****************************************************************************/
 
 
-OBJ = $(PIPLIB_OBJ)/maind.o $(PIPLIB_OBJ)/piplib.o $(PIPLIB_OBJ)/integrer.o \
-	$(PIPLIB_OBJ)/tab.o $(PIPLIB_OBJ)/traiter.o $(PIPLIB_OBJ)/sol.o 
+# objects for libraries making
+OBJL =  $(PIPLIB_OBJ)/piplib.o $(PIPLIB_OBJ)/integrer.o $(PIPLIB_OBJ)/tab.o \
+	 $(PIPLIB_OBJ)/traiter.o $(PIPLIB_OBJ)/sol.o 
+
+# objects for software making
+OBJ = $(PIPLIB_OBJ)/maind.o $(OBJL)
 
 all : $(TO_BUILD:%=%all)
 
 $(INT_BITS)all :
+	@echo "-----"
+	@echo "Making all for" $(INT_BITS) "bits version."
 	$(MAKE) "BITS=$(INT_BITS)" "DFLAGS=$(INT_DFLAGS)" tobuild
 
 $(LONG_BITS)all :
+	@echo "-----"
+	@echo "Making all for" $(LONG_BITS) "bits version."
 	$(MAKE) "BITS=$(LONG_BITS)" "DFLAGS=$(LONG_DFLAGS)" tobuild
 	
 $(MP_BITS)all :
-	$(MAKE) "BITS=$(MP_BITS)" "DFLAGS=$(MP_DFLAGS)" "MP_SUF=MP" tobuild
+	@echo "-----"
+	@echo "Making all for" $(MP_BITS) "version."
+	$(MAKE) "BITS=$(MP_BITS)" "DFLAGS=$(MP_DFLAGS)" tobuild
 	
 tobuild : $(PACKAGES)
 
@@ -119,7 +129,7 @@ piplibshared : $(PIPLIB_OBJ) $(OBJ)
 	@echo "             /*-----------------------------------------------*"
 	@echo "              *              MAKING PipLib (shared)           *"
 	@echo "              *-----------------------------------------------*/"
-	$(LD) $(OBJ) -o $(PIPLIB_OBJ)/libpiplib$(BITS).$(SHEXT).$(VERSION) \
+	$(LD) $(OBJL) -o $(PIPLIB_OBJ)/libpiplib$(BITS).$(SHEXT).$(VERSION) \
 	-lc -shared -fPIC $(LDFLAGS)
 	$(LDCONFIG)
 
@@ -127,35 +137,32 @@ piplibstatic: $(PIPLIB_OBJ) $(OBJ)
 	@echo "             /*-----------------------------------------------*"
 	@echo "              *            MAKING PipLib (static lib)         *"
 	@echo "              *-----------------------------------------------*/"
-	$(AR) q $(PIPLIB_OBJ)/libpiplib$(BITS).a.$(VERSION) $(OBJ)
+	$(AR) q $(PIPLIB_OBJ)/libpiplib$(BITS).a.$(VERSION) $(OBJL)
 	$(RANLIB) $(PIPLIB_OBJ)/libpiplib$(BITS).a.$(VERSION)
 
-$(PIPLIB_OBJ)/piplib.o : $(PIPLIB_SRC)/piplib$(MP_SUF).c \
-	$(PIPLIB_INC)/piplib/piplib.h
-	$(CC) $(CFLAGS) $(PIPLIB_SRC)/piplib$(MP_SUF).c \
+$(PIPLIB_OBJ)/piplib.o : $(PIPLIB_SRC)/piplib.c $(PIPLIB_INC)/piplib/piplib.h
+	$(CC) $(CFLAGS) $(PIPLIB_SRC)/piplib.c \
 	-o $(PIPLIB_OBJ)/piplib.o
 
-$(PIPLIB_OBJ)/integrer.o : $(PIPLIB_SRC)/integrer$(MP_SUF).c \
+$(PIPLIB_OBJ)/integrer.o : $(PIPLIB_SRC)/integrer.c \
 	$(PIPLIB_INC)/piplib/piplib.h
-	$(CC) $(CFLAGS) $(PIPLIB_SRC)/integrer$(MP_SUF).c \
+	$(CC) $(CFLAGS) $(PIPLIB_SRC)/integrer.c \
 	-o $(PIPLIB_OBJ)/integrer.o
 
-$(PIPLIB_OBJ)/maind.o : $(PIPLIB_SRC)/maind$(MP_SUF).c \
-	$(PIPLIB_INC)/piplib/piplib.h
-	$(CC) $(CFLAGS) $(PIPLIB_SRC)/maind$(MP_SUF).c \
+$(PIPLIB_OBJ)/maind.o : $(PIPLIB_SRC)/maind.c $(PIPLIB_INC)/piplib/piplib.h
+	$(CC) $(CFLAGS) $(PIPLIB_SRC)/maind.c \
 	-o $(PIPLIB_OBJ)/maind.o
 
-$(PIPLIB_OBJ)/tab.o : $(PIPLIB_SRC)/tab$(MP_SUF).c $(PIPLIB_INC)/piplib/piplib.h
-	$(CC) $(CFLAGS)  $(PIPLIB_SRC)/tab$(MP_SUF).c \
+$(PIPLIB_OBJ)/tab.o : $(PIPLIB_SRC)/tab.c $(PIPLIB_INC)/piplib/piplib.h
+	$(CC) $(CFLAGS)  $(PIPLIB_SRC)/tab.c \
 	-o $(PIPLIB_OBJ)/tab.o
 
-$(PIPLIB_OBJ)/traiter.o : $(PIPLIB_SRC)/traiter$(MP_SUF).c \
-	$(PIPLIB_INC)/piplib/piplib.h
-	$(CC) $(CFLAGS)  $(PIPLIB_SRC)/traiter$(MP_SUF).c \
+$(PIPLIB_OBJ)/traiter.o : $(PIPLIB_SRC)/traiter.c $(PIPLIB_INC)/piplib/piplib.h
+	$(CC) $(CFLAGS)  $(PIPLIB_SRC)/traiter.c \
 	-o $(PIPLIB_OBJ)/traiter.o
 
-$(PIPLIB_OBJ)/sol.o : $(PIPLIB_SRC)/sol$(MP_SUF).c $(PIPLIB_INC)/piplib/piplib.h
-	$(CC) $(CFLAGS)  $(PIPLIB_SRC)/sol$(MP_SUF).c \
+$(PIPLIB_OBJ)/sol.o : $(PIPLIB_SRC)/sol.c $(PIPLIB_INC)/piplib/piplib.h
+	$(CC) $(CFLAGS)  $(PIPLIB_SRC)/sol.c \
 	-o $(PIPLIB_OBJ)/sol.o
 
 
@@ -179,13 +186,19 @@ distclean: clean
 install:: $(TO_BUILD:%=%install)
 
 $(INT_BITS)install :
+	@echo "-----"
+	@echo "Installing all for" $(INT_BITS) "bits version."
 	$(MAKE) "BITS=$(INT_BITS)" "DFLAGS=$(INT_DFLAGS)" toinstall
 
 $(LONG_BITS)install :
+	@echo "-----"
+	@echo "Installing all for" $(LONG_BITS) "bits version."
 	$(MAKE) "BITS=$(LONG_BITS)" "DFLAGS=$(LONG_DFLAGS)" toinstall
 	
 $(MP_BITS)install :
-	$(MAKE) "BITS=$(MP_BITS)" "DFLAGS=$(MP_DFLAGS)" "MP_SUF=MP" toinstall
+	@echo "-----"
+	@echo "Installing all for" $(MP_BITS) "version."
+	$(MAKE) "BITS=$(MP_BITS)" "DFLAGS=$(MP_DFLAGS)" toinstall
 	
 toinstall : $(TO_INSTALL)
 

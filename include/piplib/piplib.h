@@ -26,6 +26,12 @@
 
 /* Premiere version du 18 septembre 2002. */
 
+#ifndef PIPLIB_H
+#define PIPLIB_H
+#if defined(__cplusplus)
+extern "C" 
+  {
+#endif 
 
 #if !defined(LINEAR_VALUE_IS_LONGLONG) && !defined(LINEAR_VALUE_IS_INT)
 #if !defined(LINEAR_VALUE_IS_MP)
@@ -36,17 +42,17 @@
 #if defined(LINEAR_VALUE_IS_LONGLONG)
 # define Entier   long long
 # define FORMAT   "%lld"
-# define UN   1LL
-# define ZERO 0LL
+# define VAL_UN   1LL
+# define VAL_ZERO 0LL
 #elif defined(LINEAR_VALUE_IS_INT) 
 # define Entier   long int
 # define FORMAT   "%ld"
-# define UN   1L
-# define ZERO 0L
+# define VAL_UN   1L
+# define VAL_ZERO 0L
 #elif defined(LINEAR_VALUE_IS_MP) 
 # include <gmp.h>
 # define Entier   mpz_t
-# define FORMAT   "%lld"
+# define FORMAT   "%d"
 #endif
 
 # include <piplib/type.h>
@@ -163,3 +169,8 @@ PipQuast * pip_solve(PipMatrix *, PipMatrix *, int, int, int, int, int) ;
 /* Ced : ajouts specifiques a la PipLib pour funcall. */
 Tableau * tab_Matrix2Tableau(PipMatrix *, int, int, int) ;
 PipQuast * sol_quast_edit(int *, PipQuast *) ;
+
+#if defined(__cplusplus)
+  }
+#endif 
+#endif /* define PIPLIB_H */

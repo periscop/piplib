@@ -5,7 +5,6 @@
  */
 
 # include <stdio.h>
-/*# include <gmp.h>*/
 # include <piplib/piplib32.h>
 
 int main()

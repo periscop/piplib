@@ -24,16 +24,28 @@
  *                                                                            *
  ******************************************************************************/
 
+#ifndef SOL_H
+#define SOL_H
+#if defined(__cplusplus)
+extern "C" 
+  {
+#endif 
 
-void sol_init();
-int sol_hwm();
-void sol_reset();
-void sol_nil();
-void sol_if();
-void sol_list();
-void sol_form();
-void sol_new();
-void sol_div();
-void sol_val();
-int sol_edit();
-int is_not_Nil();
+void sol_init(void);
+int sol_hwm(void);
+void sol_reset(int);
+void sol_nil(void);
+void sol_if(void);
+void sol_list(int);
+void sol_form(int);
+void sol_new(int);
+void sol_div(void);
+void sol_val(Entier, Entier);
+int sol_edit(FILE *, int);
+int is_not_Nil(int);
+void sol_simplify(int);
+
+#if defined(__cplusplus)
+  }
+#endif 
+#endif /* define _H */

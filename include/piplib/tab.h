@@ -24,6 +24,13 @@
  *                                                                            *
  ******************************************************************************/
 
+#ifndef TAB_H
+#define TAB_H
+#if defined(__cplusplus)
+extern "C" 
+  {
+#endif 
+
 struct A
     {struct A *precedent;
      char *bout;
@@ -73,4 +80,9 @@ struct T
 #endif
 
 typedef struct T Tableau;
+
+#if defined(__cplusplus)
+  }
+#endif 
+#endif /* define _H */
 

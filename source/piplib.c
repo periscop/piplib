@@ -31,14 +31,80 @@
 # include <ctype.h>
 
 #include <piplib/piplib.h>
+#define min(x,y) ((x) < (y)? (x) : (y))
 
-extern long int cross_product, limit ;
-extern int verbose ;
-extern FILE * dump ;
-extern int compa_count ;
-extern char dump_name[] ;
-  
-  
+Entier UN;
+Entier ZERO;
+
+long int cross_product, limit;
+int allocation, comptage;
+int verbose = 0;
+int profondeur = 0;
+int compa_count;
+
+FILE *dump = NULL;
+char dump_name[] = "PipXXXXXX";
+
+#define INLENGTH 1024
+
+char inbuff[INLENGTH];
+int inptr = 256;
+int proviso = 0;
+
+
+/******************************************************************************
+ *                 Fonctions d'acquisition de données (ex-maind.c)            *
+ ******************************************************************************/
+
+
+int dgetc(FILE *foo)
+{
+ char *p;
+ if(inptr >= proviso)
+   {p = fgets(inbuff, INLENGTH, foo);
+    if(p == NULL) return EOF;
+    proviso = min(INLENGTH, strlen(inbuff));
+    inptr = 0;
+    if(verbose > 0) fprintf(dump, "-- %s", inbuff);
+  }
+ return inbuff[inptr++];
+}
+
+
+#if defined(LINEAR_VALUE_IS_MP)
+int dscanf(FILE *foo, int    *val)
+#else
+int dscanf(FILE *foo, Entier *val)
+#endif
+{
+ char * p;
+ int c;
+
+ for(;inptr < proviso; inptr++)
+   if(inbuff[inptr] != ' ' && inbuff[inptr] != '\n' && inbuff[inptr] != '\t')
+				break;
+ while(inptr >= proviso)
+   {p = fgets(inbuff, 256, foo);
+    if(p == NULL) return EOF;
+    proviso = strlen(inbuff);
+    if(verbose > 0) {
+      fprintf(dump, ".. %s", inbuff);
+      fflush(dump);
+    }
+    for(inptr = 0; inptr < proviso; inptr++)
+       if(inbuff[inptr] != ' '
+       && inbuff[inptr] != '\n'
+       && inbuff[inptr] != '\t') break;
+  }
+ if(sscanf(inbuff+inptr, FORMAT, val) != 1)
+ return -1;
+ 
+ for(; inptr < proviso; inptr++)
+	if((c = inbuff[inptr]) != '-' && !isdigit(c)) break;
+ return 0;
+}
+
+
 /******************************************************************************
  *                    Fonctions d'affichage des structures                    *
  ******************************************************************************/
@@ -58,7 +124,13 @@ void pip_matrix_print(FILE * foo, PipMatrix * Mat)
   for (i=0;i<NbRows;i++) 
   { p=*(Mat->p+i) ;
     for (j=0;j<NbColumns;j++)
+    #if defined(LINEAR_VALUE_IS_MP)
+    { fprintf(foo," ") ;
+      mpz_out_str(foo,10,*p++) ;
+    }
+    #else
     fprintf(foo," %3d", *p++) ;
+    #endif
     fprintf(foo, "\n") ;
   }
 } 
@@ -76,10 +148,19 @@ void pip_vector_print(FILE * foo, PipVector * vector)
   { fprintf(foo,"#[") ;
     for (i=0;i<vector->nb_elements;i++)
     { fprintf(foo," ") ;
+      #if defined(LINEAR_VALUE_IS_MP)
+      mpz_out_str(foo,10,vector->the_vector[i]) ;
+      if (mpz_cmp(vector->the_deno[i],UN) != 0)
+      #else
       fprintf(foo,FORMAT,vector->the_vector[i]) ;
       if (vector->the_deno[i] != UN)
+      #endif
       { fprintf(foo,"/") ;
+        #if defined(LINEAR_VALUE_IS_MP)
+        mpz_out_str(foo,10,vector->the_deno[i]) ;
+        #else
         fprintf(foo,FORMAT,vector->the_deno[i]) ;
+        #endif
       }
     }
     fprintf(foo,"]") ;
@@ -106,7 +187,11 @@ void pip_newparm_print(FILE * foo, PipNewparm * newparm, int indent)
       fprintf(foo," (div ") ;
       pip_vector_print(foo,newparm->vector) ;
       fprintf(foo," ") ;
+      #if defined(LINEAR_VALUE_IS_MP)
+      mpz_out_str(foo,10,newparm->deno) ;
+      #else
       fprintf(foo,FORMAT,newparm->deno) ;
+      #endif
       fprintf(foo,"))\n") ;
     }
     while ((newparm = newparm->next) != NULL) ;
@@ -196,7 +281,18 @@ void pip_quast_print(FILE * foo, PipQuast * solution, int indent)
  * Premiere version : Ced. 29 juillet 2001. 
  */
 void pip_matrix_free(PipMatrix * matrix)
-{ if (matrix != NULL)
+{ 
+  #if defined(LINEAR_VALUE_IS_MP)
+  int i, j ;
+  Entier * p ;
+
+  p = matrix->p_Init ;
+  for (i=0;i<matrix->NbRows;i++) 
+  for (j=0;j<matrix->NbColumns;j++) 
+  mpz_clear(*p++) ;
+  #endif
+
+  if (matrix != NULL)
   { free(matrix->p_Init) ;
     free(matrix->p) ;
     free(matrix) ;
@@ -211,7 +307,17 @@ void pip_matrix_free(PipMatrix * matrix)
  * 18 octobre 2001 : simplification suite a l'eclatement de PipVector.
  */
 void pip_vector_free(PipVector * vector)
-{ free(vector->the_vector) ;
+{ 
+  #if defined(LINEAR_VALUE_IS_MP)
+  int i ;
+  
+  for (i=0;i<vector->nb_elements;i++)
+  { mpz_clear(vector->the_vector[i]);
+    mpz_clear(vector->the_deno[i]);
+  }
+  #endif
+  
+  free(vector->the_vector) ;
   free(vector->the_deno) ;
   free(vector) ;
 }
@@ -228,6 +334,9 @@ void pip_newparm_free(PipNewparm * newparm)
 
   while (newparm != NULL)
   { next = newparm->next ;
+    #if defined(LINEAR_VALUE_IS_MP)
+    mpz_clear(newparm->deno);
+    #endif
     pip_vector_free(newparm->vector) ;
     free(newparm) ;
     newparm = next ;
@@ -304,7 +413,7 @@ PipMatrix * pip_matrix_alloc(unsigned NbRows, unsigned NbColumns)
   matrix->NbColumns = NbColumns ;
   if (NbRows == 0) 
   { matrix->p = NULL ;
-    matrix->p_Init= NULL ;
+    matrix->p_Init = NULL ;
   }  
   else 
   { if (NbColumns == 0) 
@@ -327,7 +436,11 @@ PipMatrix * pip_matrix_alloc(unsigned NbRows, unsigned NbColumns)
       for (i=0;i<NbRows;i++) 
       { *p++ = q ;
 	for (j=0;j<NbColumns;j++)   
-	*(q+j) = 0 ; /* Attention dans le cas multiple precision ! */
+        #if defined(LINEAR_VALUE_IS_MP)
+	mpz_init_set_si(*(q+j),0) ;
+	#else
+	*(q+j) = 0 ;
+	#endif
 	q += NbColumns ;
       }
     }
@@ -347,10 +460,16 @@ PipMatrix * pip_matrix_alloc(unsigned NbRows, unsigned NbColumns)
  * - des lignes de la matrice, chaque ligne devant etre sur sa propre ligne de
  *   texte et eventuellement suivies d'un commentaire.
  * Premiere version : Ced. 18 octobre 2001. 
+ * 24 octobre 2002 : premiere version MP, attention, uniquement capable de
+ *                   lire des long long pour l'instant. On utilise pas
+ *                   mpz_inp_str car on lit depuis des char * et non des FILE.
  */
 PipMatrix * pip_matrix_read(FILE * foo)
 { unsigned NbRows, NbColumns ;
   int i, j, n ;
+  #if defined(LINEAR_VALUE_IS_MP)
+  long long val ;
+  #endif
   char *c, s[1024], str[1024] ;
   PipMatrix * matrix ;
   Entier * p ;
@@ -384,7 +503,12 @@ PipMatrix * pip_matrix_read(FILE * foo)
       { fprintf(stderr, "Not enough rows.\n") ;
         exit(1) ;
       }
-      sscanf(str,FORMAT,p++) ; /* Attention dans le cas multiple precision ! */
+      #if defined(LINEAR_VALUE_IS_MP)
+      sscanf(str,"%lld",&val) ;
+      mpz_init_set_si(*p++,val) ;
+      #else
+      sscanf(str,FORMAT,p++) ;
+      #endif
       c += n ;
     }
   }
@@ -429,6 +553,14 @@ int Bg, Nq, Verbose, Simplify, Max ;
   Entier D ;
   PipQuast * solution ;
   	
+  #if defined(LINEAR_VALUE_IS_MP)
+  mpz_init_set_si(UN, 1);
+  mpz_init_set_si(ZERO, 0);
+  #else
+  UN   = VAL_UN ;
+  ZERO = VAL_ZERO ;
+  #endif
+   	
   /* initialisations diverses :
    * - la valeur de Verbose est placee dans sa variable globale. Dans le cas
    *   ou on doit etre en mode verbose, on ouvre le fichier dans lequel
@@ -454,7 +586,11 @@ int Bg, Nq, Verbose, Simplify, Max ;
       dump = fopen(dump_name, "w") ;
     }
   }
+  #if defined(LINEAR_VALUE_IS_MP)
+  limit = 0LL ;
+  #else
   limit = ZERO ;
+  #endif
   sol_init() ;
   tab_init() ;
 
@@ -498,7 +634,11 @@ int Bg, Nq, Verbose, Simplify, Max ;
          * traitement de Pip. Puis traitement proprement dit.
          */
 	ctxt = expanser(context, Np, Nm, Np+1, Np, 0, 0) ;
+        #if defined(LINEAR_VALUE_IS_MP)
+        traiter(ctxt, NULL, True, Np, 0, Nm, 0, -1) ;
+	#else
         traiter(ctxt, NULL, True, UN, Np, 0, Nm, 0, -1) ;
+        #endif
         non_vide = is_not_Nil(p) ;
         sol_reset(p) ;
       }
@@ -520,7 +660,11 @@ int Bg, Nq, Verbose, Simplify, Max ;
     if (non_vide)
     { ineq = tab_Matrix2Tableau(inequnk,Nl,Nn,Nn) ;
       compa_count = 0 ;
+      #if defined(LINEAR_VALUE_IS_MP)
+      traiter(ineq, context, Nq, Nn, Np, Nl, Nm, Bg) ;
+      #else
       D = traiter(ineq, context, Nq, UN, Nn, Np, Nl, Nm, Bg) ;
+      #endif
 
       if (Simplify)
       sol_simplify(xq) ;

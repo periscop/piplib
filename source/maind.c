@@ -43,61 +43,13 @@ struct tms chrono;
 
 char version[]="Version E.2 $Revision: 1.3 $\n";
 
-long int cross_product, limit;
-int allocation, comptage;
-int verbose = 0;
-int profondeur = 0;
-int compa_count;
 
-FILE *dump = NULL;
-char dump_name[] = "PipXXXXXX";
+extern long int cross_product, limit ;
+extern int allocation, comptage, verbose ;
+extern FILE * dump ;
+extern int compa_count ;
+extern char dump_name[] ;
 
-#define INLENGTH 1024
-
-char inbuff[INLENGTH];
-int inptr = 256;
-int proviso = 0;
-
-
-int dgetc(FILE *foo)
-{
- char *p;
- if(inptr >= proviso)
-   {p = fgets(inbuff, INLENGTH, foo);
-    if(p == NULL) return EOF;
-    proviso = min(INLENGTH, strlen(inbuff));
-    inptr = 0;
-    if(verbose > 0) fprintf(dump, "-- %s", inbuff);
-  }
- return inbuff[inptr++];
-}
-
-int dscanf(FILE *foo, char *format, Entier *val)
-{
- char * p;
- int c;
- for(;inptr < proviso; inptr++)
-   if(inbuff[inptr] != ' ' && inbuff[inptr] != '\n' && inbuff[inptr] != '\t')
-				break;
- while(inptr >= proviso)
-   {p = fgets(inbuff, 256, foo);
-    if(p == NULL) return EOF;
-    proviso = strlen(inbuff);
-    if(verbose > 0) {
-      fprintf(dump, ".. %s", inbuff);
-      fflush(dump);
-    }
-    for(inptr = 0; inptr < proviso; inptr++)
-       if(inbuff[inptr] != ' '
-       && inbuff[inptr] != '\n'
-       && inbuff[inptr] != '\t') break;
-  }
- if(sscanf(inbuff+inptr, FORMAT, val) != 1) return -1;
- 
- for(; inptr < proviso; inptr++)
-	if((c = inbuff[inptr]) != '-' && !isdigit(c)) break;
- return 0;
-}
 
 void balance(FILE *foo, FILE *bar)
 {
@@ -140,7 +92,19 @@ int main(int argc, char *argv[])
  int p, q, xq;
  long temps;
  char *date;
+ #if defined(LINEAR_VALUE_IS_MP)
+ int x ;
+ #else
  Entier D, x;
+ #endif
+ 
+ #if defined(LINEAR_VALUE_IS_MP)
+ mpz_init_set_si(UN, 1);
+ mpz_init_set_si(ZERO, 0);
+ #else
+ UN   = VAL_UN ;
+ ZERO = VAL_ZERO ;
+ #endif
 
  in = stdin; out = stdout;
  p = 1;
@@ -196,18 +160,24 @@ int main(int argc, char *argv[])
      {if(c != '(') continue;
       fprintf(out, "(");
       balance(in, out);
-      if(dscanf(in, FORMAT, &x) < 0){escape(in, out, 1); continue;}
-      else nvar = (int) x;
-      if(dscanf(in, FORMAT, &x) < 0){escape(in, out, 1); continue; }
-      else nparm = (int) x;
-      if(dscanf(in, FORMAT, &x) < 0){escape(in, out, 1); continue; }
-      else ni = (int) x;
-      if(dscanf(in, FORMAT, &x) < 0){escape(in, out, 1); continue; }
-      else nc = (int) x;
-      if(dscanf(in, FORMAT, &x) < 0){escape(in, out, 1); continue; }
-      else bigparm = (int) x;
-      if(dscanf(in, FORMAT, &x) < 0){escape(in, out, 1); continue; }
-      else nq = (int) x;
+      if(dscanf(in, &x) < 0){escape(in, out, 1); continue;}
+      else 
+        nvar = (int) x;
+      if(dscanf(in, &x) < 0){escape(in, out, 1); continue; }
+      else
+        nparm = (int) x;
+      if(dscanf(in, &x) < 0){escape(in, out, 1); continue; }
+      else 
+        ni = (int) x;
+      if(dscanf(in, &x) < 0){escape(in, out, 1); continue; }
+      else
+        nc = (int) x;
+      if(dscanf(in, &x) < 0){escape(in, out, 1); continue; }
+      else 
+        bigparm = (int) x;
+      if(dscanf(in, &x) < 0){escape(in, out, 1); continue; }
+      else 
+        nq = (int) x;
       if(verbose > 0) {fprintf(dump, "%d %d %d %d %d %d\n",nvar, nparm, ni, nc,
 			      bigparm, nq);
 		       fflush(dump);
@@ -225,16 +195,26 @@ int main(int argc, char *argv[])
 /* verification de la non-vacuite' du contexte */
       if(nc)
 	  {ctxt = expanser(context, nparm, nc, nparm+1, nparm, 0, 0);
+           #if defined(LINEAR_VALUE_IS_MP)
+	   traiter(ctxt, NULL, True, nparm, 0, nc, 0, -1);
+	   #else
 	   traiter(ctxt, NULL, True, UN, nparm, 0, nc, 0, -1);
+           #endif
 	   non_vide = is_not_Nil(p);
 	   sol_reset(p);
 	  }
       else non_vide = True;
       if(non_vide) {
 	   compa_count = 0;
+           #if defined(LINEAR_VALUE_IS_MP)
+	   traiter(ineq, context, nq, nvar, nparm, ni, nc, bigparm);
+	   putc(' ',out);
+	   mpz_out_str(out, 10, ineq->determinant);
+	   #else
 	   D = traiter(ineq, context, nq, UN, nvar, nparm, ni, nc, bigparm);
 	   putc(' ',out);
 	   fprintf(out, FORMAT, D);
+           #endif
 	   fputs(" )",out);
 	   if(simple) sol_simplify(xq);
 	   q = sol_hwm();

@@ -76,22 +76,13 @@ compilation and installation of PIP. By giving configure the option
 --without-lib you disable the compilation and installation of the PipLib.
 
 By default, both int (32 bits) and long long int (64 bits) versions are
-built. Multiple precision is built too if the GMP library is found.
-By giving configure the option --enable-int you ask for int
-version only. By giving configure the option --enable-llint you
-ask for long long int version only. By giving configure the
-option --enable-gmp you ask for GMP version only.
-
-By default, PIP looks for the GMP library in the standard path
-/usr/ or /usr/local/. If the multiple precision Pip construction
-is needed and if the GMP library was installed elsewhere, you must must give
-to the configure shell script the option --with-gmp=PATH, where
-PATH is the GMP library installation path.
+built. By giving configure the option --enable-int you ask for int
+version only and by giving configure the option --enable-llint you
+ask for long long int version only.
 
 #   **-------------------------------------------------------------------**
 #   **                          IV Running PIP                           **
 #   **-------------------------------------------------------------------**/
 
-To run PIP, simply type 'pip32', 'pip64' or 'pipMP', optionally followed by the
-name of an input file. For more informations, please check the ./doc
-subdirectory.
+To run PIP, simply type 'pip32' ou 'pip64', optionally followed by the name
+of an input file. For more informations, please check the ./doc subdirectory.

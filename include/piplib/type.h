@@ -24,12 +24,17 @@
  *                                                                            *
  ******************************************************************************/
 
+#ifndef TYPE_H
+#define TYPE_H
+#if defined(__cplusplus)
+extern "C" 
+  {
+#endif 
+
 #define SOL_SIZE 4096
 
-#if defined(LINEAR_VALUE_IS_MP)
 extern Entier UN;
 extern Entier ZERO;
-#endif
 
 #define True 1
 #define False 0
@@ -44,3 +49,7 @@ extern Entier ZERO;
 #define MAXCOL 512
 #define MAXPARM 50
 
+#if defined(__cplusplus)
+  }
+#endif 
+#endif /* define _H */

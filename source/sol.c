@@ -52,6 +52,7 @@ struct S
 struct S sol_space[SOL_SIZE];
 static int sol_free;
 
+#if !defined(LINEAR_VALUE_IS_MP)
 Entier mod(Entier, Entier);
 
 Entier pgcd(Entier x, Entier y)
@@ -63,6 +64,7 @@ Entier pgcd(Entier x, Entier y)
      }
  return(x>= 0? x : -x);
 }
+#endif
 
 void sol_init(void)
 {
@@ -76,11 +78,17 @@ int sol_hwm()
 
 void sol_reset(p)
 int p;
-{
+{int i;
  if(p<0 || p>=SOL_SIZE)
      {fprintf(stderr, "Syserr : sol_reset : Memory allocation error\n");
       exit(40);
      }
+ #if defined(LINEAR_VALUE_IS_MP)
+ for(i=p; i<sol_free; i++){
+   mpz_clear(sol_space[i].param1);
+   mpz_clear(sol_space[i].param2);
+ }
+ #endif
  sol_free = p;
 }
 
@@ -88,7 +96,12 @@ struct S *sol_alloc(void)
 {struct S *r;
  r = sol_space + sol_free;
  r->flags = Free;
+ #if defined(LINEAR_VALUE_IS_MP)
+ mpz_init_set_si(r->param1,0);
+ mpz_init_set_si(r->param2,0);
+ #else
  r->param1 = r->param2 = 0;
+ #endif
  sol_free++;
  if(sol_free >= SOL_SIZE)
      {fprintf(stderr, "The solution is too complex! : sol\n");
@@ -113,7 +126,11 @@ void sol_error(int c)
  struct S *r;
  r = sol_alloc();
  r->flags = Nil;
+ #if defined(LINEAR_VALUE_IS_MP)
+ mpz_set_si(r->param1, c);
+ #else
  r->param1 = c;
+ #endif
  if(verbose > 0) {
      fprintf(dump, "Erreur %d\n", c);
      fflush(dump);
@@ -142,7 +159,11 @@ int n;
 {struct S * r;
  r = sol_alloc();
  r->flags = List;
+ #if defined(LINEAR_VALUE_IS_MP)
+ mpz_set_si(r->param1, n);
+ #else
  r->param1 = n;
+ #endif
  if(verbose > 0) {
      fprintf(dump, "\nList %d ", n);
      fflush(dump);
@@ -155,7 +176,11 @@ int l;
  struct S *r;
  r = sol_alloc();
  r -> flags = Form;
+ #if defined(LINEAR_VALUE_IS_MP)
+ mpz_set_ui(r -> param1, l);
+ #else
  r -> param1 = l;
+ #endif
  if(verbose > 0) {
      fprintf(dump, "\nForme %d ", l);
      fflush(dump);
@@ -168,7 +193,11 @@ int k;
  struct S *r;
  r = sol_alloc();
  r -> flags = New;
+ #if defined(LINEAR_VALUE_IS_MP)
+ mpz_set_ui(r -> param1, k);
+ #else
  r -> param1 = k;
+ #endif
  if(verbose > 0) {
      fprintf(dump, "New %d ", k);
      fflush(dump);
@@ -192,13 +221,24 @@ Entier n, d;
  struct S *r;
  r = sol_alloc();
  r -> flags = Val;
+ #if defined(LINEAR_VALUE_IS_MP)
+ mpz_set(r -> param1, n);
+ mpz_set(r -> param2, d);
+ #else
  r -> param1 = n;
  r -> param2 = d;
+ #endif
  if(verbose > 0) {
    fprintf(dump, "val(");
+   #if defined(LINEAR_VALUE_IS_MP)
+   mpz_out_str(dump, 10, n);
+   fprintf(dump, "/");
+   mpz_out_str(dump, 10, d);
+   #else
    fprintf(dump, FORMAT, n);
    fprintf(dump, "/");
    fprintf(dump, FORMAT, d);
+   #endif
    fprintf(dump, ") ");
    fflush(dump);
   }
@@ -229,7 +269,12 @@ int skip (int i)
  case If : i = skip(i+1);        /* sauter le pre'dicat */
 	   i = skip(i);          /* sauter le vrai */
 	   i = skip(i); break;   /* sauter le faux */
- case List : case Form : n = sol_space[i].param1;
+ case List : case Form :
+           #if defined(LINEAR_VALUE_IS_MP)
+           n = mpz_get_si(sol_space[i].param1);
+           #else
+           n = sol_space[i].param1;
+           #endif
 	   i++;
 	   while(n--) i = skip(i);
 	   break;
@@ -247,8 +292,8 @@ int skip (int i)
 void sol_simplify(int i)
 {int j, k, l;
  if(sol_space[i].flags == If) {
-     j = skip(i+1);        /* j : de'but de la partie vraie */
-     k = skip(j);          /* k : d‚but de la partie fausse */
+     j = skip(i+1);        /* j : debut de la partie vraie */
+     k = skip(j);          /* k : debut de la partie fausse */
      sol_simplify(k);
      sol_simplify(j);
      if(sol_space[j].flags == Nil && sol_space[k].flags == Nil) {
@@ -265,6 +310,12 @@ int sol_edit(FILE *foo, int i)
 {int j, n;
  struct S *p;
  Entier N, D, d;
+ #if defined(LINEAR_VALUE_IS_MP)
+ mpz_init(N);
+ mpz_init(D);
+ mpz_init(d);
+ #endif
+ 
  p = sol_space + i;
  for(;;) {
    if(p->flags == Free) {
@@ -273,7 +324,11 @@ int sol_edit(FILE *foo, int i)
      continue;
    }
    if(p->flags == New) {
+     #if defined(LINEAR_VALUE_IS_MP)
+     n = mpz_get_si(p->param1);
+     #else
      n = p->param1;
+     #endif
      fprintf(foo, "(newparm %d ", n);
      if(verbose>0)fprintf(dump, "(newparm %d ", n);
      i = sol_edit(foo, ++i);
@@ -288,8 +343,16 @@ int sol_edit(FILE *foo, int i)
  case Nil : fprintf(foo, "()\n");
    if(verbose>0)fprintf(dump, "()\n");
    i++; break;
- case Error : fprintf(foo, "Error %d\n", p->param1);
-   if(verbose>0)fprintf(dump, "Error %d\n", p->param1);
+ case Error :
+   #if defined(LINEAR_VALUE_IS_MP)
+   fprintf(foo, "Error %d\n", mpz_get_si(p->param1));
+   if(verbose>0)
+   fprintf(dump, "Error %d\n", mpz_get_si(p->param1));
+   #else
+   fprintf(foo, "Error %d\n", p->param1);
+   if(verbose>0)
+   fprintf(dump, "Error %d\n", p->param1);
+   #endif
    i++; break;
  case If  : fprintf(foo, "(if ");
    if(verbose>0)fprintf(dump, "(if ");
@@ -301,7 +364,11 @@ int sol_edit(FILE *foo, int i)
    break;
  case List: fprintf(foo, "(list ");
    if(verbose>0)fprintf(dump, "(list ");
+   #if defined(LINEAR_VALUE_IS_MP)
+   n = mpz_get_si(p->param1);
+   #else
    n = p->param1;
+   #endif
    i++;
    while(n--) i = sol_edit(foo, i);
    fprintf(foo, ")\n");
@@ -309,9 +376,40 @@ int sol_edit(FILE *foo, int i)
    break;
  case Form: fprintf(foo, "#[");
    if(verbose>0)fprintf(dump, "#[");
+   #if defined(LINEAR_VALUE_IS_MP)
+   n = mpz_get_si(p->param1);
+   #else
    n = p->param1;
+   #endif
    for(j = 0; j<n; j++){
      i++; p++;
+     #if defined(LINEAR_VALUE_IS_MP)
+     mpz_set(N, p->param1); mpz_set(D, p->param2);
+     mpz_gcd(d, N, D);
+     if(mpz_cmp(d, D) == 0){
+       putc(' ', foo);
+       mpz_divexact(N, N, d);
+       mpz_out_str(foo, 10, N);
+       if(verbose>0){
+         putc(' ', dump);
+         mpz_out_str(dump, 10, N);
+       }
+     }
+     else{
+       mpz_divexact(N, N, d);
+       mpz_divexact(D, D, d);
+       putc(' ', foo);
+       mpz_out_str(foo, 10, N);
+       putc('/', foo);
+       mpz_out_str(foo, 10, D);
+       if(verbose>0){
+         putc(' ', dump);
+         mpz_out_str(dump, 10, N);
+         putc('/', dump);
+         mpz_out_str(dump, 10, D);
+       }
+     }
+     #else
      N = p->param1; D = p->param2;
      d = pgcd(N, D);
      if(d == D){
@@ -334,6 +432,7 @@ int sol_edit(FILE *foo, int i)
 	 fprintf(dump,FORMAT, D/d);
        }
      }
+     #endif
    }
    fprintf(foo, "]\n");
    if(verbose>0)fprintf(dump, "]\n");
@@ -346,7 +445,35 @@ int sol_edit(FILE *foo, int i)
    fprintf(foo, ")\n");
    if(verbose>0)fprintf(dump, ")\n");
    break;
- case Val : N = p->param1; D = p->param2;
+ case Val :
+   #if defined(LINEAR_VALUE_IS_MP)
+   mpz_set(N, p->param1); mpz_set(D, p->param2);
+   mpz_gcd(d, N, D);
+   if(mpz_cmp(d, D) == 0){
+     mpz_divexact(N, N, d);
+     putc(' ', foo);
+     mpz_out_str(foo, 10, N);
+     if(verbose>0){
+       putc(' ', dump);
+       mpz_out_str(dump, 10, N);
+     }
+   }
+   else{
+     mpz_divexact(N, N, d);
+     mpz_divexact(D, D, d);
+     putc(' ', foo);
+     mpz_out_str(foo, 10, N);
+     fprintf(foo, "/");
+     mpz_out_str(foo, 10, D);
+     if(verbose>0){
+       putc(' ', dump);
+       mpz_out_str(dump, 10, N);
+       fprintf(dump, "/");
+       mpz_out_str(dump, 10, D);
+     }
+   }
+   #else
+   N = p->param1; D = p->param2;
    d = pgcd(N, D);
    if(d == D){putc(' ', foo);
    fprintf(foo, FORMAT, N/d);
@@ -366,11 +493,17 @@ int sol_edit(FILE *foo, int i)
      fprintf(dump, FORMAT, D/d);
      }
    }
+   #endif
    i++;
    break;
  default  : fprintf(foo, "Inconnu : sol\n");
    if(verbose>0)fprintf(dump, "Inconnu : sol\n");
  }
+ #if defined(LINEAR_VALUE_IS_MP)
+ mpz_clear(d);
+ mpz_clear(D);
+ mpz_clear(N);
+ #endif
  return(i);
 }
 
@@ -389,6 +522,12 @@ PipVector * sol_vector_edit(int * i)
   struct S *p ;
   Entier N, D, d ;
   PipVector * vector ;
+
+  #if defined(LINEAR_VALUE_IS_MP)
+  mpz_init(N) ;
+  mpz_init(D) ;
+  mpz_init(d) ;
+  #endif
   
   vector = (PipVector *)malloc(sizeof(PipVector)) ;
   if (vector == NULL)
@@ -396,7 +535,11 @@ PipVector * sol_vector_edit(int * i)
     exit(1) ;
   }
   p = sol_space + (*i) ;
+  #if defined(LINEAR_VALUE_IS_MP)
+  n = mpz_get_si(p->param1) ;
+  #else
   n = p->param1 ;
+  #endif
   vector->nb_elements = n ;
   vector->the_vector = (Entier *)malloc(sizeof(Entier)*n) ;
   if (vector->the_vector == NULL)
@@ -412,17 +555,35 @@ PipVector * sol_vector_edit(int * i)
   for (j=0;j<n;j++)
   { (*i)++ ;
     p++ ;
+    #if defined(LINEAR_VALUE_IS_MP)
+    mpz_set(N,p->param1) ;
+    mpz_set(D,p->param2) ;
+    mpz_gcd(d, N, D);
+    mpz_init(vector->the_vector[j]) ;
+    mpz_divexact(vector->the_vector[j],N,d) ;
+    mpz_init(vector->the_deno[j]) ;
+    if (mpz_cmp(d, D) == 0)
+    mpz_set(vector->the_deno[j],UN) ;
+    else
+    mpz_divexact(vector->the_deno[j],D,d) ;
+    #else
     N = p->param1 ;
     D = p->param2 ;
     d = pgcd(N, D) ;
-
     vector->the_vector[j] = N/d ;
     if (d == D)
     vector->the_deno[j] = UN ;
     else
     vector->the_deno[j] = D/d ;
+    #endif
   }
   (*i)++ ;
+
+  #if defined(LINEAR_VALUE_IS_MP)
+  mpz_clear(d);
+  mpz_clear(D);
+  mpz_clear(N);
+  #endif
 
   return(vector) ;
 }
@@ -452,10 +613,16 @@ PipNewparm * sol_newparm_edit(int * i)
     exit(1) ;
   }
   newparm->vector = sol_vector_edit(i) ;
-  newparm->rank = p->param1 ;
+  #if defined(LINEAR_VALUE_IS_MP)
+  newparm->rank = mpz_get_si(p->param1) ;
   /* On met p a jour pour lire le denominateur (un Val de param2 UN). */
   p = sol_space + (*i) ;
+  mpz_init_set(newparm->deno,p->param1) ;
+  #else
+  newparm->rank = p->param1 ;
+  p = sol_space + (*i) ;
   newparm->deno = p->param1 ;
+  #endif
   newparm->next = NULL ;
 
   newparm_now = newparm ;
@@ -465,7 +632,11 @@ PipNewparm * sol_newparm_edit(int * i)
     fprintf(dump," (div ") ;
     pip_vector_print(dump,newparm->vector) ;
     fprintf(dump," ") ;
+    #if defined(LINEAR_VALUE_IS_MP)
+    mpz_out_str(dump,10,newparm->deno) ;
+    #else
     fprintf(dump,FORMAT,newparm->deno) ;
+    #endif
     fprintf(dump,"))") ;
   }
   
@@ -480,9 +651,15 @@ PipNewparm * sol_newparm_edit(int * i)
       exit(1) ;
     }
     newparm_new->vector = sol_vector_edit(i) ;
+    #if defined(LINEAR_VALUE_IS_MP)
+    newparm_new->rank = mpz_get_si(p->param1) ;
+    p = sol_space + (*i) ;
+    mpz_init_set(newparm_new->deno,p->param1) ;
+    #else
     newparm_new->rank = p->param1 ;
     p = sol_space + (*i) ;
     newparm_new->deno = p->param1 ;
+    #endif
     newparm_new->next = NULL ;
       
     newparm_now->next = newparm_new ;
@@ -493,7 +670,11 @@ PipNewparm * sol_newparm_edit(int * i)
       fprintf(dump," (div ") ;
       pip_vector_print(dump,newparm_new->vector) ;
       fprintf(dump," ") ;
+      #if defined(LINEAR_VALUE_IS_MP)
+      mpz_out_str(dump,10,newparm_new->deno) ;
+      #else
       fprintf(dump,FORMAT,newparm_new->deno) ;
+      #endif
       fprintf(dump,"))") ;
     }
     (*i) ++ ;
@@ -614,7 +795,12 @@ PipQuast * sol_quast_edit(int * i, PipQuast * father)
   /* ...ensuite soit par une liste (vide ou non) soit par un if. */
   (*i)++ ; /* Factorise de List, Nil et If. */
   switch (p->flags)
-  { case List : if ((nb_elements = p->param1) != 0)
+  { case List : 
+                #if defined(LINEAR_VALUE_IS_MP)
+                if ((nb_elements = mpz_get_si(p->param1)) != 0)
+                #else
+                if ((nb_elements = p->param1) != 0)
+                #endif
                 solution->list = sol_list_edit(i,nb_elements) ;
 		break ;
     case Nil  : if (verbose)

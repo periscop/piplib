@@ -24,6 +24,13 @@
  *                                                                            *
  ******************************************************************************/
 
+#ifndef FUNCALL_H
+#define FUNCALL_H
+#if defined(__cplusplus)
+extern "C" 
+  {
+#endif 
+
 #if defined(LINEAR_VALUE_IS_MP)
 void traiter(Tableau *, Tableau *, int, int, int, int, int, int);
 int integrer(Tableau **, Tableau **, int *, int *, int *, int *);
@@ -55,3 +62,8 @@ void tab_display(Tableau *, FILE *);
 Tableau * expanser(Tableau *, int, int, int, int, int, int);
 void sol_new(int);
 void sol_div(void);
+
+#if defined(__cplusplus)
+  }
+#endif 
+#endif /* define _H */

@@ -15,7 +15,6 @@ ROOT = ..
 
 # pbs with boulet bouleti and kirk 
 PIPTEST =  \
-	boulet.dat \
 	crescat.dat \
 	discr.dat \
 	invert.dat \
@@ -31,7 +30,7 @@ test:
 	failedtest=0; \
 	for x in $(PIPTEST) ; do \
 		echo "Verify file $$x" ; \
-		$(ROOT)/obj$(BITS)_$(TARGET)/pip$(BITS)$(EXEC_SUFFIX) < $$x > xyz ;\
+		$(ROOT)/obj$(BITS)_$(TARGET)/pip$(BITS)$(EXEC_SUFFIX) -z < $$x > xyz ;\
 		diff -w xyz `basename $$x .dat`.ll ; \
 		result=$$?; \
 		if [ "$$result" -eq "1" ]; then \

@@ -40,7 +40,11 @@ extern long int cross_product, limit;
 static int chunk_count;
 
 int dgetc(FILE *);
-int dscanf(FILE *, char *, Entier *);
+#if defined(LINEAR_VALUE_IS_MP)
+int dscanf(FILE *, int    *);
+#else
+int dscanf(FILE *, Entier *);
+#endif
 
 extern FILE * dump;
 
@@ -67,18 +71,57 @@ struct high_water_mark tab_hwm(void)
  return p;
 }
 
-void tab_reset(struct high_water_mark p)
+
+#if defined(LINEAR_VALUE_IS_MP)
+/* the clear_tab routine clears the GMP objects which may be referenced
+   in the given Tableau.
+*/
+void tab_clear(Tableau *tp)
+{
+  int i, j;
+  /* clear the determinant */
+  mpz_clear(tp->determinant);
+
+  for(i=0; i<tp->height; i++){
+    /* clear the denominator */
+    mpz_clear(Denom(tp, i));
+    if((Flag(tp, i) & Unit) == 0)
+      for(j=0; j<tp->width; j++)
+        mpz_clear(Index(tp,i,j));
+  }
+}
+#endif
+
+void tab_reset(struct high_water_mark by_the_mark)
 
 {struct A *g;
- while(chunk_count > p.chunk)
+ char *p;
+ while(chunk_count > by_the_mark.chunk)
      {
       g = tab_base->precedent;
+      
+      #if defined(LINEAR_VALUE_IS_MP)
+      /* Before actually freeing the memory, one has to clear the
+       * included Tableaux. If this is not done, the GMP objects
+       * referenced in the Tableaux will be orphaned.
+       */
+
+      /* Enumerate the included tableaux. */
+      p = (char *)tab_base + sizeof(struct A);
+      while(p < tab_free){
+        Tableau *pt;
+        pt = (Tableau *) p;
+	tab_clear(pt);
+        p += pt->taille;
+      } 
+      #endif
+      
       free(tab_base);
       tab_base = g;
       tab_top = tab_base->bout;
       chunk_count--;
      }
- if(chunk_count > 0) tab_free = p.top;
+ if(chunk_count > 0) tab_free = by_the_mark.top;
  else {
      fprintf(stderr, "Syserr: tab_reset : error in memory allocation\n");
      exit(1);
@@ -119,20 +162,38 @@ Tableau * tab_alloc(int h, int w, int n)
  tab_free += taille;
  tp = (Tableau *)p;
  q = (Entier *)(p +  sizeof(struct T) + (h+n-1) * sizeof (struct L));
+ #if defined(LINEAR_VALUE_IS_MP)
+ mpz_init_set_ui(tp->determinant,1);
+ #else
  tp->determinant[0] = (Entier) 1;
  tp->l_determinant = 1;
+ #endif
  for(i = 0; i<n ; i++){
    tp->row[i].flags = Unit;
    tp->row[i].objet.unit = i;
+   #if defined(LINEAR_VALUE_IS_MP)
+   mpz_init_set_ui(Denom(tp, i), 1);
+   #else
    Denom(tp, i) = UN ;
+   #endif
  }
  for(i = n; i < (h+n); i++){
    tp->row[i].flags = 0;
    tp->row[i].objet.val = q;
-   for(j = 0; j < w; j++) *q++ = 0;
+   for(j = 0; j < w; j++)
+   #if defined(LINEAR_VALUE_IS_MP)
+   mpz_init_set_ui(*q++, 0); /* loop body. */
+   mpz_init_set_ui(Denom(tp, i), 0);
+   #else
+   *q++ = 0;                 /* loop body. */
    Denom(tp, i) = ZERO ;
+   #endif
  }
  tp->height = h + n; tp->width = w;
+ #if defined(LINEAR_VALUE_IS_MP)
+ tp->taille = taille ;
+ #endif
+ 
  return(tp);
 }
 
@@ -142,23 +203,37 @@ int h, w, n;
 {
  Tableau *p;
  int i, j, c;
+ #if defined(LINEAR_VALUE_IS_MP)
+ int x ;
+ #else
  Entier x;
+ #endif
+ 
  p = tab_alloc(h, w, n);
  while((c = dgetc(foo)) != EOF)
       if(c == '(')break;
  for(i = n; i<h+n; i++)
      {p->row[i].flags = Unknown;
+      #if defined(LINEAR_VALUE_IS_MP)
+      mpz_set_ui(Denom(p, i), 1);
+      #else
       Denom(p, i) = UN;
+      #endif
       while((c = dgetc(foo)) != EOF)if(c == '[')break;
       for(j = 0; j<w; j++){
-	if(dscanf(foo, FORMAT, &x) < 0)
+	if(dscanf(foo, &x) < 0)
 		return NULL;
-        else p->row[i].objet.val[j] = x;
+        else
+        #if defined(LINEAR_VALUE_IS_MP)
+	mpz_set_si(p->row[i].objet.val[j], x);
+        #else
+	p->row[i].objet.val[j] = x;
+        #endif
         }
+      } 
       while((c = dgetc(foo)) != EOF)if(c == ']')break;
-     }
- while((c = dgetc(foo)) != EOF)if(c == ')')break;
- return((Tableau *) p);
+     
+ return(p);
 }
 
 
@@ -185,6 +260,9 @@ Tableau * tab_Matrix2Tableau(PipMatrix * matrix, int Nineq, int Nv, int n)
   unsigned i, j, end, current, new, nb_columns, decal=0 ;
   Entier * entier, inequality ;
   
+  #if defined(LINEAR_VALUE_IS_MP)
+  mpz_init(inequality) ;
+  #endif
   nb_columns = matrix->NbColumns - 1 ;
   p = tab_alloc(Nineq,nb_columns,n) ;
     
@@ -195,10 +273,18 @@ Tableau * tab_Matrix2Tableau(PipMatrix * matrix, int Nineq, int Nv, int n)
   for (i=n;i<end;i++)
   { current = i + decal ;
     Flag(p,current) = Unknown ;
+    #if defined(LINEAR_VALUE_IS_MP)
+    mpz_set_ui(Denom(p,current),1) ;
+    #else
     Denom(p,current) = UN ;
+    #endif
     entier = *(matrix->p + i - n) ;
     /* Pour passer l'indicateur d'egalite/inegalite. */
+    #if defined(LINEAR_VALUE_IS_MP)
+    mpz_set(inequality,*entier) ;
+    #else
     inequality = *entier ;
+    #endif
     entier ++ ;
          
     /* Dans le format de la polylib, l'element constant est place en
@@ -207,22 +293,42 @@ Tableau * tab_Matrix2Tableau(PipMatrix * matrix, int Nineq, int Nv, int n)
      * choses dans l'ordre de Pip. Ici pour p(x) >= 0.
      */
     for (j=0;j<Nv;j++)
+    #if defined(LINEAR_VALUE_IS_MP)
+    mpz_set(*(p->row[current].objet.val + j),*entier++) ;
+    #else
     *(p->row[current].objet.val + j) = *entier++ ;
+    #endif
     for (j=Nv+1;j<nb_columns;j++)
+    #if defined(LINEAR_VALUE_IS_MP)
+    mpz_set(*(p->row[current].objet.val + j),*entier++) ;
+    mpz_set(*(p->row[current].objet.val + Nv),*entier) ;
+    #else
     *(p->row[current].objet.val + j) = *entier++ ;
     *(p->row[current].objet.val + Nv) = *entier ;
+    #endif
     
     /* Et ici lors de l'ajout de -p(x) >= 0 quand on traite une egalite. */
     if (!inequality)
     { decal ++ ;
       new = current + 1 ;
       Flag(p,new)= Unknown ;
+      #if defined(LINEAR_VALUE_IS_MP)
+      mpz_set(Denom(p,new),UN) ;
+      #else
       Denom(p,new) = UN ;
+      #endif
       
       for (j=0;j<nb_columns;j++)
+      #if defined(LINEAR_VALUE_IS_MP)
+      mpz_neg(*(p->row[new].objet.val + j),*(p->row[current].objet.val + j)) ;
+      #else
       *(p->row[new].objet.val + j) = -(*(p->row[current].objet.val + j)) ;
+      #endif
     }
   }
+  #if defined(LINEAR_VALUE_IS_MP)
+  mpz_clear(inequality);
+  #endif
   return(p);
 }
 
@@ -236,11 +342,19 @@ Tableau *p;
 
  int i, j, ff, fff, n;
  Entier x, d;
+ #if defined(LINEAR_VALUE_IS_MP)
+ mpz_init(d);
+ #endif
+
  fprintf(foo, "%ld/[%d * %d]\n", cross_product, p->height, p->width);
  for(i = 0; i<p->height; i++){
    fff = ff = p->row[i].flags;
    /* if(fff ==0) continue; */
+   #if defined(LINEAR_VALUE_IS_MP)
+   mpz_set(d, Denom(p, i));
+   #else
    d = Denom(p, i);
+   #endif
    n = 0;
    while(fff){
      if(fff & 1) fprintf(foo, "%s ",Attr[n]);
@@ -252,12 +366,24 @@ Tableau *p;
        fprintf(foo, " /%d/",(j == p->row[i].objet.unit)? 1: 0);
    else
      for(j = 0; j<p->width; j++){
+       #if defined(LINEAR_VALUE_IS_MP)
+       mpz_out_str(foo, 10, Index(p, i, j));
+       putc(' ', foo);
+       #else
        x = Index(p,i,j);
        fprintf(foo, FORMAT, x);
        fprintf(foo, " ");
+       #endif
      }
    fprintf(foo, "]/");
+   #if defined(LINEAR_VALUE_IS_MP)
+   mpz_out_str(foo, 10, d);
+   #else
    fprintf(foo, "%d", (int)d);
+   #endif
    putc('\n', foo);
  }
+ #if defined(LINEAR_VALUE_IS_MP)
+ mpz_clear(d);
+ #endif
 }

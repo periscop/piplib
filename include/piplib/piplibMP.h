@@ -28,5 +28,17 @@
  * utilisateurs de la PipLib. Premiere version du 29 juillet 2001.
  */ 
 
+#ifndef PIPLIBMP_H
+#define PIPLIBMP_H
+#if defined(__cplusplus)
+extern "C" 
+  {
+#endif 
+
 # define LINEAR_VALUE_IS_MP
 # include <piplib/piplib.h>
+
+#if defined(__cplusplus)
+  }
+#endif 
+#endif /* define _H */
