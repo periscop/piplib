@@ -1,4 +1,4 @@
-((variables : a b c d ...., pas de parametres 479001600  )(list #[ 2]
+((variables : a b c d ...., pas de parametres 39916800  )(list #[ 2]
 #[ 1]
 #[ 1]
 #[ 5]
@@ -9,6 +9,5 @@
 #[ 35840]
 #[ 326592]
 #[ 3298910]
-#[ 36590400]
 )
 )

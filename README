@@ -84,5 +84,5 @@ ask for long long int version only.
 #   **                          IV Running PIP                           **
 #   **-------------------------------------------------------------------**/
 
-To run PIP, simply type 'pip32' ou 'pip64', optionally followed by the name
+To run PIP, simply type 'pip32' or 'pip64', optionally followed by the name
 of an input file. For more informations, please check the ./doc subdirectory.

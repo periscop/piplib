@@ -9,12 +9,12 @@
  * This is free software; you can redistribute it and/or modify it under the  *
  * terms of the GNU General Public License as published by the Free Software  *
  * Foundation; either version 2 of the License, or (at your option) any later *
- * version.							              *
+ * version.                                                                   *
  *                                                                            *
  * This software is distributed in the hope that it will be useful, but       *
  * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY *
  * or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License   *
- * for more details.							      *
+ * for more details.                                                          *
  *                                                                            *
  * You should have received a copy of the GNU General Public License along    *
  * with software; if not, write to the Free Software Foundation, Inc.,        *
@@ -654,9 +654,9 @@ int iq, nvar, nparm, ni, nc, bigparm;
  struct L temp;
  Entier discr[MAXPARM];
 
-#if !defined(LINEAR_VALUE_IS_MP)
+ #if !defined(LINEAR_VALUE_IS_MP)
  Entier D = UN;
-#endif
+ #endif
 
  #if defined(LINEAR_VALUE_IS_MP)
  for(i=0; i<MAXPARM; i++)
@@ -674,7 +674,8 @@ int iq, nvar, nparm, ni, nc, bigparm;
  context = expanser(ctxt, 0, nc, nparm+1, 0, dch, dcw);
 /*
  sort the rows in increasing order of the largest coefficient
-
+*/
+   
  smax = 0.;
 
  for(i=nvar; i<nligne; i++){
@@ -715,8 +716,7 @@ int iq, nvar, nparm, ni, nc, bigparm;
    }
  }   
 
-*/
-   
+
  for(;;) {
    if(verbose>2){
      fprintf(dump, "debut for\n");
@@ -764,7 +764,7 @@ int iq, nvar, nparm, ni, nc, bigparm;
        #else
        dcw = 0;
        for(i=0; i<tp->l_determinant; i++)
-	 dcw += llog(tp->determinant[i]);
+       dcw += llog(tp->determinant[i]);
        #endif
        dch = 2 * dcw + 1;
        context = expanser(context, 0, nc, nparm+1, 0, dch, dcw);

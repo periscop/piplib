@@ -5,33 +5,75 @@
 # Permission is granted to copy, use, and distribute
 # for any commercial or noncommercial purpose under the terms
 # of the GNU General Public license, version 2, June 1991
-# (see file : LICENSING).
+# (see file : ../LICENSE).
 #
 # @author: Bart Kienhuis
 # $Id: makefile,v 1.26 2002/09/26 13:03:53 kienhuis Exp $
 #
-
+# ndCed: useful line for names with their extensions:
+# diff -w xyz `basename $$x .dat`.ll ;
 ROOT = ..
 
-# pbs with boulet bouleti and kirk 
-PIPTEST =  \
-	crescat.dat \
-	discr.dat \
-	invert.dat \
-	lineri.dat \
-	loz.dat \
-	maxb.dat \
-	max.dat \
-	test12i.dat
+# pbs with boulet bouleti and dirk 
+#	boulet  \
+#	bouleti \
+#	dirk    \
+
+PIPTEST =       \
+	crescat \
+	discr   \
+	equus   \
+	invert  \
+	linear  \
+	lineri  \
+	loz     \
+	max     \
+	maxb    \
+	pairi   \
+	petit   \
+	rairo   \
+	rairoi  \
+	test    \
+	test2   \
+	test2i  \
+	test3   \
+	test3i  \
+	test4   \
+	test4i  \
+	test5   \
+	test5i  \
+	test6   \
+	test6i  \
+	test7   \
+	test7i  \
+	test8i  \
+	test9i  \
+	test10i \
+	test11  \
+	test11i \
+	test12  \
+	test12i
 
 BITS = 64
 
+generate:
+	@echo "             /*-----------------------------------------------*"
+	@echo "              *                 Generate files                *"
+	@echo "              *-----------------------------------------------*/"
+	for x in $(PIPTEST) ; do \
+		echo "Generate $$x.ll" ; \
+		pip64 $$x.dat $$x.ll ; \
+	done
+
 test:
+	@echo "             /*-----------------------------------------------*"
+	@echo "              *                  Testing PIP                  *"
+	@echo "              *-----------------------------------------------*/"
 	failedtest=0; \
 	for x in $(PIPTEST) ; do \
 		echo "Verify file $$x" ; \
-		$(ROOT)/obj$(BITS)_$(TARGET)/pip$(BITS)$(EXEC_SUFFIX) -z < $$x > xyz ;\
-		diff -w xyz `basename $$x .dat`.ll ; \
+		$(ROOT)/obj$(BITS)_$(TARGET)/pip$(BITS)$(EXEC_SUFFIX) $$x.dat > xyz ;\
+		diff -w xyz $$x.ll ; \
 		result=$$?; \
 		if [ "$$result" -eq "1" ]; then \
 			echo "Error: $$x is not the same"; \
@@ -40,10 +82,11 @@ test:
 			echo "$$x passed"; \
 	        fi; \
 	done ; \
+	rm xyz ; \
 	if [ $$failedtest != 0 ]; then \
 		echo "$$failedtest tests failed"; \
 	else \
-	        echo "Test pip works correctly"; \
+	        echo "PIP works correctly :0)"; \
         fi
 
 # Include the shared compilation rules
