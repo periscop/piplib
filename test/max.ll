@@ -1,5 +1,4 @@
-((a maximization problem 1 )(if #[ -1 6]
-(if #[ -1 3]
+((a maximization problem 1 )(if #[ -1 3]
 (list #[ 0 0]
 #[ 0 0]
 )
@@ -13,10 +12,6 @@
 (list #[ 1 -4]
 #[ 1 -5]
 )
-)
-)
-(list #[ 1 -4]
-#[ 1 -5]
 )
 )
 )
