@@ -22,7 +22,7 @@
  *                                                                            *
  * Written by Cedric Bastoul                                                  *
  *                                                                            *
- *****************************************************************************/
+ ******************************************************************************/
 
 /* Premiere version du 30 juillet 2001. */
 
@@ -308,8 +308,7 @@ void pip_matrix_free(PipMatrix * matrix)
   Entier * p ;
 
   p = matrix->p_Init ;
-  for (i=0;i<matrix->NbRows;i++) 
-  for (j=0;j<matrix->NbColumns;j++) 
+  for (i=0;i<matrix->p_Init_size;i++) 
   mpz_clear(*p++) ;
   #endif
 
@@ -478,6 +477,7 @@ PipMatrix * pip_matrix_alloc(unsigned NbRows, unsigned NbColumns)
   }
   matrix->NbRows = NbRows ;
   matrix->NbColumns = NbColumns ;
+  matrix->p_Init_size = NbRows * NbColumns ;
   if (NbRows == 0) 
   { matrix->p = NULL ;
     matrix->p_Init = NULL ;

@@ -72,7 +72,17 @@ struct pipmatrix
 { unsigned NbRows, NbColumns ;
   Entier **p ;
   Entier *p_Init ;
-  int p_Init_size;	        /* Only for PolyLib compatibility. */
+  int p_Init_size;	        /* Only for PolyLib compatibility under MP
+                                 * version: PolyLib makes sometimes
+				 * overestimates on the size of the matrices,
+				 * in order to go faster. Thus
+				 * NbRows*NbColumns is not the number of
+				 * allocated elements. With MP version, we
+				 * have to think to mpz_clear() all the
+				 * initialized elements before freing, then
+				 * we need to know the number of allocated
+				 * elements: p_Init_size.
+				 */
 } ;
 typedef struct pipmatrix PipMatrix ;
 
