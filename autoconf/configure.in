@@ -28,6 +28,18 @@ dnl  *                              Checking                                  *
 dnl  **************************************************************************/
 
 
+if test "x$prefix" != "xNONE"; then
+    prefix_wd=`cd $prefix && pwd`
+    srcdir_wd=`cd $srcdir && pwd`
+    wd=`pwd`
+    if test "x$prefix_wd" = "x$srcdir_wd"; then
+	AC_MSG_ERROR(Installation in source directory not supported)
+    fi
+    if test "x$prefix_wd" = "x$wd"; then
+	AC_MSG_ERROR(Installation in build directory not supported)
+    fi
+fi
+
 dnl Checks for typedefs, structures, and compiler characteristics.
 dnl Sylvain Girbal suggested to put this into comment to better fit any
 dnl architecture (and particularly Itanium -bah-).
