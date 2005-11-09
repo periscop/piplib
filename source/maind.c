@@ -4,7 +4,7 @@
  *                                  maind.h                                   *
  ******************************************************************************
  *                                                                            *
- * Copyright Paul Feautrier, 1988, 1993, 1994, 1996, 2002                     *
+ * Copyright Paul Feautrier, 1988-2005                                        *
  *                                                                            *
  * This is free software; you can redistribute it and/or modify it under the  *
  * terms of the GNU General Public License as published by the Free Software  *
@@ -91,10 +91,11 @@ int main(int argc, char *argv[])
  int p, q, xq;
  long temps;
  char *date;
+ Entier x ;
  #if defined(LINEAR_VALUE_IS_MP)
- int x ;
+ mpz_init(x);
  #else
- Entier x, i;
+ Entier i;
  #endif
  
  #if defined(LINEAR_VALUE_IS_MP)
@@ -129,14 +130,14 @@ int main(int argc, char *argv[])
        { fprintf(stderr, "%s unaccessible\n", g);
          verbose = 0;
        }
-	   }
+     }
      else
      { mkstemp(dump_name);
        dump = fopen(dump_name, "w");
      }
    }
-   if(strcmp(argv[p], "-d") == 0)
-	 { deepest_cut = 1;
+   if(argc>p && strcmp(argv[p], "-d") == 0)
+   { deepest_cut = 1;
      p++;
    }
  }
@@ -172,6 +173,26 @@ int main(int argc, char *argv[])
      {if(c != '(') continue;
       fprintf(out, "(");
       balance(in, out);
+      #if defined(LINEAR_VALUE_IS_MP)
+      if(dscanf(in, x) < 0){escape(in, out, 1); continue;}
+      else
+        nvar = mpz_get_si(x);
+      if(dscanf(in, x) < 0){escape(in, out, 1); continue;}
+      else
+        nparm = mpz_get_si(x);
+      if(dscanf(in, x) < 0){escape(in, out, 1); continue;}
+      else
+        ni = mpz_get_si(x);
+      if(dscanf(in, x) < 0){escape(in, out, 1); continue;}
+      else
+        nc = mpz_get_si(x);
+      if(dscanf(in, x) < 0){escape(in, out, 1); continue;}
+      else
+        bigparm = mpz_get_si(x);
+      if(dscanf(in, x) < 0){escape(in, out, 1); continue;}
+      else
+        nq = mpz_get_si(x);
+      #else
       if(dscanf(in, &x) < 0){escape(in, out, 1); continue;}
       else 
         nvar = (int) x;
@@ -190,6 +211,8 @@ int main(int argc, char *argv[])
       if(dscanf(in, &x) < 0){escape(in, out, 1); continue;}
       else 
         nq = (int) x;
+      #endif
+      
       if(verbose > 0) {fprintf(dump, "%d %d %d %d %d %d\n",nvar, nparm, ni, nc,
                                bigparm, nq);
                        fflush(dump);
@@ -246,6 +269,11 @@ int main(int argc, char *argv[])
  fprintf(stderr, "n %d u %d''' s %d'''\r\n",
  comptage, chrono.tms_utime, chrono.tms_stime);
 #endif
+
+#if defined(LINEAR_VALUE_IS_MP)
+ mpz_clear(x);
+#endif
+ pip_close();
  exit(0);
 }
 

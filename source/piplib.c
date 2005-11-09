@@ -4,7 +4,7 @@
  *                                 piplib.c                                   *
  ******************************************************************************
  *                                                                            *
- * Copyright Paul Feautrier, 1988, 1993, 1994, 1996, 2002                     *
+ * Copyright Paul Feautrier, 1988-2005                                        *
  *                                                                            *
  * This is free software; you can redistribute it and/or modify it under the  *
  * terms of the GNU General Public License as published by the Free Software  *
@@ -77,7 +77,7 @@ int dgetc(FILE *foo)
 
 
 #if defined(LINEAR_VALUE_IS_MP)
-int dscanf(FILE *foo, int    *val)
+int dscanf(FILE *foo, Entier  val)
 #else
 int dscanf(FILE *foo, Entier *val)
 #endif
@@ -101,7 +101,11 @@ int dscanf(FILE *foo, Entier *val)
        && inbuff[inptr] != '\n'
        && inbuff[inptr] != '\t') break;
   }
+ #if defined(LINEAR_VALUE_IS_MP)
+ if(gmp_sscanf(inbuff+inptr, GMP_INPUT_FORMAT, val) != 1)
+ #else
  if(sscanf(inbuff+inptr, FORMAT, val) != 1)
+ #endif
  return -1;
  
  for(; inptr < proviso; inptr++)
@@ -581,6 +585,37 @@ PipMatrix * pip_matrix_read(FILE * foo)
   }
   return matrix ;
 }
+ 
+ 
+/* initialization of pip */
+static int pip_initialized = 0;
+
+void pip_init() {
+  /* Avoid initializing (and leaking) several times */
+  if (!pip_initialized) {
+    #if defined(LINEAR_VALUE_IS_MP)
+    mpz_init_set_si(UN, 1);
+    mpz_init_set_si(ZERO, 0);
+    #else
+    UN   = VAL_UN ;
+    ZERO = VAL_ZERO ;
+    #endif
+    sol_init() ;
+    tab_init() ;
+    pip_initialized = 1;
+  }
+}
+
+void pip_close() {
+  tab_close();
+  sol_close();
+# if defined(LINEAR_VALUE_IS_MP)
+  mpz_clear(UN);
+  mpz_clear(ZERO);
+# endif
+  pip_initialized = 0;
+}
+ 
 
 
 /******************************************************************************
@@ -622,21 +657,8 @@ PipOptions * options ;
   struct high_water_mark hq ;
   Entier D ;
   PipQuast * solution ;
-  static int pip_initialized = 0;
-  	
-  /* Avoid initializing (and leaking) several times */
-  if (!pip_initialized) {
-    #if defined(LINEAR_VALUE_IS_MP)
-    mpz_init_set_si(UN, 1);
-    mpz_init_set_si(ZERO, 0);
-    #else
-    UN   = VAL_UN ;
-    ZERO = VAL_ZERO ;
-    #endif
-    sol_init() ;
-    tab_init() ;
-    pip_initialized = 1;
-  }
+
+  pip_init() ;
    	
   /* initialisations diverses :
    * - la valeur de Verbose et Deepest_cut sont placees dans leurs variables

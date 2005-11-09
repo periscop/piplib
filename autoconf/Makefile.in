@@ -9,7 +9,7 @@
 #
 # makefile.in (or makefile if generated) of PIP/PipLib. makefile.in is not a
 # makefile, you must run the 'configure' shellscript to generate the makefile
-# thanks to this file.
+# thanks to this file. 
 
 
 #/*****************************************************************************
@@ -86,8 +86,8 @@ PIPLIB_INS_INC = $(prefix)/include
 
 
 INCFLAGS = -I $(PIPLIB_INC) $(EXTRA_INC)
-LDFLAGS  = $(EXTRA_LIBS)
-CFLAGS   = -c $(INCFLAGS) -fomit-frame-pointer -O2 $(EXTRA_FLAGS) $(DFLAGS)
+LDFLAGS = $(EXTRA_LIBS)
+CFLAGS  = -c $(INCFLAGS) -fomit-frame-pointer -O2 $(EXTRA_FLAGS) $(DFLAGS) -fpic
 
 
 #/*****************************************************************************
@@ -183,6 +183,7 @@ distclean: clean
 	@echo "              *             DISTCLEANING PIP/PipLib           *"
 	@echo "              *-----------------------------------------------*/"
 	$(RM) -f config.cache config.log config.status Makefile
+	$(RM) -rf autom4te.cache
 
 
 install:: $(TO_BUILD:%=%install)

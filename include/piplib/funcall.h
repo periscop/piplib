@@ -4,7 +4,7 @@
  *                                 funcall.h                                  *
  ******************************************************************************
  *                                                                            *
- * Copyright Paul Feautrier, 1988, 1993, 1994, 1996, 2002                     *
+ * Copyright Paul Feautrier, 1988-2005                                        *
  *                                                                            *
  * This is free software; you can redistribute it and/or modify it under the  *
  * terms of the GNU General Public License as published by the Free Software  *
@@ -49,7 +49,9 @@ void sol_reset(int);
 struct high_water_mark tab_hwm(void);
 Tableau *tab_get(FILE *, int,int,int);
 void sol_init(void);
+void sol_close(void);
 void tab_init(void);
+void tab_close(void);
 void sol_if(void);
 void sol_forme(int);
 void sol_val(Entier, Entier);

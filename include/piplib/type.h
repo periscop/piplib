@@ -31,6 +31,11 @@ extern "C"
   {
 #endif 
 
+/* Modified by Serge Torres to handle very big problems (since 1.3.4 we can put
+ * any value we want: sol_space is allocated dynamically), but it is left by
+ * default to 4096 because of time/space reasons for most people.
+ * #define SOL_SIZE 67108864
+ */
 #define SOL_SIZE 4096
 
 extern Entier UN;

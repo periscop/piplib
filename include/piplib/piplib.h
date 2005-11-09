@@ -4,7 +4,7 @@
  *                                 piplib.h                                   *
  ******************************************************************************
  *                                                                            *
- * Copyright Paul Feautrier, 1988, 1993, 1994, 1996, 2002                     *
+ * Copyright Paul Feautrier, 1988-2005                                        *
  *                                                                            *
  * This is free software; you can redistribute it and/or modify it under the  *
  * terms of the GNU General Public License as published by the Free Software  *
@@ -46,6 +46,7 @@
 # include <gmp.h>
 # define Entier   mpz_t
 # define FORMAT   "%d"
+# define GMP_INPUT_FORMAT   "%lZd"
 #endif
 
 #ifndef PIPLIB_H
@@ -191,6 +192,11 @@ void pip_options_free(PipOptions *) ;
 PipMatrix * pip_matrix_alloc(unsigned, unsigned) ;
 PipMatrix * pip_matrix_read(FILE *) ;
 PipOptions * pip_options_init(void) ;
+ 
+
+/* initialization of pip library */
+void pip_init();
+void pip_close();
 
 
 /* Prototype de la fonction de resolution :

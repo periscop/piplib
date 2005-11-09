@@ -49,7 +49,7 @@ struct S
 #define Val  7
 #define Error 8
 
-struct S sol_space[SOL_SIZE];
+struct S * sol_space;
 static int sol_free;
 
 #if !defined(LINEAR_VALUE_IS_MP)
@@ -69,6 +69,12 @@ Entier pgcd(Entier x, Entier y)
 void sol_init(void)
 {
  sol_free = 0;
+ sol_space = (struct S *)malloc(SOL_SIZE*sizeof(struct S)) ;
+}
+
+void sol_close(void)
+{
+ free(sol_space) ;
 }
 
 int sol_hwm()

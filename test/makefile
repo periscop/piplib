@@ -86,7 +86,7 @@ test:
 	if [ $$failedtest != 0 ]; then \
 		echo "$$failedtest tests failed"; \
 	else \
-	        echo "PIP works correctly :0)"; \
+	        echo "PIP works correctly :-)"; \
         fi
 
 # Include the shared compilation rules

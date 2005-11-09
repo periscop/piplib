@@ -4,7 +4,7 @@
  *                                 traiter.c                                  *
  ******************************************************************************
  *                                                                            *
- * Copyright Paul Feautrier, 1988, 1993, 1994, 1996, 2002                     *
+ * Copyright Paul Feautrier, 1988-2005                                        *
  *                                                                            *
  * This is free software; you can redistribute it and/or modify it under the  *
  * terms of the GNU General Public License as published by the Free Software  *
@@ -575,8 +575,8 @@ int pivoter(Tableau *tp, int pivi, int nvar, int nparm, int ni, int iq)
     p = tp->row[k].objet.val;
     for(j = 0; j<ncol; j++)
       *p++ /= gcd;
+      Denom(tp,k) = Denom(tp,k)/gcd;
    }
-   Denom(tp,k) = Denom(tp,k)/gcd;
    #endif
  }
  p = tp->row[pivi].objet.val;

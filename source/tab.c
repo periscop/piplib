@@ -41,7 +41,7 @@ static int chunk_count;
 
 int dgetc(FILE *);
 #if defined(LINEAR_VALUE_IS_MP)
-int dscanf(FILE *, int    *);
+int dscanf(FILE *, Entier);
 #else
 int dscanf(FILE *, Entier *);
 #endif
@@ -64,6 +64,13 @@ void tab_init(void)
  tab_base->free = tab_free;
  chunk_count = 1;
 }
+ 
+ 
+void tab_close(void)
+{
+  if (tab_base) free(tab_base);
+}
+
 
 struct high_water_mark tab_hwm(void)
 {struct high_water_mark p;
@@ -219,10 +226,9 @@ int h, w, n;
 {
  Tableau *p;
  int i, j, c;
- #if defined(LINEAR_VALUE_IS_MP)
- int x ;
- #else
  Entier x;
+ #if defined(LINEAR_VALUE_IS_MP)
+ mpz_init(x);
  #endif
  
  p = tab_alloc(h, w, n);
@@ -237,17 +243,24 @@ int h, w, n;
       #endif
       while((c = dgetc(foo)) != EOF)if(c == '[')break;
       for(j = 0; j<w; j++){
-	if(dscanf(foo, &x) < 0)
-		return NULL;
-        else
         #if defined(LINEAR_VALUE_IS_MP)
-	mpz_set_si(p->row[i].objet.val[j], x);
+	if(dscanf(foo, x) < 0)
+          return NULL;
+        else
+	  mpz_set(p->row[i].objet.val[j], x);
         #else
-	p->row[i].objet.val[j] = x;
+	if(dscanf(foo, &x) < 0)
+          return NULL;
+        else
+	  p->row[i].objet.val[j] = x;
         #endif
         }
       } 
       while((c = dgetc(foo)) != EOF)if(c == ']')break;
+ 
+ #if defined(LINEAR_VALUE_IS_MP)
+ mpz_clear(x);
+ #endif
      
  return(p);
 }
