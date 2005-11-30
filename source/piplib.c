@@ -215,6 +215,8 @@ void pip_newparm_print(FILE * foo, PipNewparm * newparm, int indent)
  * ligne avant indentation. Une valeur negative de indent signifie qu'on ne
  * desire pas d'indentation.
  * Premiere version : Ced. 18 octobre 2001. 
+ * 16 novembre 2005 : Ced. Prise en compte du cas list->vector == NULL,
+ *                         jusque là impossible.
  */
 void pip_list_print(FILE * foo, PipList * list, int indent)
 { int i ;
@@ -227,9 +229,11 @@ void pip_list_print(FILE * foo, PipList * list, int indent)
   { for (i=0;i<indent;i++) fprintf(foo," ") ;               /* Indent. */
     fprintf(foo,"(list\n") ;
     do
-    { for (i=0;i<indent+1;i++) fprintf(foo," ") ;           /* Indent. */
-      pip_vector_print(foo,list->vector) ;
-      fprintf(foo,"\n") ;
+    { if (list->vector != NULL)
+      { for (i=0;i<indent+1;i++) fprintf(foo," ") ;         /* Indent. */
+        pip_vector_print(foo,list->vector) ;
+        fprintf(foo,"\n") ;
+      }
     }
     while ((list = list->next) != NULL) ;
     for (i=0;i<indent;i++) fprintf(foo," ") ;               /* Indent. */
@@ -329,21 +333,24 @@ void pip_matrix_free(PipMatrix * matrix)
  * que pointe son parametre.
  * 20 juillet 2001 : Premiere version, Ced.
  * 18 octobre 2001 : simplification suite a l'eclatement de PipVector.
+ * 16 novembre 2005 : Ced. Prise en compte du cas NULL.
  */
 void pip_vector_free(PipVector * vector)
-{ 
-  #if defined(LINEAR_VALUE_IS_MP)
-  int i ;
+{ int i ;
   
-  for (i=0;i<vector->nb_elements;i++)
-  { mpz_clear(vector->the_vector[i]);
-    mpz_clear(vector->the_deno[i]);
+  if (vector != NULL)
+  { 
+    #if defined(LINEAR_VALUE_IS_MP)
+    for (i=0;i<vector->nb_elements;i++)
+    { mpz_clear(vector->the_vector[i]);
+      mpz_clear(vector->the_deno[i]);
+    }
+    #endif
+  
+    free(vector->the_vector) ;
+    free(vector->the_deno) ;
+    free(vector) ;
   }
-  #endif
-  
-  free(vector->the_vector) ;
-  free(vector->the_deno) ;
-  free(vector) ;
 }
 
 

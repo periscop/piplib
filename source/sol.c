@@ -698,6 +698,7 @@ PipNewparm * sol_newparm_edit(int * i)
  * commencer la lecture des informations. Elle retourne un pointeur vers
  * une structure de type PipList contenant les informations de cette List.
  * Premiere version : Ced. 18 octobre 2001. 
+ * 16 novembre 2005 : Ced. Prise en compte du cas 0 éléments, avant impossible.
  */
 PipList * sol_list_edit(int * i, int nb_elements)
 { PipList * list, * list_new, * list_now ;
@@ -708,8 +709,14 @@ PipList * sol_list_edit(int * i, int nb_elements)
   { fprintf(stderr, "Memory Overflow.\n") ;
     exit(1) ;
   }
-  list->vector = sol_vector_edit(i) ;
   list->next = NULL ;
+  
+  if (nb_elements == 0)
+  { list->vector = NULL ;
+    return(list) ;
+  }
+  
+  list->vector = sol_vector_edit(i) ;
 
   list_now = list ;
   if (verbose)
@@ -756,12 +763,14 @@ PipList * sol_list_edit(int * i, int nb_elements)
  * se presenter a la fin du traitement. Elle respecte scrupuleusement
  * la grammaire attendue et n'accepte de passer des cellules a Free
  * qu'entre une des trois grandes formes (if, list ou suite de newparm).
- * 20 juillet 2001 : Premiere version, Ced. 
- * 31 juillet 2001 : Ajout du traitement de l'option verbose = code*2 :0( 
- * 18 octobre 2001 : Grands changements dus a l'eclatement de la structure
- *                   PipVector en PipVector, PipNewparm et PipList, et
- *                   eclatement de la fonction avec sol_newparm_edit et
- *                   sol_list_edit.
+ * 20  juillet 2001 : Premiere version, Ced. 
+ * 31  juillet 2001 : Ajout du traitement de l'option verbose = code*2 :0( 
+ * 18  octobre 2001 : Grands changements dus a l'eclatement de la structure
+ *                    PipVector en PipVector, PipNewparm et PipList, et
+ *                    eclatement de la fonction avec sol_newparm_edit et
+ *                    sol_list_edit.
+ * 16 novembre 2005 : (debug) Même si une liste est vide il faut la créer pour
+ *                    afficher plus tard le (list), repéré par Sven Verdoolaege.
  */
 PipQuast * sol_quast_edit(int * i, PipQuast * father)
 { int nb_elements ;
@@ -803,9 +812,9 @@ PipQuast * sol_quast_edit(int * i, PipQuast * father)
   switch (p->flags)
   { case List : 
                 #if defined(LINEAR_VALUE_IS_MP)
-                if ((nb_elements = mpz_get_si(p->param1)) != 0)
+                nb_elements = mpz_get_si(p->param1) ;
                 #else
-                if ((nb_elements = p->param1) != 0)
+                nb_elements = p->param1 ;
                 #endif
                 solution->list = sol_list_edit(i,nb_elements) ;
 		break ;
