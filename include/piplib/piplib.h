@@ -33,21 +33,66 @@
 #endif
 
 #if defined(LINEAR_VALUE_IS_LONGLONG)
+
 # define Entier   long long
 # define FORMAT   "%lld"
 # define VAL_UN   1LL
 # define VAL_ZERO 0LL
+
+#define VALUE_TO_INT(val) ((int)(val))
+
 #elif defined(LINEAR_VALUE_IS_INT) 
+
 # define Entier   long int
 # define FORMAT   "%ld"
 # define VAL_UN   1L
 # define VAL_ZERO 0L
+
+#define VALUE_TO_INT(val) ((int)(val))
+
 #elif defined(LINEAR_VALUE_IS_MP) 
+
 # include <gmp.h>
 # define Entier   mpz_t
 # define FORMAT   "%d"
 # define GMP_INPUT_FORMAT   "%lZd"
+
+#define VALUE_TO_INT(val) ((int)mpz_get_si(val))
+
 #endif
+
+#if defined(LINEAR_VALUE_IS_MP) 
+
+#define value_addto(ref,val1,val2)     	(mpz_add((ref),(val1),(val2)))
+#define value_assign(v1,v2)	    	(mpz_set((v1),(v2)))
+#define value_clear(val)       		(mpz_clear((val)))
+#define value_divexact(d,v1,v2)	    	(mpz_divexact((d),(v1),(v2)))
+#define value_gcd(g,v1,v2)	    	(mpz_gcd((g),(v1),(v2)))
+#define value_init(val)        	    	(mpz_init((val)))
+#define value_oppose(ref,val)       	(mpz_neg((ref),(val)))
+#define value_set_si(val,i)    		(mpz_set_si((val),(i)))    
+#define value_subtract(ref,val1,val2) 	(mpz_sub((ref),(val1),(val2)))
+#define value_eq(v1,v2) 	    	(mpz_cmp((v1),(v2)) == 0)
+#define value_ne(v1,v2) 	    	(mpz_cmp((v1),(v2)) != 0)
+#define value_notzero_p(val)        	(mpz_sgn(val) != 0)
+
+#else
+
+#define value_addto(ref,val1,val2) 	((ref) = (val1)+(val2))
+#define value_assign(v1,v2)	    	((v1) = (v2))
+#define value_clear(val)             	((val) = 0)
+#define value_divexact(d,v1,v2)	    	((d) = (v1) / (v2))
+#define value_gcd(g,v1,v2)	    	((g) = pgcd((v1),(v2)))
+#define value_init(val)             	((val) = 0)
+#define value_oppose(ref,val)    	((ref) = -(val))
+#define value_set_si(val,i)        	((val) = (Entier)(i))   
+#define value_subtract(ref,val1,val2) 	((ref) = (val1)-(val2))
+#define value_eq(v1,v2) 	    	((v1) == (v2))
+#define value_ne(v1,v2) 	    	((v1) != (v2))
+#define value_notzero_p(val)        	((val) != 0)
+
+#endif
+
 
 #ifndef PIPLIB_H
 #define PIPLIB_H
@@ -164,7 +209,7 @@ struct pipoptions
   int Deepest_cut ;             /* Set to 1 to include deepest cut
                                  * algorithm.
 				 */
-  int Max ;                     /* Set to 0. */
+  int Maximize;                 /* Set to 1 if maximum is needed. */
 } ;      
 typedef struct pipoptions PipOptions ;
 
@@ -215,7 +260,9 @@ PipQuast * pip_solve(PipMatrix *, PipMatrix *, int, PipOptions *) ;
 /* Ced : ajouts specifiques a la PipLib pour funcall. */
 Tableau * tab_Matrix2Tableau(PipMatrix *, int, int, int, int, int) ;
 Tableau * tab_Matrix2TableauMax(PipMatrix *, int, int, int, int) ;
-PipQuast * sol_quast_edit(int *, PipQuast *) ;
+#define SOL_MAX			(1 << 0)    /* Maximum was computed */
+#define SOL_REMOVE		(1 << 1)    /* Remove big parameter */
+PipQuast *sol_quast_edit(int *i, PipQuast *father, int Bg, int flags);
 
 #if defined(__cplusplus)
   }

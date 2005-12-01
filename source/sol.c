@@ -524,17 +524,15 @@ int sol_edit(FILE *foo, int i)
  * une structure de type PipVector contenant les informations de ce Vector.
  * Premiere version : Ced. 20 juillet 2001. 
  */
-PipVector * sol_vector_edit(int * i)
-{ int j, n ;
+PipVector * sol_vector_edit(int *i, int Bg, int flags)
+{ int j, k, n, unbounded  = 0;
   struct S *p ;
   Entier N, D, d ;
   PipVector * vector ;
 
-  #if defined(LINEAR_VALUE_IS_MP)
-  mpz_init(N) ;
-  mpz_init(D) ;
-  mpz_init(d) ;
-  #endif
+  value_init(N) ;
+  value_init(D) ;
+  value_init(d) ;
   
   vector = (PipVector *)malloc(sizeof(PipVector)) ;
   if (vector == NULL)
@@ -542,11 +540,9 @@ PipVector * sol_vector_edit(int * i)
     exit(1) ;
   }
   p = sol_space + (*i) ;
-  #if defined(LINEAR_VALUE_IS_MP)
-  n = mpz_get_si(p->param1) ;
-  #else
-  n = p->param1 ;
-  #endif
+  n = VALUE_TO_INT(p->param1);
+  if (flags & SOL_REMOVE)
+    --n;
   vector->nb_elements = n ;
   vector->the_vector = (Entier *)malloc(sizeof(Entier)*n) ;
   if (vector->the_vector == NULL)
@@ -559,38 +555,42 @@ PipVector * sol_vector_edit(int * i)
     exit(1) ;
   }
   
-  for (j=0;j<n;j++)
-  { (*i)++ ;
+  for (j=0, k=0; k < n; j++) {
+    (*i)++ ;
     p++ ;
-    #if defined(LINEAR_VALUE_IS_MP)
-    mpz_set(N,p->param1) ;
-    mpz_set(D,p->param2) ;
-    mpz_gcd(d, N, D);
-    mpz_init(vector->the_vector[j]) ;
-    mpz_divexact(vector->the_vector[j],N,d) ;
-    mpz_init(vector->the_deno[j]) ;
-    if (mpz_cmp(d, D) == 0)
-    mpz_set(vector->the_deno[j],UN) ;
+
+    value_assign(N, p->param1);
+    value_assign(D, p->param2);
+    value_gcd(d, N, D);
+
+    if ((flags & SOL_MAX) && j == Bg) {
+      value_subtract(N, N, D);   /* subtract 1 */
+      if (value_notzero_p(N))
+	unbounded = 1;
+    }
+
+    if ((flags & SOL_REMOVE) && j == Bg)
+      continue;
+
+    value_init(vector->the_vector[k]);
+    value_divexact(vector->the_vector[k], N, d);
+    if (flags & SOL_MAX)
+      value_oppose(vector->the_vector[k], vector->the_vector[k]);
+    value_init(vector->the_deno[k]);
+    if (value_eq(d, D))
+      value_assign(vector->the_deno[k], UN);
     else
-    mpz_divexact(vector->the_deno[j],D,d) ;
-    #else
-    N = p->param1 ;
-    D = p->param2 ;
-    d = pgcd(N, D) ;
-    vector->the_vector[j] = N/d ;
-    if (d == D)
-    vector->the_deno[j] = UN ;
-    else
-    vector->the_deno[j] = D/d ;
-    #endif
+      value_divexact(vector->the_deno[k], D, d);
+    ++k;
   }
+  if (unbounded)
+    for (k=0; k < n; k++)
+      value_assign(vector->the_deno[k], ZERO);
   (*i)++ ;
 
-  #if defined(LINEAR_VALUE_IS_MP)
-  mpz_clear(d);
-  mpz_clear(D);
-  mpz_clear(N);
-  #endif
+  value_clear(d);
+  value_clear(D);
+  value_clear(N);
 
   return(vector) ;
 }
@@ -605,7 +605,7 @@ PipVector * sol_vector_edit(int * i)
  * une structure de type PipNewparm contenant les informations de ce Newparm.
  * Premiere version : Ced. 18 octobre 2001. 
  */
-PipNewparm * sol_newparm_edit(int * i)
+PipNewparm * sol_newparm_edit(int *i, int Bg, int flags)
 { struct S * p ;
   PipNewparm * newparm, * newparm_new, * newparm_now ;
 
@@ -619,7 +619,7 @@ PipNewparm * sol_newparm_edit(int * i)
   { fprintf(stderr, "Memory Overflow.\n") ;
     exit(1) ;
   }
-  newparm->vector = sol_vector_edit(i) ;
+  newparm->vector = sol_vector_edit(i, Bg, flags);
   #if defined(LINEAR_VALUE_IS_MP)
   newparm->rank = mpz_get_si(p->param1) ;
   /* On met p a jour pour lire le denominateur (un Val de param2 UN). */
@@ -630,6 +630,8 @@ PipNewparm * sol_newparm_edit(int * i)
   p = sol_space + (*i) ;
   newparm->deno = p->param1 ;
   #endif
+  if (flags & SOL_REMOVE)
+    newparm->rank--;
   newparm->next = NULL ;
 
   newparm_now = newparm ;
@@ -657,7 +659,7 @@ PipNewparm * sol_newparm_edit(int * i)
     { fprintf(stderr, "Memory Overflow.\n") ;
       exit(1) ;
     }
-    newparm_new->vector = sol_vector_edit(i) ;
+    newparm_new->vector = sol_vector_edit(i, Bg, flags);
     #if defined(LINEAR_VALUE_IS_MP)
     newparm_new->rank = mpz_get_si(p->param1) ;
     p = sol_space + (*i) ;
@@ -667,6 +669,8 @@ PipNewparm * sol_newparm_edit(int * i)
     p = sol_space + (*i) ;
     newparm_new->deno = p->param1 ;
     #endif
+    if (flags & SOL_REMOVE)
+      newparm_new->rank--;
     newparm_new->next = NULL ;
       
     newparm_now->next = newparm_new ;
@@ -701,7 +705,7 @@ PipNewparm * sol_newparm_edit(int * i)
  * Premiere version : Ced. 18 octobre 2001. 
  * 16 novembre 2005 : Ced. Prise en compte du cas 0 éléments, avant impossible.
  */
-PipList * sol_list_edit(int * i, int nb_elements)
+PipList * sol_list_edit(int *i, int nb_elements, int Bg, int flags)
 { PipList * list, * list_new, * list_now ;
   
   /* Pour le premier element. */
@@ -717,7 +721,7 @@ PipList * sol_list_edit(int * i, int nb_elements)
     return(list) ;
   }
   
-  list->vector = sol_vector_edit(i) ;
+  list->vector = sol_vector_edit(i, Bg, flags);
 
   list_now = list ;
   if (verbose)
@@ -733,7 +737,7 @@ PipList * sol_list_edit(int * i, int nb_elements)
     { fprintf(stderr, "Memory Overflow.\n") ;
       exit(1) ;
     }
-    list_new->vector = sol_vector_edit(i) ;
+    list_new->vector = sol_vector_edit(i, Bg, flags);
     list_new->next = NULL ;
 		    
     if (verbose)
@@ -773,7 +777,7 @@ PipList * sol_list_edit(int * i, int nb_elements)
  * 16 novembre 2005 : (debug) Même si une liste est vide il faut la créer pour
  *                    afficher plus tard le (list), repéré par Sven Verdoolaege.
  */
-PipQuast * sol_quast_edit(int * i, PipQuast * father)
+PipQuast *sol_quast_edit(int *i, PipQuast *father, int Bg, int flags)
 { int nb_elements ;
   struct S * p ;
   PipQuast * solution ;
@@ -804,7 +808,7 @@ PipQuast * sol_quast_edit(int * i, PipQuast * father)
   
   /* On peut commencer par une chaine de nouveaux parametres... */
   if (p->flags == New)
-  { solution->newparm = sol_newparm_edit(i) ;
+  { solution->newparm = sol_newparm_edit(i, Bg, flags & SOL_REMOVE);
     p = sol_space + (*i) ;
   }
   
@@ -817,18 +821,18 @@ PipQuast * sol_quast_edit(int * i, PipQuast * father)
                 #else
                 nb_elements = p->param1 ;
                 #endif
-                solution->list = sol_list_edit(i,nb_elements) ;
+                solution->list = sol_list_edit(i, nb_elements, Bg, flags);
 		break ;
     case Nil  : if (verbose)
 		fprintf(dump,"\n()") ;
                 break ;
-    case If   : solution->condition = sol_vector_edit(i) ;
+    case If   : solution->condition = sol_vector_edit(i, Bg, flags & SOL_REMOVE);
                 if (verbose)
 		{ fprintf(dump,"\n(if ") ;
                   pip_vector_print(dump,solution->condition) ;
                 }
-		solution->next_then = sol_quast_edit(i,solution) ;
-                solution->next_else = sol_quast_edit(i,solution) ;
+		solution->next_then = sol_quast_edit(i, solution, Bg, flags);
+                solution->next_else = sol_quast_edit(i, solution, Bg, flags);
                 if (verbose)
 		fprintf(dump,"\n)") ;
                 break ;

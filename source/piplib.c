@@ -294,7 +294,7 @@ void * pip_options_print(FILE * foo, PipOptions * options)
   fprintf(foo,"Verbose     =%d\n",options->Verbose) ;
   fprintf(foo,"Simplify    =%d\n",options->Simplify) ;
   fprintf(foo,"Deepest_cut =%d\n",options->Deepest_cut) ;
-  fprintf(foo,"Max         =%d\n",options->Max) ;
+  fprintf(foo,"Maximize    =%d\n",options->Maximize) ;
   fprintf(foo,"\n") ;
 }
 
@@ -458,7 +458,7 @@ PipOptions * pip_options_init(void)
   options->Verbose     = 0 ;  /* No comments. */
   options->Simplify    = 0 ;  /* Do not simplify solutions. */
   options->Deepest_cut = 0 ;  /* Do not use deepest cut algorithm. */
-  options->Max         = 0 ;  /* Set to 0 ! */
+  options->Maximize    = 0 ;  /* Do not compute maximum. */
   
   return options ;
 }
@@ -664,6 +664,7 @@ PipOptions * options ;
   struct high_water_mark hq ;
   Entier D ;
   PipQuast * solution ;
+  int	sol_flags = 0;
 
   pip_init() ;
    	
@@ -728,10 +729,14 @@ PipOptions * options ;
     xq = p = sol_hwm();
     
     /* Si un maximum est demande, mais sans bignum, on crée le bignum. */
-    if ((options->Max != 0) && (Bg < 0))
-    { Bg = inequnk->NbColumns - 1 ; /* On choisit sa place. */
-      Np ++ ;                       /* On le compte comme parametre. */
-    }  
+    if (options->Maximize) {
+      sol_flags |= SOL_MAX;
+      if (Bg < 0) {
+	Bg = inequnk->NbColumns - 1 ; /* On choisit sa place. */
+	Np ++ ;                       /* On le compte comme parametre. */
+	sol_flags |= SOL_REMOVE;      /* On le supprime apres. */
+      }
+    }
     
     /* On s'assure d'abord que le systeme pour le contexte n'est pas vide
      * avant de commencer le traitement. Si c'est le cas, la solution est
@@ -751,7 +756,7 @@ PipOptions * options ;
       #endif
       Nm ++ ;
       
-      context = tab_Matrix2Tableau(ineqpar,Nm,Np,0,options->Max,Bg-Nn) ;
+      context = tab_Matrix2Tableau(ineqpar,Nm,Np,0,options->Maximize,Bg-Nn) ;
       
       if (Nm)
       { /* Traduction du format de matrice de la polylib vers celui de
@@ -778,7 +783,7 @@ PipOptions * options ;
     
     /* S'il est possible de trouver une solution, on passe au traitement. */
     if (non_vide)
-    { ineq = tab_Matrix2Tableau(inequnk,Nl,Nn,Nn,options->Max,Bg) ;
+    { ineq = tab_Matrix2Tableau(inequnk,Nl,Nn,Nn,options->Maximize,Bg) ;
   
       compa_count = 0 ;
       traiter(ineq, context, options->Nq, Nn, Np, Nl, Nm, Bg) ;
@@ -789,7 +794,7 @@ PipOptions * options ;
       /* On traduit la solution du format de solution de Pip vers un arbre
        * de structures de type PipQuast.
        */
-      solution = sol_quast_edit(&xq,NULL) ;
+      solution = sol_quast_edit(&xq, NULL, Bg-Nn-1, sol_flags);
       sol_reset(p) ;
     }
     else

@@ -27,7 +27,7 @@ int main()
   printf("\n") ;
   
   options = pip_options_init() ;
-  /*options->Max = 1 ;*/
+  /*options->Maximize = 1 ;*/
 
   /* The bignum in PIP1 is fixed on the constraint matrix, here is
    * the translation.

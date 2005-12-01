@@ -853,7 +853,7 @@ struct pipoptions
   int Verbose ;
   int Simplify ;
   int Deepest_cut ;
-  int Max ;
+  int Maximize;
 } ;      
 typedef struct pipoptions PipOptions ;
 \end{verbatim}
@@ -879,12 +879,15 @@ the PIP behaviour and having to be set by the user:
       {\tt if \#[...] () ()}), 0 otherwise,
 \item {\tt Deepest\_cut}: a boolean set to 1 if PIP has to use the deepest cut
       algorithm, 0 otherwise,
-\item {\tt Max}: a boolean set to 0 if the lexicographic
-      minimum is asked, or to 1 for the lexicographic maximum. When trying to
-      find the lexicographic maximum, the used method is the one
-      presented in section \ref{maximum}: if no bigparm was set, a new (big)
+\item {\tt Maximize}: a boolean set to 0 if the lexicographic
+      minimum is requested, or to 1 for the lexicographic maximum. When trying to
+      find the lexicographic maximum, the method used is the one
+      presented in Section~\ref{maximum}: if no bigparm was set, a new (big)
       parameter is automatically created by adding a new ending column to the
-      constraint system (don't forget this when processing the output).
+      constraint system.  This optional extra parameter is removed again from the
+      output.  Unbounded solutions have their \verb+the_deno+ set to zero.
+      Note that setting this option allows for negative solutions.
+      This may change in a future release.
 \end{enumerate}
 Every {\tt PipOptions} structure should be created and filled with the default
 values by the {\tt pip\_options\_init} function (see section \ref{optinit}).
@@ -928,7 +931,7 @@ The {\tt pip\_options\_init} function allocates the memory space for a
 \item {\tt Verbose} $= 0$: no debug informations,
 \item {\tt Simplify} $= 0$: do not try to simplify solutions,
 \item {\tt Deepest\_cut} $= 0$: do not use deepest cut algorithm,
-\item {\tt Max} $= 0$: compute the lexicographic minimum.
+\item {\tt Maximize} $= 0$: compute the lexicographic minimum.
 \end{itemize}
 We strongly recommand to use this function to create and initialize any
 {\tt PipOptions} structure. In this way, if some new options appear in

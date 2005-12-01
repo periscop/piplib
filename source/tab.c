@@ -293,136 +293,75 @@ Tableau * tab_Matrix2Tableau(matrix, Nineq, Nv, n, Max, Bg)
 PipMatrix * matrix ;
 int Nineq, Nv, n, Max, Bg ;
 { Tableau * p ;
-  unsigned i, j, end, current, new, nb_columns, decal=0, bignum_is_new ;
-  Entier * entier, inequality, bignum ;
+  unsigned i, j, k, current, new, nb_columns, decal=0, bignum_is_new ;
+  int inequality;
+  Entier * entier, bignum ;
   
-  #if defined(LINEAR_VALUE_IS_MP)
-  mpz_init(inequality) ;
-  mpz_init(bignum) ;
-  #endif
+  value_init(bignum) ;
   nb_columns = matrix->NbColumns - 1 ;
   /* S'il faut un BigNum et qu'il n'existe pas, on lui reserve sa place. */
-  if ((Max) && (bignum_is_new = (Bg > (matrix->NbColumns - 2))))
-  nb_columns ++ ;
+  bignum_is_new = Max && (Bg > (matrix->NbColumns - 2));
+  if (bignum_is_new)
+    nb_columns++;
+  /* Ce sont juste des parametres. */
+  if (Bg <= Nv)
+    Max = 0;
 
   p = tab_alloc(Nineq,nb_columns,n) ;
     
   /* La variable decal sert a prendre en compte les lignes supplementaires
    * issues des egalites.
    */
-  end = matrix->NbRows + n ;
-  for (i=n;i<end;i++)
-  { current = i + decal ;
+  for (i = 0; i < matrix->NbRows; i++) {
+    current = i + n + decal;
     Flag(p,current) = Unknown ;
-    #if defined(LINEAR_VALUE_IS_MP)
-    mpz_set_ui(Denom(p,current),1) ;
+    value_set_si(Denom(p,current), 1);
     if (Max)
-    mpz_set_ui(bignum,0) ;
-    #else
-    Denom(p,current) = UN ;
-    if (Max)
-    bignum = 0 ;
-    #endif
-    entier = *(matrix->p + i - n) ;
+      value_set_si(bignum, 0);
     /* Pour passer l'indicateur d'egalite/inegalite. */
-    #if defined(LINEAR_VALUE_IS_MP)
-    mpz_set(inequality,*entier) ;
-    #else
-    inequality = *entier ;
-    #endif
-    entier ++ ;
+    inequality = value_notzero_p(matrix->p[i][0]);
          
     /* Dans le format de la polylib, l'element constant est place en
      * dernier. Dans le format de Pip, il se trouve apres la premiere
      * serie de variables (inconnues ou parametres). On remet donc les
      * choses dans l'ordre de Pip. Ici pour p(x) >= 0.
      */
-    if (Max)
-    { for (j=0;j<Nv;j++)
-      {
-        #if defined(LINEAR_VALUE_IS_MP)
-        mpz_add(bignum,bignum,*entier) ;
-	mpz_neg(*(p->row[current].objet.val + j),*entier++) ;
-	#else
-        bignum += *entier ;
-        *(p->row[current].objet.val + j) = -(*entier++) ;
-        #endif
-      }
-
-      for (j=Nv+1;j<Bg;j++)
-      #if defined(LINEAR_VALUE_IS_MP)
-      mpz_set(*(p->row[current].objet.val + j),*entier++) ;
-      #else
-      *(p->row[current].objet.val + j) = *entier++ ;
-      #endif
-
-      if (bignum_is_new)
-      #if defined(LINEAR_VALUE_IS_MP)
-      mpz_set(*(p->row[current].objet.val + Bg),bignum) ;
-      else
-      { mpz_add(*(p->row[current].objet.val + Bg),bignum,*entier++) ;
-        for (j=Bg+1;j<nb_columns;j++)
-        mpz_set(*(p->row[current].objet.val + j),*entier++) ;
-      }
-      #else
-      *(p->row[current].objet.val + Bg) = bignum ;
-      else
-      { *(p->row[current].objet.val + Bg) = bignum + *entier++ ;
-        for (j=Bg+1;j<nb_columns;j++)
-        *(p->row[current].objet.val + j) = *entier++ ;
-      }
-      #endif
- 
-      #if defined(LINEAR_VALUE_IS_MP)
-      mpz_set(*(p->row[current].objet.val + Nv),*entier) ;
-      #else
-      *(p->row[current].objet.val + Nv) = *entier ;
-      #endif
+    for (j=0;j<Nv;j++) {
+      if (bignum_is_new && 1+j == Bg)
+	continue;
+      if (Max) {
+	value_addto(bignum, bignum, matrix->p[i][1+j]);
+	value_oppose(p->row[current].objet.val[j], matrix->p[i][1+j]);
+      } else
+	value_assign(p->row[current].objet.val[j], matrix->p[i][1+j]);
     }
-    else
-    { for (j=0;j<Nv;j++)
-      #if defined(LINEAR_VALUE_IS_MP)
-      mpz_set(*(p->row[current].objet.val + j),*entier++) ;
-      #else
-      *(p->row[current].objet.val + j) = *entier++ ;
-      #endif
-      for (j=Nv+1;j<nb_columns;j++)
-      #if defined(LINEAR_VALUE_IS_MP)
-      mpz_set(*(p->row[current].objet.val + j),*entier++) ;
-      mpz_set(*(p->row[current].objet.val + Nv),*entier) ;
-      #else
-      *(p->row[current].objet.val + j) = *entier++ ;
-      *(p->row[current].objet.val + Nv) = *entier ;
-      #endif
+    for (k=j=Nv+1;j<nb_columns;j++) {
+	if (bignum_is_new && j == Bg)
+	  continue;
+	value_assign(p->row[current].objet.val[j], matrix->p[i][k++]);
+    }
+    value_assign(p->row[current].objet.val[Nv], 
+		matrix->p[i][nb_columns-bignum_is_new]);
+    if (Max) {
+      if (bignum_is_new)
+	value_assign(p->row[current].objet.val[Bg], bignum);
+      else
+	value_addto(p->row[current].objet.val[Bg], 
+		    p->row[current].objet.val[Bg], bignum);
     }
     
     /* Et ici lors de l'ajout de -p(x) >= 0 quand on traite une egalite. */
-    #if defined(LINEAR_VALUE_IS_MP)
-    if (mpz_sgn(inequality) == 0)
-    #else
-    if (!inequality)
-    #endif
-    { decal ++ ;
+    if (!inequality) {
+      decal ++ ;
       new = current + 1 ;
       Flag(p,new)= Unknown ;
-      #if defined(LINEAR_VALUE_IS_MP)
-      mpz_set(Denom(p,new),UN) ;
-      #else
-      Denom(p,new) = UN ;
-      #endif
+      value_set_si(Denom(p,new), 1);
       
       for (j=0;j<nb_columns;j++)
-      #if defined(LINEAR_VALUE_IS_MP)
-      mpz_neg(*(p->row[new].objet.val + j),*(p->row[current].objet.val + j)) ;
-      #else
-      *(p->row[new].objet.val + j) = -(*(p->row[current].objet.val + j)) ;
-      #endif
+	value_oppose(p->row[new].objet.val[j], p->row[current].objet.val[j]);
     }
   }
-  #if defined(LINEAR_VALUE_IS_MP)
-  mpz_clear(inequality);
-  mpz_clear(bignum);
-  #endif
+  value_clear(bignum);
 
   return(p);
 }
