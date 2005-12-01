@@ -87,7 +87,7 @@ PIPLIB_INS_INC = $(prefix)/include
 
 INCFLAGS = -I $(PIPLIB_INC) $(EXTRA_INC)
 LDFLAGS = $(EXTRA_LIBS)
-CFLAGS  = -c $(INCFLAGS) -fomit-frame-pointer -O2 $(EXTRA_FLAGS) $(DFLAGS) -fpic
+CFLAGS  = $(INCFLAGS) -fomit-frame-pointer -O2 $(EXTRA_FLAGS) $(DFLAGS) -fpic
 
 
 #/*****************************************************************************
@@ -126,6 +126,8 @@ pip : $(PIPLIB_OBJ) $(OBJ)
 	@echo "              *                 MAKING PIP                    *"
 	@echo "              *-----------------------------------------------*/"
 	$(CC) $(OBJ) -o $(PIPLIB_OBJ)/pip$(BITS)$(EXEC_SUFFIX) $(LDFLAGS)
+	$(CC) $(CFLAGS) example/example.c $(OBJL) \
+	     -o $(PIPLIB_OBJ)/example$(BITS)$(EXEC_SUFFIX) $(LDFLAGS)
 
 piplibshared : $(PIPLIB_OBJ) $(OBJ)
 	@echo "             /*-----------------------------------------------*"
@@ -143,28 +145,28 @@ piplibstatic: $(PIPLIB_OBJ) $(OBJ)
 	$(RANLIB) $(PIPLIB_OBJ)/libpiplib$(BITS).a.$(VERSION)
 
 $(PIPLIB_OBJ)/piplib.o : $(PIPLIB_SRC)/piplib.c $(PIPLIB_INC)/piplib/piplib.h
-	$(CC) $(CFLAGS) $(PIPLIB_SRC)/piplib.c \
+	$(CC) -c $(CFLAGS) $(PIPLIB_SRC)/piplib.c \
 	-o $(PIPLIB_OBJ)/piplib.o
 
 $(PIPLIB_OBJ)/integrer.o : $(PIPLIB_SRC)/integrer.c \
 	$(PIPLIB_INC)/piplib/piplib.h
-	$(CC) $(CFLAGS) $(PIPLIB_SRC)/integrer.c \
+	$(CC) -c $(CFLAGS) $(PIPLIB_SRC)/integrer.c \
 	-o $(PIPLIB_OBJ)/integrer.o
 
 $(PIPLIB_OBJ)/maind.o : $(PIPLIB_SRC)/maind.c $(PIPLIB_INC)/piplib/piplib.h
-	$(CC) $(CFLAGS) $(PIPLIB_SRC)/maind.c \
+	$(CC) -c $(CFLAGS) $(PIPLIB_SRC)/maind.c \
 	-o $(PIPLIB_OBJ)/maind.o
 
 $(PIPLIB_OBJ)/tab.o : $(PIPLIB_SRC)/tab.c $(PIPLIB_INC)/piplib/piplib.h
-	$(CC) $(CFLAGS)  $(PIPLIB_SRC)/tab.c \
+	$(CC) -c $(CFLAGS)  $(PIPLIB_SRC)/tab.c \
 	-o $(PIPLIB_OBJ)/tab.o
 
 $(PIPLIB_OBJ)/traiter.o : $(PIPLIB_SRC)/traiter.c $(PIPLIB_INC)/piplib/piplib.h
-	$(CC) $(CFLAGS)  $(PIPLIB_SRC)/traiter.c \
+	$(CC) -c $(CFLAGS)  $(PIPLIB_SRC)/traiter.c \
 	-o $(PIPLIB_OBJ)/traiter.o
 
 $(PIPLIB_OBJ)/sol.o : $(PIPLIB_SRC)/sol.c $(PIPLIB_INC)/piplib/piplib.h
-	$(CC) $(CFLAGS)  $(PIPLIB_SRC)/sol.c \
+	$(CC) -c $(CFLAGS)  $(PIPLIB_SRC)/sol.c \
 	-o $(PIPLIB_OBJ)/sol.o
 
 

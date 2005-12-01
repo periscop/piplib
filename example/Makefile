@@ -5,7 +5,7 @@ PIPLIB_LIB = $(HOME)/progs/linux/lib
 
 CC = gcc
 LDLIBS= -lpiplib32
-CFLAGS= -I $(PIPLIB_INC) -L $(PIPLIB_LIB)
+CFLAGS= -DLINEAR_VALUE_IS_INT -I $(PIPLIB_INC) -L $(PIPLIB_LIB)
 
 example: example.c 
 	@echo "             /*-----------------------------------------------*"

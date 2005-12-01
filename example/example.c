@@ -5,7 +5,7 @@
  */
 
 # include <stdio.h>
-# include <piplib/piplib32.h>
+#include <piplib/piplib.h>
 
 int main()
 { int bignum ;
