@@ -563,7 +563,7 @@ PipVector * sol_vector_edit(int *i, int Bg, int flags)
     value_assign(D, p->param2);
     value_gcd(d, N, D);
 
-    if ((flags & SOL_MAX) && j == Bg) {
+    if ((flags & SOL_SHIFT) && j == Bg) {
       value_subtract(N, N, D);   /* subtract 1 */
       if (value_notzero_p(N))
 	unbounded = 1;
@@ -574,7 +574,7 @@ PipVector * sol_vector_edit(int *i, int Bg, int flags)
 
     value_init(vector->the_vector[k]);
     value_divexact(vector->the_vector[k], N, d);
-    if (flags & SOL_MAX)
+    if (flags & SOL_NEGATE)
       value_oppose(vector->the_vector[k], vector->the_vector[k]);
     value_init(vector->the_deno[k]);
     if (value_eq(d, D))

@@ -210,6 +210,9 @@ struct pipoptions
                                  * algorithm.
 				 */
   int Maximize;                 /* Set to 1 if maximum is needed. */
+  int Urs_unknowns;             /* -1 -> all unknowns may be negative 
+				 *  0 -> all unknowns are non-negative
+				 */
 } ;      
 typedef struct pipoptions PipOptions ;
 
@@ -260,8 +263,11 @@ PipQuast * pip_solve(PipMatrix *, PipMatrix *, int, PipOptions *) ;
 /* Ced : ajouts specifiques a la PipLib pour funcall. */
 Tableau * tab_Matrix2Tableau(PipMatrix *, int, int, int, int, int) ;
 Tableau * tab_Matrix2TableauMax(PipMatrix *, int, int, int, int) ;
-#define SOL_MAX			(1 << 0)    /* Maximum was computed */
-#define SOL_REMOVE		(1 << 1)    /* Remove big parameter */
+#define SOL_SHIFT		(1 << 0)    /* Shift solution over -bigparam */
+#define SOL_NEGATE		(1 << 1)    /* Negate solution */
+#define SOL_REMOVE		(1 << 2)    /* Remove big parameter */
+#define SOL_MAX			(SOL_SHIFT | SOL_NEGATE)
+					    /* Maximum was computed */
 PipQuast *sol_quast_edit(int *i, PipQuast *father, int Bg, int flags);
 
 #if defined(__cplusplus)

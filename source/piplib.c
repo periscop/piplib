@@ -295,6 +295,7 @@ void * pip_options_print(FILE * foo, PipOptions * options)
   fprintf(foo,"Simplify    =%d\n",options->Simplify) ;
   fprintf(foo,"Deepest_cut =%d\n",options->Deepest_cut) ;
   fprintf(foo,"Maximize    =%d\n",options->Maximize) ;
+  fprintf(foo,"Urs_unknowns=%d\n",options->Urs_unknowns);
   fprintf(foo,"\n") ;
 }
 
@@ -459,6 +460,7 @@ PipOptions * pip_options_init(void)
   options->Simplify    = 0 ;  /* Do not simplify solutions. */
   options->Deepest_cut = 0 ;  /* Do not use deepest cut algorithm. */
   options->Maximize    = 0 ;  /* Do not compute maximum. */
+  options->Urs_unknowns= 0 ;  /* All unknows are non-negative. */
   
   return options ;
 }
@@ -659,7 +661,7 @@ PipMatrix * inequnk, * ineqpar ;
 int Bg ;
 PipOptions * options ;
 { Tableau * ineq, * context, * ctxt ;
-  int i, Np, Nn, Nl, Nm, p, q, xq, non_vide ;
+  int i, Np, Nn, Nl, Nm, p, q, xq, non_vide, Shift = 0;
   char * g ;
   struct high_water_mark hq ;
   Entier D ;
@@ -728,9 +730,16 @@ PipOptions * options ;
     hq = tab_hwm() ;
     xq = p = sol_hwm();
     
-    /* Si un maximum est demande, mais sans bignum, on crée le bignum. */
     if (options->Maximize) {
       sol_flags |= SOL_MAX;
+      Shift = 1;
+    } else if (options->Urs_unknowns) {
+      sol_flags |= SOL_SHIFT;
+      Shift = -1;
+    } 
+
+    /* Si un maximum est demande, mais sans bignum, on crée le bignum. */
+    if (options->Maximize || options->Urs_unknowns) {
       if (Bg < 0) {
 	Bg = inequnk->NbColumns - 1 ; /* On choisit sa place. */
 	Np ++ ;                       /* On le compte comme parametre. */
@@ -756,7 +765,7 @@ PipOptions * options ;
       #endif
       Nm ++ ;
       
-      context = tab_Matrix2Tableau(ineqpar,Nm,Np,0,options->Maximize,Bg-Nn) ;
+      context = tab_Matrix2Tableau(ineqpar,Nm,Np,0, Shift,Bg-Nn) ;
       
       if (Nm)
       { /* Traduction du format de matrice de la polylib vers celui de
@@ -783,7 +792,7 @@ PipOptions * options ;
     
     /* S'il est possible de trouver une solution, on passe au traitement. */
     if (non_vide)
-    { ineq = tab_Matrix2Tableau(inequnk,Nl,Nn,Nn,options->Maximize,Bg) ;
+    { ineq = tab_Matrix2Tableau(inequnk,Nl,Nn,Nn, Shift,Bg) ;
   
       compa_count = 0 ;
       traiter(ineq, context, options->Nq, Nn, Np, Nl, Nm, Bg) ;

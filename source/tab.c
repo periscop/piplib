@@ -278,8 +278,9 @@ int h, w, n;
  * a dire que si les premiers coefficients dans les lignes de la matrice
  * sont ceux des inconnues, Nv est le nombre d'inconnues, resp. parametres).
  * n est le nombre de lignes 'virtuelles' contenues dans la matrice (c'est
- * a dire en fait le nombre d'inconnues). Si Max vaut 0, on va rechercher
- * le minimum lexicographique, sinon on recherche le maximum. La fonction
+ * a dire en fait le nombre d'inconnues). Si Shift vaut 0, on va rechercher
+ * le minimum lexicographique non-negatif, sinon on recherche le maximum 
+ * (Shift = 1) ou bien le minimum tout court (Shift = -1). La fonction
  * met alors en place le bignum s'il n'y est pas deja et prepare les
  * contraintes au calcul du maximum lexicographique.
  * 27 juillet 2001 : Premiere version, Ced.
@@ -289,9 +290,9 @@ int h, w, n;
  * 18 octobre 2003 : Mise en place de la possibilite de calculer le
  *                   maximum lexicographique (parties 'if (Max)').
  */
-Tableau * tab_Matrix2Tableau(matrix, Nineq, Nv, n, Max, Bg)
+Tableau * tab_Matrix2Tableau(matrix, Nineq, Nv, n, Shift, Bg)
 PipMatrix * matrix ;
-int Nineq, Nv, n, Max, Bg ;
+int Nineq, Nv, n, Shift, Bg ;
 { Tableau * p ;
   unsigned i, j, k, current, new, nb_columns, decal=0, bignum_is_new ;
   int inequality;
@@ -300,12 +301,12 @@ int Nineq, Nv, n, Max, Bg ;
   value_init(bignum) ;
   nb_columns = matrix->NbColumns - 1 ;
   /* S'il faut un BigNum et qu'il n'existe pas, on lui reserve sa place. */
-  bignum_is_new = Max && (Bg > (matrix->NbColumns - 2));
+  bignum_is_new = Shift && (Bg > (matrix->NbColumns - 2));
   if (bignum_is_new)
     nb_columns++;
   /* Ce sont juste des parametres. */
   if (Bg <= Nv)
-    Max = 0;
+    Shift = 0;
 
   p = tab_alloc(Nineq,nb_columns,n) ;
     
@@ -316,7 +317,7 @@ int Nineq, Nv, n, Max, Bg ;
     current = i + n + decal;
     Flag(p,current) = Unknown ;
     value_set_si(Denom(p,current), 1);
-    if (Max)
+    if (Shift)
       value_set_si(bignum, 0);
     /* Pour passer l'indicateur d'egalite/inegalite. */
     inequality = value_notzero_p(matrix->p[i][0]);
@@ -329,10 +330,11 @@ int Nineq, Nv, n, Max, Bg ;
     for (j=0;j<Nv;j++) {
       if (bignum_is_new && 1+j == Bg)
 	continue;
-      if (Max) {
+      if (Shift)
 	value_addto(bignum, bignum, matrix->p[i][1+j]);
+      if (Shift > 0)
 	value_oppose(p->row[current].objet.val[j], matrix->p[i][1+j]);
-      } else
+      else
 	value_assign(p->row[current].objet.val[j], matrix->p[i][1+j]);
     }
     for (k=j=Nv+1;j<nb_columns;j++) {
@@ -342,7 +344,10 @@ int Nineq, Nv, n, Max, Bg ;
     }
     value_assign(p->row[current].objet.val[Nv], 
 		matrix->p[i][nb_columns-bignum_is_new]);
-    if (Max) {
+    if (Shift) {
+      if (Shift < 0)
+	value_oppose(bignum, bignum);
+
       if (bignum_is_new)
 	value_assign(p->row[current].objet.val[Bg], bignum);
       else
