@@ -243,6 +243,7 @@ install_piplibstatic: install_preparation
 	
 check:
 	$(MAKE) test -C test
+	$(MAKE) test -C example
 
 uninstall :
 	@echo "             /*-----------------------------------------------*"
