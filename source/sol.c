@@ -607,91 +607,54 @@ PipVector * sol_vector_edit(int *i, int Bg, int flags)
  */
 PipNewparm * sol_newparm_edit(int *i, int Bg, int flags)
 { struct S * p ;
-  PipNewparm * newparm, * newparm_new, * newparm_now ;
+  PipNewparm * newparm, * newparm_first = NULL, * newparm_now = NULL;
 
   /* On place p au lieu de lecture. */
   p = sol_space + (*i) ;
-  /* On passe le New et le Div pour aller a Form et lire le VECTOR. */
-  (*i) += 2 ;
 
-  newparm = (PipNewparm *)malloc(sizeof(PipNewparm)) ;
-  if (newparm == NULL)
-  { fprintf(stderr, "Memory Overflow.\n") ;
-    exit(1) ;
-  }
-  newparm->vector = sol_vector_edit(i, Bg, flags);
-  #if defined(LINEAR_VALUE_IS_MP)
-  newparm->rank = mpz_get_si(p->param1) ;
-  /* On met p a jour pour lire le denominateur (un Val de param2 UN). */
-  p = sol_space + (*i) ;
-  mpz_init_set(newparm->deno,p->param1) ;
-  #else
-  newparm->rank = p->param1 ;
-  p = sol_space + (*i) ;
-  newparm->deno = p->param1 ;
-  #endif
-  if (flags & SOL_REMOVE)
-    newparm->rank--;
-  newparm->next = NULL ;
+  do {
+    /* On passe le New et le Div pour aller a Form et lire le VECTOR. */
+    (*i) += 2 ;
 
-  newparm_now = newparm ;
-  if (verbose)
-  { fprintf(dump,"\n(newparm ") ;
-    fprintf(dump,FORMAT,newparm->rank) ;
-    fprintf(dump," (div ") ;
-    pip_vector_print(dump,newparm->vector) ;
-    fprintf(dump," ") ;
-    #if defined(LINEAR_VALUE_IS_MP)
-    mpz_out_str(dump,10,newparm->deno) ;
-    #else
-    fprintf(dump,FORMAT,newparm->deno) ;
-    #endif
-    fprintf(dump,"))") ;
-  }
-  
-  /* On passe aux elements suivants. */
-  (*i) ++ ;
-  p = sol_space + (*i) ;
-  while (p->flags == New)
-  { (*i) += 2 ;
-    newparm_new = (PipNewparm *)malloc(sizeof(PipNewparm)) ;
-    if (newparm_new == NULL)
+    newparm = (PipNewparm *)malloc(sizeof(PipNewparm)) ;
+    if (newparm == NULL)
     { fprintf(stderr, "Memory Overflow.\n") ;
       exit(1) ;
     }
-    newparm_new->vector = sol_vector_edit(i, Bg, flags);
-    #if defined(LINEAR_VALUE_IS_MP)
-    newparm_new->rank = mpz_get_si(p->param1) ;
+    newparm->vector = sol_vector_edit(i, Bg, flags);
+    newparm->rank = VALUE_TO_INT(p->param1);
+    /* On met p a jour pour lire le denominateur (un Val de param2 UN). */
     p = sol_space + (*i) ;
-    mpz_init_set(newparm_new->deno,p->param1) ;
-    #else
-    newparm_new->rank = p->param1 ;
-    p = sol_space + (*i) ;
-    newparm_new->deno = p->param1 ;
-    #endif
+    value_init_set(newparm->deno, p->param1);
     if (flags & SOL_REMOVE)
-      newparm_new->rank--;
-    newparm_new->next = NULL ;
-      
-    newparm_now->next = newparm_new ;
-    newparm_now = newparm_now->next ;
+      newparm->rank--;
+    newparm->next = NULL ;
+
+    if (newparm_now)
+      newparm_now->next = newparm;
+    else
+      newparm_first = newparm;
+    newparm_now = newparm ;
     if (verbose)
     { fprintf(dump,"\n(newparm ") ;
-      fprintf(dump,FORMAT,newparm_new->rank) ;
+      fprintf(dump,FORMAT,newparm->rank) ;
       fprintf(dump," (div ") ;
-      pip_vector_print(dump,newparm_new->vector) ;
+      pip_vector_print(dump,newparm->vector) ;
       fprintf(dump," ") ;
       #if defined(LINEAR_VALUE_IS_MP)
-      mpz_out_str(dump,10,newparm_new->deno) ;
+      mpz_out_str(dump,10,newparm->deno) ;
       #else
-      fprintf(dump,FORMAT,newparm_new->deno) ;
+      fprintf(dump,FORMAT,newparm->deno) ;
       #endif
       fprintf(dump,"))") ;
     }
+  
+    /* On passe aux elements suivants. */
     (*i) ++ ;
     p = sol_space + (*i) ;
-  }
-  return(newparm) ;
+  } while (p->flags == New);
+
+  return newparm_first;
 }
 
 
