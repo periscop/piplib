@@ -304,7 +304,8 @@ void sol_simplify(int i)
      sol_simplify(j);
      if(sol_space[j].flags == Nil && sol_space[k].flags == Nil) {
 	 sol_space[i].flags = Nil;
-	 if(k >= sol_free - 1) sol_free = i+1;
+	 if (k >= sol_free - 1) 
+	    sol_reset(i+1);
 	 else for(l = i+1; l<=k; l++) sol_space[l].flags = Free;
        }
    }
