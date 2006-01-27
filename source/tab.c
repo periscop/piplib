@@ -296,7 +296,7 @@ int Nineq, Nv, n, Shift, Bg ;
 { Tableau * p ;
   unsigned i, j, k, current, new, nb_columns, decal=0, bignum_is_new ;
   int inequality;
-  Entier * entier, bignum ;
+  Entier bignum;
   
   value_init(bignum) ;
   nb_columns = matrix->NbColumns - 1 ;
