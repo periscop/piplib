@@ -290,9 +290,9 @@ int h, w, n;
  * 18 octobre 2003 : Mise en place de la possibilite de calculer le
  *                   maximum lexicographique (parties 'if (Max)').
  */
-Tableau * tab_Matrix2Tableau(matrix, Nineq, Nv, n, Shift, Bg)
+Tableau * tab_Matrix2Tableau(matrix, Nineq, Nv, n, Shift, Bg, Urs_parms)
 PipMatrix * matrix ;
-int Nineq, Nv, n, Shift, Bg ;
+int Nineq, Nv, n, Shift, Bg, Urs_parms;
 { Tableau * p ;
   unsigned i, j, k, current, new, nb_columns, decal=0, bignum_is_new ;
   int inequality;
@@ -308,7 +308,7 @@ int Nineq, Nv, n, Shift, Bg ;
   if (Bg <= Nv)
     Shift = 0;
 
-  p = tab_alloc(Nineq,nb_columns,n) ;
+  p = tab_alloc(Nineq,nb_columns+Urs_parms,n) ;
     
   /* La variable decal sert a prendre en compte les lignes supplementaires
    * issues des egalites.
@@ -342,8 +342,17 @@ int Nineq, Nv, n, Shift, Bg ;
 	  continue;
 	value_assign(p->row[current].objet.val[j], matrix->p[i][k++]);
     }
+    for (j=0; j < Urs_parms; ++j) {
+	int pos = nb_columns - Urs_parms + j;
+	if (pos <= Nv)
+	    --pos;
+	if (pos <= Bg)
+	    --pos;
+	value_oppose(p->row[current].objet.val[nb_columns+j],
+		     p->row[current].objet.val[pos]);
+    }
     value_assign(p->row[current].objet.val[Nv], 
-		matrix->p[i][nb_columns-bignum_is_new]);
+		 matrix->p[i][matrix->NbColumns-1]);
     if (Shift) {
       if (Shift < 0)
 	value_oppose(bignum, bignum);
@@ -362,7 +371,7 @@ int Nineq, Nv, n, Shift, Bg ;
       Flag(p,new)= Unknown ;
       value_set_si(Denom(p,new), 1);
       
-      for (j=0;j<nb_columns;j++)
+      for (j=0;j<nb_columns+Urs_parms;j++)
 	value_oppose(p->row[new].objet.val[j], p->row[current].objet.val[j]);
     }
   }

@@ -854,6 +854,7 @@ struct pipoptions
   int Simplify ;
   int Deepest_cut ;
   int Maximize;
+  int Urs_parms;
   int Urs_unknowns;
 } ;      
 typedef struct pipoptions PipOptions ;
@@ -889,6 +890,11 @@ the PIP behaviour and having to be set by the user:
       output.  Unbounded solutions have their \verb+the_deno+ set to zero.
       Note that setting this option allows for negative solutions.
       This may change in a future release.
+\item \verb+Urs_parms+: controls signs of parameters:
+	\begin{itemize}
+	\item -1: all parameters have unrestricted sign,
+	\item 0: all parameters are non-negative.
+        \end{itemize}
 \item \verb+Urs_unknowns+: controls signs of unknowns:
 	\begin{itemize}
 	\item -1: all unknowns have unrestricted sign,
@@ -938,6 +944,7 @@ The {\tt pip\_options\_init} function allocates the memory space for a
 \item {\tt Simplify} $= 0$: do not try to simplify solutions,
 \item {\tt Deepest\_cut} $= 0$: do not use deepest cut algorithm,
 \item {\tt Maximize} $= 0$: compute the lexicographic minimum,
+\item \verb+Urs_parms+ $= 0$: all parameters are non-negative,
 \item \verb+Urs_unknowns+ $= 0$: all unknowns are non-negative.
 \end{itemize}
 We strongly recommand to use this function to create and initialize any

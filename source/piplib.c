@@ -295,6 +295,7 @@ void * pip_options_print(FILE * foo, PipOptions * options)
   fprintf(foo,"Simplify    =%d\n",options->Simplify) ;
   fprintf(foo,"Deepest_cut =%d\n",options->Deepest_cut) ;
   fprintf(foo,"Maximize    =%d\n",options->Maximize) ;
+  fprintf(foo,"Urs_parms   =%d\n",options->Urs_parms);
   fprintf(foo,"Urs_unknowns=%d\n",options->Urs_unknowns);
   fprintf(foo,"\n") ;
 }
@@ -460,6 +461,7 @@ PipOptions * pip_options_init(void)
   options->Simplify    = 0 ;  /* Do not simplify solutions. */
   options->Deepest_cut = 0 ;  /* Do not use deepest cut algorithm. */
   options->Maximize    = 0 ;  /* Do not compute maximum. */
+  options->Urs_parms   = 0 ;  /* All parameters are non-negative. */
   options->Urs_unknowns= 0 ;  /* All unknows are non-negative. */
   
   return options ;
@@ -661,7 +663,7 @@ PipMatrix * inequnk, * ineqpar ;
 int Bg ;
 PipOptions * options ;
 { Tableau * ineq, * context, * ctxt ;
-  int i, Np, Nn, Nl, Nm, p, q, xq, non_vide, Shift = 0;
+  int i, Np, Nn, Nl, Nm, p, q, xq, non_vide, Shift = 0, Urs_parms = 0;
   char * g ;
   struct high_water_mark hq ;
   Entier D ;
@@ -738,6 +740,11 @@ PipOptions * options ;
       Shift = -1;
     } 
 
+    if (options->Urs_parms) {
+      Urs_parms = Np - (Bg >= 0);
+      Np += Urs_parms;
+    }
+
     /* Si un maximum est demande, mais sans bignum, on crée le bignum. */
     if (options->Maximize || options->Urs_unknowns) {
       if (Bg < 0) {
@@ -765,7 +772,7 @@ PipOptions * options ;
       #endif
       Nm ++ ;
       
-      context = tab_Matrix2Tableau(ineqpar,Nm,Np,0, Shift,Bg-Nn) ;
+      context = tab_Matrix2Tableau(ineqpar,Nm,Np,0, Shift,Bg-Nn, Urs_parms);
       
       if (Nm)
       { /* Traduction du format de matrice de la polylib vers celui de
@@ -792,7 +799,7 @@ PipOptions * options ;
     
     /* S'il est possible de trouver une solution, on passe au traitement. */
     if (non_vide)
-    { ineq = tab_Matrix2Tableau(inequnk,Nl,Nn,Nn, Shift,Bg) ;
+    { ineq = tab_Matrix2Tableau(inequnk,Nl,Nn,Nn, Shift,Bg, Urs_parms);
   
       compa_count = 0 ;
       traiter(ineq, context, options->Nq, Nn, Np, Nl, Nm, Bg) ;
@@ -803,7 +810,7 @@ PipOptions * options ;
       /* On traduit la solution du format de solution de Pip vers un arbre
        * de structures de type PipQuast.
        */
-      solution = sol_quast_edit(&xq, NULL, Bg-Nn-1, sol_flags);
+      solution = sol_quast_edit(&xq, NULL, Bg-Nn-1, Urs_parms, sol_flags);
       sol_reset(p) ;
     }
     else
