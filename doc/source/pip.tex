@@ -76,7 +76,7 @@ thus consider the following {\em polyhedron} ${\cal F}(k, m, n) $:
 \end{equation}
 What is the lexicographical maximum of the 
 integer-valued vectors included in ${\cal F}(k, m, n)$?
-The aim of PIP is to solve such problems. The reader is refered to
+The aim of PIP is to solve such problems. The reader is referred to
 \cite{Feau:88b} for a mathematical description of the method.
 %
 % Ajouter qq explications
@@ -97,7 +97,7 @@ parameters and has $p$ entries. Polyhedron ${\cal F}(\vec{z})$ is a
 subset of ${\bf R}^{n}$ and is defined by $n + l$ inequalities: $n$
 inequalities expressing
 \[ \vec{x} \geq 0 \]
-and the $l$ inequalities correponding to rows of matrix
+and the $l$ inequalities corresponding to rows of matrix
 ${\bf A}$ of size $l \times n$, matrix ${\bf B}$ of size $l \times p$,
 and constant vector $\vec{c}$ of size $l$.
 
@@ -148,7 +148,7 @@ problems and solutions.
 
 Note that several {\tt Problem}s can be given to PIP in the same
 file. The problems may be separated by any text that does not
-contain a parenthesis. By using Unix FIFO's as input and output files,
+contain a parenthesis. By using Unix FIFOs as input and output files,
 it is easy to convert the present implementation of PIP into a
 linear programming server.
 
@@ -187,7 +187,7 @@ in {\tt Vector} are, in this order:
 \item the coefficients of the parameters (I.e., a row of matrix ${\bf B}$)
 \end{itemize}
 This notation heavily depends on the positions given
-to unknowns and parameters: it is the responsability of the user to
+to unknowns and parameters: it is the responsibility of the user to
 enforce a coherent ordering of coefficients and to set a coefficient
 to zero when the corresponding unknown/parameter does not appear.
 
@@ -246,7 +246,7 @@ problem. The {\tt -s} (silent mode) switches this feature off. On the
 contrary, the verbose {\tt -v} option tells PIP to copy, in a file,
 all the input data and all the intermediary results. The name of this
 file is given either by the variable {\tt DEBUG} in the environment or
-is built by {\tt mkstemp}. The number of consecutive vee's controls the
+is built by {\tt mkstemp}. The number of consecutive v's controls the
 degree of verbosity of Pip. A word of caution: debug files may become
 very large very fast.
 
@@ -254,7 +254,7 @@ When Pip is asked for an integral solution, it constructs new constraints
 (the so-called {\em cuts}) which eliminate fractional solutions and keep
 all integer solutions. The selection of cuts is somewhat arbitrary. When
 the {\tt -d} option is given, Pip uses this degree of freedom to select
-the ``deepest cut'' according to an algorithm by Gondran. Untractable
+the ``deepest cut'' according to an algorithm by Gondran. Intractable
 problems may become tractable when using this option, and conversely.
 Use with caution.
 
@@ -467,7 +467,7 @@ be found.
 
 \subsubsection{Handling Equalities}
 When the input problem contains $r$ affine equalities $f_i = 0$,$1\leq i\leq r$,
- one may just write $r$ inequalities  $f_i \geq 0$ and $r$ inequalties  $f_i \leq 0$,
+ one may just write $r$ inequalities  $f_i \geq 0$ and $r$ inequalities  $f_i \leq 0$,
  thus satisfying PIP's input syntax. However, one may notice that only $r+1$ inequalities
 are needed: $f_i \geq 0$, $1\leq i\leq r$, and the following inequality:
 \[ \sum_{i=1}^{r} f_i \leq 0.\]
@@ -701,7 +701,7 @@ S_i & = & \min f_i(y) + b y,\\
   &   & C_i y + d_i \ge 0,
 \end{eqnarray*}
 in integers. The final result is the minimum of all $S_i$.
-Obviously, the method can accomodate parameters in the
+Obviously, the method can accommodate parameters in the
 constraints. The $S_i$ will be functions of these
 parameters, and the minimum must be computed symbolically.
 
@@ -733,7 +733,7 @@ typedef struct pipmatrix PipMatrix ;
 \end{verbatim}
 The {\tt PipMatrix} structure is devoted to represent a constraints matrix in the
 PolyLib shape \cite{Wild:93}. The whole matrix is arranged row after row at the
-{\tt p\_Init} adress. {\tt p} is an array of pointers in which
+{\tt p\_Init} address. {\tt p} is an array of pointers in which
 {\tt p[i]} points to the beginning of the i$^{th}$ row.
 {\tt NbRows} and {\tt NbColumns} are respectively the number of
 rows and columns of the matrix. We use this structure to carry polyhedrons.
@@ -773,7 +773,7 @@ the row corresponding to this constraint would be:
 # eq/in  k   m   n   cst
     1   -1   1   1    0 
 \end{verbatim}
-{\tt p\_Init\_size} is needed by the polylib to free the memory allocated by
+{\tt p\_Init\_size} is needed by the PolyLib to free the memory allocated by
 mpz\_init in the multiple precision release.
 
 \subsubsection{PipVector structure}
@@ -919,9 +919,9 @@ first three parameters describe the problem that the user wants to solve.
 The last parameter describe the options that the user has to set.
 These parameters are:
 \begin{enumerate}
-\item {\tt domain}: a pointer to the equations and inequations system which
+\item {\tt domain}: a pointer to the equations and inequalities system which
       describes the unknown domain in the PolyLib constraints matrix shape,
-\item {\tt context}: a pointer to the equations and inequations system satisfied
+\item {\tt context}: a pointer to the equations and inequalities system satisfied
       by the parameters context in the PolyLib constraints matrix shape
       (it can be NULL if there is no context),
 \item {\tt Bg}: the column rank of the bignum (first column rank is 0), or a
@@ -947,7 +947,7 @@ The {\tt pip\_options\_init} function allocates the memory space for a
 \item \verb+Urs_parms+ $= 0$: all parameters are non-negative,
 \item \verb+Urs_unknowns+ $= 0$: all unknowns are non-negative.
 \end{itemize}
-We strongly recommand to use this function to create and initialize any
+We strongly recommend to use this function to create and initialize any
 {\tt PipOptions} structure. In this way, if some new options appear in
 the future, there will be no compatibility problems.
 
@@ -1090,7 +1090,7 @@ to be done exactly. Rationals must be represented as quotients with
 an integer numerator and an integer denominator. In the preceding version,
 there was only one denominator for the whole tableau. The consequence
 was that simplifications where most unlikely, and that the integers
-in the tableau were growing until overflows occured.
+in the tableau were growing until overflows occurred.
 
 In the present version, there is one denominator per row of the tableau.
 Reduction to lower terms occurs frequently, and the growth of numbers in the
@@ -1147,12 +1147,12 @@ as needed to preserve exactness. It follows that no overflow is possible.
 However, when the size of numbers increases, computations get slower and
 slower, and memory overflow may occur in extreme cases. In well behaved
 problems, 32 bits are enough for the initial data, the size of intermediate
-results first increases up to a maximum, then decreses, and 32 bits
+results first increases up to a maximum, then decreases, and 32 bits
 are again enough for the results. Hence, it has been possible to keep
 the input format and output format of Multiple Precision Pip completely
 compatible with the formats of the bounded precision versions.
 
-To install Multiple Precision Pip, first install Gmp according to the
+To install Multiple Precision Pip, first install GMP according to the
 directions found at the above URL. Usually, the library is installed
 in {\tt /usr/local/lib}, and the header files are in {\tt /usr/local/include}.
 If this is not the case, you must adjust the Pip makefile by giving
@@ -1166,8 +1166,8 @@ called {\tt pipMP}.
 
 \subsection{Building the Executable and the Library}
 
-To build PIP, first copy the above tarfile to any convenient directory.
-Expand the tarfile using:
+To build PIP, first copy the above tar file to any convenient directory.
+Expand the tar file using:
 \begin{verbatim}
 zcat pip.tar.Z | tar xvf -
 \end{verbatim}
@@ -1221,7 +1221,7 @@ experience some problems when linking with PipLib),
 \item SparcStations, with the {\tt gcc} compiler.
 \end{itemize}
 
-\subsubsection{optionnal features}   
+\subsubsection{optional features}   
 
 \begin{itemize}
 \item By default, {\tt make} will install the package's files in
