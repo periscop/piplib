@@ -1,4 +1,6 @@
-\documentclass[12pt,a4paper]{article}
+\documentclass[12pt,a4paper,dvips]{article}
+\usepackage[all]{xy}
+\usepackage{amsmath}
 \usepackage{graphicx,html} 
 
 \htmladdtonavigation{\htmladdnormallink
@@ -596,13 +598,36 @@ There is no guarantee, however, that $x_s = x_m$.
 \subsubsection{Negative Unknowns and Parameters}
 
 Suppose we want to find the minimum of $f(i,j) = i-2j$ over the square
-domain represented in Figure~\ref{iter-domain}%
-\footnote{This example was proposed and solved by Pierre Boulet.}.
+domain
+$$
+\{\,
+(i,j) \mid -4 n -20 \le i + j \le 0 \wedge -2 n - 10 \le i - j \le 2 n + 10
+\,\}
+$$
+represented in Figure~\ref{iter-domain}.%
+\footnote{This example was proposed and solved by Pierre Boulet.}
 
-\begin{figure}[htb]
-\hrule width \columnwidth
-\centering\leavevmode
-\includegraphics[height=6.5cm]{images/negatifs.eps}
+\begin{figure}
+\begin{center}
+\begin{minipage}{0cm}
+\begin{xy}
+\POS*[*0.8]\xybox{
+<0.34cm,0pt>:
+\POS(-18,0)\ar(15,0)\POS?(0.95)*++!D{i}
+\POS(0,-15)\ar(0,10)\POS?(0.95)*++!R{j}
+\POS@i@={(-5,5),(5,-5),(-5,-15),(-15,-5),(-5,5)},{0*\xypolyline{}}
+\POS(-5,0)*{\bullet},*++!U{-n-5}
+\POS(5,0)*{\bullet},*++!U{n+5}
+\POS(0,5)*{\bullet},*++!L{n+5}
+\POS(0,-5)*{\bullet},*++!L{-n-5}
+\POS(-8,8)\ar@{--}(12,-12)\POS?(0.8)*[@]!/_7pt/{i+j=0}
+\POS(-24,4)\ar@{--}(-8,-12)\POS?(0.2)*[@]!/^7pt/{i+j=-4n-20}
+\POS(-24,-14)\ar@{--}(-3,7)\POS?(0.2)*[@]!/^7pt/{i-j=-2n-10}
+\POS(-4,-14)\ar@{--}(17,7)\POS?(0.8)*[@]!/_7pt/{i-j=2n+10}
+}
+\end{xy}
+\end{minipage}
+\end{center}
 \caption{\label{iter-domain} Problem domain}
 \end{figure}
   
@@ -611,35 +636,47 @@ we introduce a new unknown $f$ and the inequality $f-i+2j \geq
 0$. Since we want to optimize $f$, $f$ will appear
 as the first unknown.
 
-The trick for solving the problem in $Z$ is to introduce the following
-parameters:
-\begin{itemize}
-\item $G \ge max(0, -i, -j, -f)$.
-\item $P = max(0, -n)$.
-\end{itemize}
-This choice insure that the new variables and parameters:
+To allow $n$ (or any other parameter) to become negative, 
+we apply the standard trick of
+replacing $n$ by $$n = n' - n'',$$ where $n'$ and $n''$ are two new
+parameters, both non-negative.
+For handling possibly negative unknows, we add a number $G$ to each of the
+unknowns that ensures that
 \begin{eqnarray*}
 f' &=& G + f \\
 i' &=& G + i \\
-j' &=& G + j \\
-n' &=& P + n
+j' &=& G + j
 \end{eqnarray*}
-are all positive. This property stays true if $G$ grows. Hence, $G$
-is again a big parameter. However, $P$ must be considered as an ordinary
-parameter. After replacement of $i,j,n, f$ by the new variables
-$i',j',n',f'$, we get a system which corresponds to the following input:
-
+are all non-negative. That is, $G$ should be such that
+$$
+G \ge \max(0,-i,-j,-f).
+$$
+Hence, $G$
+is again a big parameter. 
+After replacement of $i,j,n$ and $f$ by the new variables
+$i',j',n',n''$ and $f'$, we obtain the set
+\begin{equation*}
+\begin{aligned}
+\{\,
+(f',i',j') \mid {}
+& f' -i' + 2j' - 2 G \ge 0 \wedge {} \\
+& -4 (n'-n'') -20 \le i' + j' - 2 G \le 0 \wedge {} \\
+& -2 (n'-n'') - 10 \le i' - j' \le 2 (n'-n'') + 10
+\,\},
+\end{aligned}
+\end{equation*}
+which corresponds to the following input:
 \begin{verbatim}
 ( 
  ( Solving MIN(i-2.j) under the following constraints:
    Unknowns may be negative.
    Order:
-   f' i' j' constant G P n'
+   f' i' j' constant G n'' n'
   )
  3 3 5 0 4 1
  ( 
-  #[ 0 1 1 20 -2 -4 4 ]
   #[ 1 -1 2 0 -2 0 0 ]
+  #[ 0 1 1 20 -2 -4 4 ]
   #[ 0 -1 -1 0 2 0 0 ]
   #[ 0 1 -1 10 0 -2 2 ]
   #[ 0 -1 1 10 0 -2 2 ]
@@ -653,7 +690,7 @@ The result is:
  ( Solving MIN(i-2.j) under the following constraints:
    Unknowns may be negative.
    Order:
-   f' i' j' constant G P n'
+   f' i' j' constant G n'' n'
    -1 )(if #[ 0 -1 1 5]
 (list #[ 1 3 -3 -15]
 #[ 1 1 -1 -5]
@@ -665,8 +702,8 @@ The result is:
 \end{verbatim}
 which should be read as:
 \begin{eqnarray*}
- (f',i',j') & = & {\tt if}\;  -P+n'-5 \geq 0 \\
-            &   & {\tt then} \; (G+3P-3n'-15, G+P-n'-5,G-P+n'+5) \\
+ (f',i',j') & = & {\tt if}\;  -n''+n'-5 \geq 0 \\
+            &   & {\tt then} \; (G+3n''-3n'-15, G+n''-n'-5,G-n''+n'+5) \\
             &   & {\tt else} \; \bot
 \end{eqnarray*}
 That is, in the original coordinate system:
