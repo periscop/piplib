@@ -27,7 +27,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include <piplib/piplib.h>
+#include "pip.h"
 
 /*  The routines in this file are used to build a Gomory cut from
     a non-integral row of the problem tableau                             */

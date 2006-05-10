@@ -103,12 +103,6 @@ extern "C"
   {
 #endif 
 
-#include <stdio.h> /* various function declarations use FILE */
-# include <piplib/type.h>
-# include <piplib/sol.h>
-# include <piplib/tab.h>
-# include <piplib/funcall.h>
-
 
 /* Structure PipMatrix :
  * Structure de matrice au format PolyLib. Le premier element d'une ligne
@@ -266,9 +260,6 @@ void pip_close();
  */ 
 PipQuast * pip_solve(PipMatrix *, PipMatrix *, int, PipOptions *) ;
 
-/* Ced : ajouts specifiques a la PipLib pour funcall. */
-Tableau * tab_Matrix2Tableau(PipMatrix *, int, int, int, int, int, int);
-Tableau * tab_Matrix2TableauMax(PipMatrix *, int, int, int, int) ;
 #define SOL_SHIFT		(1 << 0)    /* Shift solution over -bigparam */
 #define SOL_NEGATE		(1 << 1)    /* Negate solution */
 #define SOL_REMOVE		(1 << 2)    /* Remove big parameter */

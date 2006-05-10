@@ -28,7 +28,7 @@
 #include <stdio.h>
 #include <string.h>
 
-#include <piplib/piplib.h>
+#include "pip.h"
 
 extern long int cross_product, limit;
 extern int verbose;

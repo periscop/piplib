@@ -82,6 +82,10 @@ struct T
 
 typedef struct T Tableau;
 
+/* Ced : ajouts specifiques a la PipLib pour funcall. */
+Tableau * tab_Matrix2Tableau(PipMatrix *, int, int, int, int, int, int);
+Tableau * tab_Matrix2TableauMax(PipMatrix *, int, int, int, int) ;
+
 #if defined(__cplusplus)
   }
 #endif 

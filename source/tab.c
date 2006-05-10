@@ -28,7 +28,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include <piplib/piplib.h>
+#include "pip.h"
 
 #define TAB_CHUNK 4096*sizeof(Entier)
 

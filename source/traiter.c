@@ -27,7 +27,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include <piplib/piplib.h>
+#include "pip.h"
 
 #define max(x,y) ((x) > (y)? (x) : (y))
 

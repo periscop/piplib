@@ -34,7 +34,7 @@
 #endif
 #define min(x,y) ((x) < (y)? (x) : (y))
 
-#include <piplib/piplib.h>
+#include "pip.h"
 
 #ifdef UNIX
 #include <sys/times.h>
