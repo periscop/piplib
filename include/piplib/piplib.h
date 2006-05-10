@@ -103,6 +103,7 @@ extern "C"
   {
 #endif 
 
+#include <stdio.h> /* various function declarations use FILE */
 # include <piplib/type.h>
 # include <piplib/sol.h>
 # include <piplib/tab.h>
