@@ -702,15 +702,15 @@ The result is:
 \end{verbatim}
 which should be read as:
 \begin{eqnarray*}
- (f',i',j') & = & {\tt if}\;  -n''+n'-5 \geq 0 \\
+ (f',i',j') & = & {\tt if}\;  -n''+n'+5 \geq 0 \\
             &   & {\tt then} \; (G+3n''-3n'-15, G+n''-n'-5,G-n''+n'+5) \\
             &   & {\tt else} \; \bot
 \end{eqnarray*}
 That is, in the original coordinate system:
-\[ (f,i,j) = {\tt if}\;  n \geq 5 \; {\tt then} \; (-3n-15, -n-5, n+5)
+\[ (f,i,j) = {\tt if}\;  n \geq -5 \; {\tt then} \; (-3n-15, -n-5, n+5)
  \; {\tt else} \; \bot \]
 I.e., the minimum value for function $f$ is $-3n-15$, and this value
-is reached at point $(-n-5, n+5)$. This minimum exists only if $n \ge 5$;
+is reached at point $(-n-5, n+5)$. This minimum exists only if $n \ge -5$;
 otherwise, the feasible set is empty.
 
 \subsubsection{Mixed Programming}
