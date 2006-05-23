@@ -11,6 +11,7 @@ ROOT = ..
 
 PIPTEST = \
 	big \
+	boulet \
 	brisebarre \
 	cg1 \
 	esced \
