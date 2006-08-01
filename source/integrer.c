@@ -143,9 +143,8 @@ Tableau *expanser();
    nc increases by 2.
 									 */
 
-int integrer(ptp, pcontext, pnvar, pnparm, pni, pnc)
-Tableau **ptp, **pcontext;
-int *pnvar, *pnparm, *pni, *pnc;
+int integrer(Tableau **ptp, Tableau **pcontext, 
+	     int *pnvar, int *pnparm, int *pni, int *pnc)
 {int ncol = *pnvar+*pnparm+1;
  int nligne = *pnvar + *pni;
  int nparm = *pnparm;
