@@ -849,7 +849,7 @@ int iq, nvar, nparm, ni, nc, bigparm;
      break;
    }
 /* Yes we do! */
-   pivi = integrer(&tp, &context, &nvar, &nparm, &ni, &nc);
+   pivi = integrer(&tp, &context, &nvar, &nparm, &ni, &nc, bigparm);
    if(pivi > 0) goto pirouette;
 		    /* A cut has been inserted and is always negative */
 /* Here, either there is an integral solution, */

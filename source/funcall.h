@@ -32,7 +32,7 @@ extern "C"
 #endif 
 
 void traiter(Tableau *, Tableau *, int, int, int, int, int, int);
-int integrer(Tableau **, Tableau **, int *, int *, int *, int *);
+int integrer(Tableau **, Tableau **, int *, int *, int *, int *, int);
 #if defined(LINEAR_VALUE_IS_MP)
 #else
 Entier pgcd(Entier, Entier);

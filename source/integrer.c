@@ -144,7 +144,7 @@ Tableau *expanser();
 									 */
 
 int integrer(Tableau **ptp, Tableau **pcontext, 
-	     int *pnvar, int *pnparm, int *pni, int *pnc)
+	     int *pnvar, int *pnparm, int *pni, int *pnc, int bigparm)
 {int ncol = *pnvar+*pnparm+1;
  int nligne = *pnvar + *pni;
  int nparm = *pnparm;
@@ -223,6 +223,11 @@ int integrer(Tableau **ptp, Tableau **pcontext,
 /*                          This is the constant term                   */
       ok_parm = Pip_False;
       for(j = nvar+1; j<ncol; j++) {
+	 /* We assume that the big parameter is divisible by any number. */
+	 if (j == bigparm) {
+	    value_set_si(coupure[j], 0);
+	    continue;
+	 }
 	 value_oppose(x, Index(*ptp, i, j));
 	 value_pmodulus(x, x, D);
 	 value_oppose(coupure[j], x);
