@@ -224,16 +224,11 @@ int *pnvar, *pnparm, *pni, *pnc;
 /*                          This is the constant term                   */
       ok_parm = Pip_False;
       for(j = nvar+1; j<ncol; j++) {
-         #if defined(LINEAR_VALUE_IS_MP)
-         mpz_neg(x, Index(*ptp, i, j));
-         mpz_fdiv_r(x, x, D);
-         mpz_neg(x, x);
-         mpz_set(coupure[j], x);
-         if(mpz_cmp_ui(x, 0) != 0) ok_parm = Pip_True;
-         #else
-         x = coupure[j] = - mod(- Index(*ptp, i, j), D);         /* (1) */
-         if(x != 0) ok_parm = Pip_True;
-         #endif
+	 value_oppose(x, Index(*ptp, i, j));
+	 value_pmodulus(x, x, D);
+	 value_oppose(coupure[j], x);
+	 if (value_notzero_p(coupure[j]))
+	    ok_parm = Pip_True;
       }
 /*                          These are the parametric terms              */
 
