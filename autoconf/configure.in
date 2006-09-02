@@ -9,9 +9,10 @@ dnl  **-------------------------------------------------------------------**/
 dnl
 dnl Input file for autoconf to build a configuration shellscript.
 dnl To build the configure script from the PipLib's top-level directory, use
-dnl autoconf -l autoconf autoconf/configure.in > configure
-dnl if it doesn't work (invalid option -l) try -I instead
-dnl autoconf -I autoconf autoconf/configure.in > configure
+dnl 	autoconf -I autoconf -o configure autoconf/configure.in
+dnl for older versions of autoconf use -l instead
+dnl 	autoconf -l autoconf autoconf/configure.in > configure
+dnl 	chmod +x configure
 
 
 AC_PREREQ(2.13)
