@@ -48,17 +48,22 @@ int dscanf(FILE *, Entier *);
 
 extern FILE * dump;
 
+#define sizeof_struct_A ((sizeof(struct A) % sizeof(Entier)) ?		    \
+			 (sizeof(struct A) + sizeof(Entier)		    \
+				- (sizeof(struct A) % sizeof(Entier))) :    \
+			  sizeof(struct A))
+
 void tab_init(void)
 {
- tab_free = malloc(sizeof (struct A));
+ tab_free = malloc(sizeof_struct_A);
  if(tab_free == NULL)
      {fprintf(stderr, "Your computer doesn't have enough memory\n");
       exit(1);
      }
  allocation = 1;
- tab_top = tab_free + sizeof (struct A);
+ tab_top = tab_free + sizeof_struct_A;
  tab_base = (struct A *)tab_free;
- tab_free += sizeof(struct A);
+ tab_free += sizeof_struct_A;
  tab_base->precedent = NULL;
  tab_base->bout = tab_top;
  tab_base->free = tab_free;
@@ -115,7 +120,7 @@ void tab_reset(struct high_water_mark by_the_mark)
        */
 
       /* Enumerate the included tableaux. */
-      p = (char *)tab_base + sizeof(struct A);
+      p = (char *)tab_base + sizeof_struct_A;
       while(p < tab_base->free){
         Tableau *pt;
         pt = (Tableau *) p;
@@ -165,7 +170,7 @@ Tableau * tab_alloc(int h, int w, int n)
  if(tab_free + taille >= tab_top)
      {struct A * g;
       unsigned long d;
-      d = taille + sizeof(struct A);
+      d = taille + sizeof_struct_A;
       if(d < TAB_CHUNK) d = TAB_CHUNK;
       tab_free = malloc(d);
       if(tab_free == NULL)
@@ -176,7 +181,7 @@ Tableau * tab_alloc(int h, int w, int n)
       g = (struct A *)tab_free;
       g->precedent = tab_base;
       tab_top = tab_free + d;
-      tab_free += sizeof(struct A);
+      tab_free += sizeof_struct_A;
       tab_base = g;
       g->bout = tab_top;
      }
