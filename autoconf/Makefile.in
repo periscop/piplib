@@ -132,7 +132,7 @@ piplibshared : $(PIPLIB_OBJ) $(OBJ)
 	@echo "              *              MAKING PipLib (shared)           *"
 	@echo "              *-----------------------------------------------*/"
 	$(LD) $(OBJL) -o $(PIPLIB_OBJ)/libpiplib$(BITS).$(SHEXT).$(VERSION) \
-	-lc -shared -fPIC $(LDFLAGS)
+	-lc -shared -fPIC $(LDFLAGS) @SOLARIS_LDFLAGS@
 	$(LDCONFIG)
 
 piplibstatic: $(PIPLIB_OBJ) $(OBJ)
