@@ -138,7 +138,7 @@ void pip_matrix_print(FILE * foo, PipMatrix * Mat)
       mpz_out_str(foo,10,*p++) ;
     }
     #else
-    fprintf(foo," %3d", *p++) ;
+    fprintf(foo," "FORMAT, *p++) ;
     #endif
     fprintf(foo, "\n") ;
   }
