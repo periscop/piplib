@@ -225,7 +225,7 @@ int main(int argc, char *argv[])
       ineq = tab_get(in, ni, nvar+nparm+1, nvar);
       if(ineq == NULL){escape(in, out, 2); continue;}
       context = tab_get(in, nc, nparm+1, 0);
-      if(ineq == NULL){escape(in, out, 2); continue;}
+      if(context == NULL){escape(in, out, 2); continue;}
       xq = p = sol_hwm();
 /* verification de la non-vacuite' du contexte */
       if(nc)
