@@ -12,12 +12,12 @@
 #
 # ndCed: useful line for names with their extensions:
 # diff -w xyz `basename $$x .dat`.ll ;
-ROOT = ..
 
 # pbs with boulet bouleti and dirk 
 #	boulet  \
 #	bouleti \
 #	dirk    \
+#
 
 PIPTEST =       \
 	crescat \
@@ -54,28 +54,30 @@ PIPTEST =       \
 	test12  \
 	test12i
 
-BITS = 64
+EXTRA_DIST = \
+	$(PIPTEST:%=%.dat) \
+	$(PIPTEST:%=%.ll)
 
 generate:
 	@echo "             /*-----------------------------------------------*"
 	@echo "              *                 Generate files                *"
 	@echo "              *-----------------------------------------------*/"
 	for x in $(PIPTEST) ; do \
-		echo "Generate $$x.ll" ; \
-		pip64 $$x.dat $$x.ll ; \
+		echo "Generate $(srcdir)/$$x.ll" ; \
+		$(top_builddir)/pip64$(EXEEXT) $(srcdir)/$$x.dat $(srcdir)/$$x.ll ; \
 	done
 
 test:
 	@echo "             /*-----------------------------------------------*"
 	@echo "              *                  Testing PIP                  *"
 	@echo "              *-----------------------------------------------*/"
-	failedtest=0; \
+	@failedtest=0; \
 	for x in $(PIPTEST) ; do \
 		echo "Verify file $$x" ; \
-		$(ROOT)/obj$(BITS)_$(TARGET)/pip$(BITS)$(EXEC_SUFFIX) $$x.dat > xyz ;\
-		diff -w xyz $$x.ll ; \
+		$(top_builddir)/$(PIP) $(srcdir)/$$x.dat > xyz; \
+		diff -w xyz $(srcdir)/$$x.ll ; \
 		result=$$?; \
-		if [ "$$result" -eq "1" ]; then \
+		if [ "$$result" -ne "0" ]; then \
 			echo "Error: $$x is not the same"; \
 			failedtest=`expr $$failedtest + 1`; \
 		else \
@@ -88,6 +90,3 @@ test:
 	else \
 	        echo "PIP works correctly :-)"; \
         fi
-
-# Include the shared compilation rules
-include $(ROOT)/Makefile
