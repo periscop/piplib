@@ -457,7 +457,7 @@ ok_var   ok_parm   ok_const
       discrp[(nparm)+1] = -x;
       discrm[(nparm)+1] = x + D -1;
       #endif
-      if(nc+2 > (*pcontext)->height || nparm+1 > (*pcontext)->width) {
+      if (nc+2 > (*pcontext)->height || nparm+1+1 > (*pcontext)->width) {
           int dcw, dch;
           #if defined(LINEAR_VALUE_IS_MP)
           dcw = mpz_sizeinbase(D, 2);

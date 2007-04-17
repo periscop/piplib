@@ -19,6 +19,7 @@ PIPTEST = \
 	esced \
 	ex \
 	ex2 \
+	expansion \
 	fimmel \
 	max \
 	negative \
