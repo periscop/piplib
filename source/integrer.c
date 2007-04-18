@@ -26,6 +26,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <assert.h>
 
 #include "pip.h"
 
@@ -393,7 +394,7 @@ ok_var   ok_parm   ok_const
 #else
           return -1;  
 #endif
-/* In cases (c) and (e), one has to introduce a new parameter and
+/* In case (e), one has to introduce a new parameter and
    introduce its defining inequalities into the context.
    
    Let the cut be    sum_{j=0}^{nvar-1} c_j x_j + c_{nvar} +             (2)
@@ -509,7 +510,7 @@ ok_var   ok_parm   ok_const
       }
                          /* end of the construction of the new parameter */
 
-      if(ok_var) {                                 /*   case (e)         */
+	assert(ok_var);
           if(nligne >= (*ptp)->height || ncol >= (*ptp)->width) {
               int d, dth, dtw;
              #if defined(LINEAR_VALUE_IS_MP)
@@ -545,48 +546,6 @@ ok_var   ok_parm   ok_const
           #else
 	  return(nligne);
           #endif
-	  }
-                                                  /*  case (c)          */
-                        /* The new parameter has already been defined as a
-			   quotient. It remains to express that the
-			   remainder of that division is zero           */
-      sol_if();
-      sol_forme(nparm + 2);
-      for (j = 0; j < nparm+1 ; j++)
-	  sol_val(discrm[j], UN);
-          #if defined(LINEAR_VALUE_IS_MP)
-          mpz_neg(x, UN);
-          sol_val(x, UN);
-          #else
-          sol_val(-UN, UN);
-          #endif
-      sol_nil();    /* No solution if the division is not even      */
-			/* Add a new column */
-      if(ncol+1 >= (*ptp)-> width) {
-	  int dtw;
-          #if defined(LINEAR_VALUE_IS_MP)
-          dtw = mpz_sizeinbase(D, 2);
-          #else
-	  dtw = llog(D);
-          #endif
-	  *ptp = expanser(*ptp, *pnvar, *pni, ncol, 0, 0, dtw);
-	  }
-	  /* The new column is zeroed out by <<expanser>>          */
-/* Let c be the coefficient of parameter p in the i row. In <<coupure>>,
-   this parameter has coefficient  - mod(-c, D). In <<discrp>>, this same
-   parameter has coefficient mod(-c, D). The sum c + mod(-c, D) is obviously
-   divisible by D.                                                      */
-
-      for (j = 0; j <= nparm; j++)
-          #if defined(LINEAR_VALUE_IS_MP)
-          mpz_add(Index(*ptp, i, j + nvar + 1), 
-                  Index(*ptp, i, j + nvar + 1), discrp[j]);
-          #else
-	  Index(*ptp, i, j + nvar + 1) += discrp[j];
-          #endif
-      tab_display(*ptp, stderr);
-      exit(0);
-      continue;
       }
  /* The solution is integral.                              */
  #if defined(LINEAR_VALUE_IS_MP)
