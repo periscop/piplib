@@ -381,20 +381,12 @@ ok_var   ok_parm   ok_const
 		putc('\n', dump);
 	      }
 	      if(verbose > 2) tab_display(*ptp, dump);
-#if defined(LINEAR_VALUE_IS_MP)
 	      goto clear;
-#else
-	      return(nligne);
-#endif
               }
-          else                                                               /*   case (b)    */
-#if defined(LINEAR_VALUE_IS_MP)
-          { nligne = -1; 
+          else {                                         /*   case (b)    */
+            nligne = -1; 
             goto clear;
           }
-#else
-          return -1;  
-#endif
 /* In case (e), one has to introduce a new parameter and
    introduce its defining inequalities into the context.
    
@@ -542,27 +534,19 @@ ok_var   ok_parm   ok_const
               #endif
 		 /* A new row has been added to the problem tableau.    */
 	  (*pni)++;
-          #if defined(LINEAR_VALUE_IS_MP)
           goto clear;
-          #else
-	  return(nligne);
-          #endif
       }
  /* The solution is integral.                              */
- #if defined(LINEAR_VALUE_IS_MP)
- nligne = 0;
- clear : 
+    nligne = 0;
+clear: 
    for(i=0; i <= ncol; i++)
-     mpz_clear(coupure[i]);
+	value_clear(coupure[i]);
    for(i=0; i <= nparm+1; i++){
-     mpz_clear(discrp[i]);
-     mpz_clear(discrm[i]);
+	value_clear(discrp[i]);
+	value_clear(discrm[i]);
    }
-   mpz_clear(x); mpz_clear(d); mpz_clear(D);
-   mpz_clear(t); mpz_clear(tau); mpz_clear(lambda); mpz_clear(delta);
- return(nligne);
- #else
-   return 0;
- #endif
+    value_clear(x); value_clear(d); value_clear(D);
+    value_clear(t); value_clear(tau); value_clear(lambda); value_clear(delta);
+    return nligne;
 }
 
