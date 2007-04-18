@@ -161,6 +161,11 @@ int integrer(Tableau **ptp, Tableau **pcontext,
  Entier D;
 
  Entier t, delta, tau, lambda;
+
+    if (ncol >= MAXCOL) {
+	fprintf(stderr, "Too many variables: %d\n", ncol);
+	exit(3);
+    }
  
  #if defined(LINEAR_VALUE_IS_MP)
  for(i=0; i<=ncol; i++)
@@ -175,11 +180,6 @@ int integrer(Tableau **ptp, Tableau **pcontext,
  mpz_init(t); mpz_init(delta); mpz_init(tau); mpz_init(lambda);
  #endif
 
-
- if(ncol+1 >= MAXCOL) {
-      fprintf(stderr, "Too much variables : %d\n", ncol);
-      exit(3);
-      }
 
 /* search for a non-integral row */
  for(i = 0; i<nvar; i++) {
