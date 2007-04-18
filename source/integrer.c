@@ -207,7 +207,8 @@ int integrer(Tableau **ptp, Tableau **pcontext,
          #else
          x = coupure[j] = mod(Index(*ptp, i, j), D);
          #endif
-          if(x > 0) ok_var = Pip_True;
+	    if (value_pos_p(x))
+		ok_var = Pip_True;
           }
 /*                          Done for the coefficient of the variables.  */
 

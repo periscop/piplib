@@ -77,6 +77,7 @@
 #define value_eq(v1,v2) 	    	(mpz_cmp((v1),(v2)) == 0)
 #define value_ne(v1,v2) 	    	(mpz_cmp((v1),(v2)) != 0)
 #define value_notzero_p(val)        	(mpz_sgn(val) != 0)
+#define value_pos_p(val)        	(mpz_sgn(val) > 0)
 
 #else
 
@@ -94,6 +95,7 @@
 #define value_eq(v1,v2) 	    	((v1) == (v2))
 #define value_ne(v1,v2) 	    	((v1) != (v2))
 #define value_notzero_p(val)        	((val) != 0)
+#define value_pos_p(val)        	((val) > 0)
 
 #endif
 
