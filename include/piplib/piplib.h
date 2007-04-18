@@ -83,7 +83,7 @@
 
 #define value_addto(ref,val1,val2) 	((ref) = (val1)+(val2))
 #define value_assign(v1,v2)	    	((v1) = (v2))
-#define value_clear(val)             	((val) = 0)
+#define value_clear(val)             	do { } while(0)
 #define value_divexact(d,v1,v2)	    	((d) = (v1) / (v2))
 #define value_gcd(g,v1,v2)	    	((g) = pgcd((v1),(v2)))
 #define value_init(val)             	((val) = 0)
