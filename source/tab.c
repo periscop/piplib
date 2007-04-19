@@ -303,7 +303,7 @@ int Nineq, Nv, n, Shift, Bg, Urs_parms;
   int inequality;
   Entier bignum;
   
-  value_init(bignum) ;
+  entier_init(bignum);
   nb_columns = matrix->NbColumns - 1 ;
   /* S'il faut un BigNum et qu'il n'existe pas, on lui reserve sa place. */
   bignum_is_new = Shift && (Bg > (matrix->NbColumns - 2));
@@ -321,11 +321,11 @@ int Nineq, Nv, n, Shift, Bg, Urs_parms;
   for (i = 0; i < matrix->NbRows; i++) {
     current = i + n + decal;
     Flag(p,current) = Unknown ;
-    value_set_si(Denom(p,current), 1);
+    entier_set_si(Denom(p,current), 1);
     if (Shift)
-      value_set_si(bignum, 0);
+      entier_set_si(bignum, 0);
     /* Pour passer l'indicateur d'egalite/inegalite. */
-    inequality = value_notzero_p(matrix->p[i][0]);
+    inequality = entier_notzero_p(matrix->p[i][0]);
          
     /* Dans le format de la polylib, l'element constant est place en
      * dernier. Dans le format de Pip, il se trouve apres la premiere
@@ -336,16 +336,16 @@ int Nineq, Nv, n, Shift, Bg, Urs_parms;
       if (bignum_is_new && 1+j == Bg)
 	continue;
       if (Shift)
-	value_addto(bignum, bignum, matrix->p[i][1+j]);
+	entier_addto(bignum, bignum, matrix->p[i][1+j]);
       if (Shift > 0)
-	value_oppose(p->row[current].objet.val[j], matrix->p[i][1+j]);
+	entier_oppose(p->row[current].objet.val[j], matrix->p[i][1+j]);
       else
-	value_assign(p->row[current].objet.val[j], matrix->p[i][1+j]);
+	entier_assign(p->row[current].objet.val[j], matrix->p[i][1+j]);
     }
     for (k=j=Nv+1;j<nb_columns;j++) {
 	if (bignum_is_new && j == Bg)
 	  continue;
-	value_assign(p->row[current].objet.val[j], matrix->p[i][k++]);
+	entier_assign(p->row[current].objet.val[j], matrix->p[i][k++]);
     }
     for (j=0; j < Urs_parms; ++j) {
 	int pos = nb_columns - Urs_parms + j;
@@ -353,19 +353,19 @@ int Nineq, Nv, n, Shift, Bg, Urs_parms;
 	    --pos;
 	if (pos <= Bg)
 	    --pos;
-	value_oppose(p->row[current].objet.val[nb_columns+j],
+	entier_oppose(p->row[current].objet.val[nb_columns+j],
 		     p->row[current].objet.val[pos]);
     }
-    value_assign(p->row[current].objet.val[Nv], 
+    entier_assign(p->row[current].objet.val[Nv], 
 		 matrix->p[i][matrix->NbColumns-1]);
     if (Shift) {
       if (Shift < 0)
-	value_oppose(bignum, bignum);
+	entier_oppose(bignum, bignum);
 
       if (bignum_is_new)
-	value_assign(p->row[current].objet.val[Bg], bignum);
+	entier_assign(p->row[current].objet.val[Bg], bignum);
       else
-	value_addto(p->row[current].objet.val[Bg], 
+	entier_addto(p->row[current].objet.val[Bg], 
 		    p->row[current].objet.val[Bg], bignum);
     }
     
@@ -374,13 +374,13 @@ int Nineq, Nv, n, Shift, Bg, Urs_parms;
       decal ++ ;
       new = current + 1 ;
       Flag(p,new)= Unknown ;
-      value_set_si(Denom(p,new), 1);
+      entier_set_si(Denom(p,new), 1);
       
       for (j=0;j<nb_columns+Urs_parms;j++)
-	value_oppose(p->row[new].objet.val[j], p->row[current].objet.val[j]);
+	entier_oppose(p->row[new].objet.val[j], p->row[current].objet.val[j]);
     }
   }
-  value_clear(bignum);
+  entier_clear(bignum);
 
   return(p);
 }

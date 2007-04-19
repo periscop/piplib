@@ -207,7 +207,7 @@ int integrer(Tableau **ptp, Tableau **pcontext,
          #else
          x = coupure[j] = mod(Index(*ptp, i, j), D);
          #endif
-	    if (value_pos_p(x))
+	    if (entier_pos_p(x))
 		ok_var = Pip_True;
           }
 /*                          Done for the coefficient of the variables.  */
@@ -227,13 +227,13 @@ int integrer(Tableau **ptp, Tableau **pcontext,
       for(j = nvar+1; j<ncol; j++) {
 	 /* We assume that the big parameter is divisible by any number. */
 	 if (j == bigparm) {
-	    value_set_si(coupure[j], 0);
+	    entier_set_si(coupure[j], 0);
 	    continue;
 	 }
-	 value_oppose(x, Index(*ptp, i, j));
-	 value_pmodulus(x, x, D);
-	 value_oppose(coupure[j], x);
-	 if (value_notzero_p(coupure[j]))
+	 entier_oppose(x, Index(*ptp, i, j));
+	 entier_pmodulus(x, x, D);
+	 entier_oppose(coupure[j], x);
+	 if (entier_notzero_p(coupure[j]))
 	    ok_parm = Pip_True;
       }
 /*                          These are the parametric terms              */
@@ -540,13 +540,13 @@ ok_var   ok_parm   ok_const
     nligne = 0;
 clear: 
    for(i=0; i <= ncol; i++)
-	value_clear(coupure[i]);
+	entier_clear(coupure[i]);
    for(i=0; i <= nparm+1; i++){
-	value_clear(discrp[i]);
-	value_clear(discrm[i]);
+	entier_clear(discrp[i]);
+	entier_clear(discrm[i]);
    }
-    value_clear(x); value_clear(d); value_clear(D);
-    value_clear(t); value_clear(tau); value_clear(lambda); value_clear(delta);
+    entier_clear(x); entier_clear(d); entier_clear(D);
+    entier_clear(t); entier_clear(tau); entier_clear(lambda); entier_clear(delta);
     return nligne;
 }
 

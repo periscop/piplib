@@ -530,9 +530,9 @@ PipVector * sol_vector_edit(int *i, int Bg, int Urs_p, int flags)
   Entier N, D, d ;
   PipVector * vector ;
 
-  value_init(N) ;
-  value_init(D) ;
-  value_init(d) ;
+  entier_init(N);
+  entier_init(D);
+  entier_init(d);
   
   vector = (PipVector *)malloc(sizeof(PipVector)) ;
   if (vector == NULL)
@@ -561,13 +561,13 @@ PipVector * sol_vector_edit(int *i, int Bg, int Urs_p, int flags)
     (*i)++ ;
     p++ ;
 
-    value_assign(N, p->param1);
-    value_assign(D, p->param2);
-    value_gcd(d, N, D);
+    entier_assign(N, p->param1);
+    entier_assign(D, p->param2);
+    entier_gcd(d, N, D);
 
     if ((flags & SOL_SHIFT) && j == Bg) {
-      value_subtract(N, N, D);   /* subtract 1 */
-      if (value_notzero_p(N))
+      entier_subtract(N, N, D);   /* subtract 1 */
+      if (entier_notzero_p(N))
 	unbounded = 1;
     }
 
@@ -577,25 +577,25 @@ PipVector * sol_vector_edit(int *i, int Bg, int Urs_p, int flags)
     if (first_urs <= j && j < first_urs+Urs_p)
       continue;
 
-    value_init(vector->the_vector[k]);
-    value_divexact(vector->the_vector[k], N, d);
+    entier_init(vector->the_vector[k]);
+    entier_divexact(vector->the_vector[k], N, d);
     if (flags & SOL_NEGATE)
-      value_oppose(vector->the_vector[k], vector->the_vector[k]);
-    value_init(vector->the_deno[k]);
-    if (value_eq(d, D))
-      value_assign(vector->the_deno[k], UN);
+      entier_oppose(vector->the_vector[k], vector->the_vector[k]);
+    entier_init(vector->the_deno[k]);
+    if (entier_eq(d, D))
+      entier_assign(vector->the_deno[k], UN);
     else
-      value_divexact(vector->the_deno[k], D, d);
+      entier_divexact(vector->the_deno[k], D, d);
     ++k;
   }
   if (unbounded)
     for (k=0; k < n; k++)
-      value_assign(vector->the_deno[k], ZERO);
+      entier_assign(vector->the_deno[k], ZERO);
   (*i)++ ;
 
-  value_clear(d);
-  value_clear(D);
-  value_clear(N);
+  entier_clear(d);
+  entier_clear(D);
+  entier_clear(N);
 
   return(vector) ;
 }
@@ -630,7 +630,7 @@ PipNewparm * sol_newparm_edit(int *i, int Bg, int Urs_p, int flags)
     newparm->rank = VALUE_TO_INT(p->param1);
     /* On met p a jour pour lire le denominateur (un Val de param2 UN). */
     p = sol_space + (*i) ;
-    value_init_set(newparm->deno, p->param1);
+    entier_init_set(newparm->deno, p->param1);
     if (flags & SOL_REMOVE)
       newparm->rank--;
     newparm->rank -= Urs_p;
