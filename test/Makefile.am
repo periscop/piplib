@@ -74,7 +74,7 @@ test:
 	@failedtest=0; \
 	for x in $(PIPTEST) ; do \
 		echo "Verify file $$x" ; \
-		$(top_builddir)/$(PIP) $(srcdir)/$$x.dat > xyz; \
+		$(top_builddir)/$(PIP) -s $(srcdir)/$$x.dat > xyz; \
 		diff -w xyz $(srcdir)/$$x.ll ; \
 		result=$$?; \
 		if [ "$$result" -ne "0" ]; then \
