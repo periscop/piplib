@@ -86,7 +86,7 @@
 #define value_clear(val)             	do { } while(0)
 #define value_divexact(d,v1,v2)	    	((d) = (v1) / (v2))
 #define value_gcd(g,v1,v2)	    	((g) = pgcd((v1),(v2)))
-#define value_init(val)             	((val) = 0)
+#define value_init(val)             	do { } while(0)
 #define value_init_set(v1,v2)	    	((v1) = (v2))
 #define value_pmodulus(ref,val1,val2)	((ref) = mod((val1),(val2)))
 #define value_oppose(ref,val)    	((ref) = -(val))
