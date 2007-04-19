@@ -140,19 +140,10 @@ static int add_parm(Tableau **pcontext, int nr, int *pnparm, int *pni, int *pnc,
 {
     int nparm = *pnparm;
     int i, j, k;
-    Entier discrp[MAXPARM], discrm[MAXPARM];
     Entier x;
 
-    for (i = 0; i <= nparm+1; i++) {
-	entier_init(discrp[i]);
-	entier_init(discrm[i]);
-    }
     entier_init(x);
 
-    if (nparm >= MAXPARM) {
-	fprintf(stderr, "Too many parameters: %d\n", *pnparm);
-	exit(4);
-    }
 /*        Build the definition of the new parameter into the solution :
       p_{nparm} = -(sum_{j=0}^{nparm-1} c_{nvar + 1 + j} p_j 
                      + c_{nvar})/D                             (3)
@@ -169,23 +160,6 @@ static int add_parm(Tableau **pcontext, int nr, int *pnparm, int *pni, int *pnc,
     sol_val(x, UN);
     sol_val(cut[1+nparm], UN);		    /* The divisor                */
 
-/* The value of the new parameter is specified by applying the definition of
-   Euclidean division to (3) :
-
- 0<= - sum_{j=0}^{nparm-1} c_{nvar+1+j} p_j - c_{nvar} - D * p_{nparm} < D (4)
-
-   This formula gives two inequalities which are stored in the context    */
-             
-    for (j = 0; j < nparm; j++) {
-	entier_oppose(discrp[j], cut[1+j]);
-	entier_assign(discrm[j], cut[1+j]);
-    }
-    entier_oppose(discrp[nparm], cut[1+nparm]);
-    entier_assign(discrm[nparm], cut[1+nparm]);
-    entier_assign(x, cut[0]);
-    entier_oppose(discrp[nparm+1], x);
-    entier_decrement(x, x);
-    entier_addto(discrm[nparm+1], x, cut[1+nparm]);
     if (nr+2 > (*pcontext)->height || nparm+1+1 > (*pcontext)->width) {
 	int dcw, dch;
 	dcw = entier_llog(cut[1+nparm]);
@@ -200,12 +174,25 @@ static int add_parm(Tableau **pcontext, int nr, int *pnparm, int *pni, int *pnc,
 	entier_assign(Index(*pcontext, k, nparm+1), Index(*pcontext, k, nparm));
 	entier_set_si(Index(*pcontext, k, nparm), 0);
     }
-/* Now, insert the new rows                                              */
 
-    for (j = 0; j <= nparm+1; j++) {
-	entier_assign(Index(*pcontext, nr, j), discrp[j]); 
-	entier_assign(Index(*pcontext, nr+1, j), discrm[j]);
+/* The value of the new parameter is specified by applying the definition of
+   Euclidean division to (3) :
+
+ 0<= - sum_{j=0}^{nparm-1} c_{nvar+1+j} p_j - c_{nvar} - D * p_{nparm} < D (4)
+
+   This formula gives two inequalities which are stored in the context    */
+
+    for (j = 0; j < nparm; j++) {
+	entier_oppose(Index(*pcontext, nr, j), cut[1+j]);
+	entier_assign(Index(*pcontext, nr+1, j), cut[1+j]);
     }
+    entier_oppose(Index(*pcontext, nr, nparm), cut[1+nparm]);
+    entier_assign(Index(*pcontext, nr+1, nparm), cut[1+nparm]);
+    entier_assign(x, cut[0]);
+    entier_oppose(Index(*pcontext, nr, nparm+1), x);
+    entier_decrement(x, x);
+    entier_addto(Index(*pcontext, nr+1, nparm+1), x, cut[1+nparm]);
+
     Flag(*pcontext, nr) = Unknown;
     Flag(*pcontext, nr+1) = Unknown;
     entier_set_si(Denom(*pcontext, nr), 1);
@@ -217,10 +204,6 @@ static int add_parm(Tableau **pcontext, int nr, int *pnparm, int *pni, int *pnc,
 	fflush(dump);
     }
 
-    for (i = 0; i <= nparm+1; i++) {
-	entier_clear(discrp[i]);
-	entier_clear(discrm[i]);
-    }
     entier_clear(x);
 }
 
