@@ -238,16 +238,19 @@ int main(int argc, char *argv[])
       if(non_vide) {
        compa_count = 0;
        traiter(ineq, context, nq, nvar, nparm, ni, nc, bigparm);
-       putc(' ',out);
+	if (verbose > 0) {
+	    fprintf(dump, "det: ");
 #if defined(LINEAR_VALUE_IS_MP)
-       mpz_out_str(out, 10, ineq->determinant);
+	    mpz_out_str(dump, 10, ineq->determinant);
 #else
-       for(i=0; i<ineq->l_determinant; i++) {
-        fprintf(out, FORMAT, ineq->determinant[i]);
-        fprintf(out, " ");
-       }
+	    for (i=0; i<ineq->l_determinant; i++) {
+		fprintf(dump, FORMAT, ineq->determinant[i]);
+		fprintf(dump, " ");
+	    }
 #endif
-       fputs(" )",out);
+	    fprintf(dump, "\n");
+	}
+	fputs(")\n",out);
        if(simple) sol_simplify(xq);
        q = sol_hwm();
        while((xq = sol_edit(out, xq)) != q);

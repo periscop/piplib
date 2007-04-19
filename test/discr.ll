@@ -1,2 +1,3 @@
-((un discriminant de Newpip 1  )()
+((un discriminant de Newpip)
+()
 )

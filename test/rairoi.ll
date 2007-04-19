@@ -1,4 +1,5 @@
-((test du papier RAIRO 1  )(if #[ -1 2 1 0]
+((test du papier RAIRO)
+(if #[ -1 2 1 0]
 (if #[ 1 -2 0 0]
 (list #[ 0 0 0 0]
 #[ -1 2 1 0]

@@ -1,4 +1,5 @@
-((variables : a b c d ...., pas de parametres 2  )(list #[ 2]
+((variables : a b c d ...., pas de parametres)
+(list #[ 2]
 #[ 1]
 )
 )

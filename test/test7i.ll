@@ -1,4 +1,5 @@
-((variables : a b c d ...., pas de parametres 5040  )(list #[ 2]
+((variables : a b c d ...., pas de parametres)
+(list #[ 2]
 #[ 1]
 #[ 1]
 #[ 5]

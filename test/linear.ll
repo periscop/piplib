@@ -1,4 +1,5 @@
-((linearisation d'un tableau 100 100 100  )(if #[ -1 99]
+((linearisation d'un tableau 100 100)
+(if #[ -1 99]
 (list #[ 0 0]
 #[ 1 0]
 )

@@ -1,4 +1,5 @@
-((a maximization problem 5  )(if #[ -1 3]
+((a maximization problem)
+(if #[ -1 3]
 (list #[ 0 0]
 #[ 0 0]
 )
