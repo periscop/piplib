@@ -134,6 +134,154 @@ void bezout(Entier x, Entier y, Entier delta, Entier *z){
 
 Tableau *expanser();
 
+/* cut: constant parameters denominator */
+static int add_parm(Tableau **pcontext, int nr, int *pnparm, int *pni, int *pnc,
+		    Entier *cut)
+{
+    int nparm = *pnparm;
+    int i, j, k;
+    Entier discrp[MAXPARM], discrm[MAXPARM];
+    Entier x;
+
+    for (i = 0; i <= nparm+1; i++) {
+	entier_init(discrp[i]);
+	entier_init(discrm[i]);
+    }
+    entier_init(x);
+
+    if (nparm >= MAXPARM) {
+	fprintf(stderr, "Too many parameters: %d\n", *pnparm);
+	exit(4);
+    }
+/*        Build the definition of the new parameter into the solution :
+      p_{nparm} = -(sum_{j=0}^{nparm-1} c_{nvar + 1 + j} p_j 
+                     + c_{nvar})/D                             (3)
+         The minus sign is there to compensate the one in (1)     */
+
+    sol_new(nparm);
+    sol_div();
+    sol_forme(nparm+1);
+    for (j = 0; j < nparm; j++) {
+	entier_oppose(x, cut[1+j]);
+        sol_val(x, UN);
+    }
+    entier_oppose(x, cut[0]);
+    sol_val(x, UN);
+    sol_val(cut[1+nparm], UN);		    /* The divisor                */
+
+/* The value of the new parameter is specified by applying the definition of
+   Euclidean division to (3) :
+
+ 0<= - sum_{j=0}^{nparm-1} c_{nvar+1+j} p_j - c_{nvar} - D * p_{nparm} < D (4)
+
+   This formula gives two inequalities which are stored in the context    */
+             
+    for (j = 0; j < nparm; j++) {
+	entier_oppose(discrp[j], cut[1+j]);
+	entier_assign(discrm[j], cut[1+j]);
+    }
+    entier_oppose(discrp[nparm], cut[1+nparm]);
+    entier_assign(discrm[nparm], cut[1+nparm]);
+    entier_assign(x, cut[0]);
+    entier_oppose(discrp[nparm+1], x);
+    entier_decrement(x, x);
+    entier_addto(discrm[nparm+1], x, cut[1+nparm]);
+    if (nr+2 > (*pcontext)->height || nparm+1+1 > (*pcontext)->width) {
+	int dcw, dch;
+	dcw = entier_llog(cut[1+nparm]);
+	dch = 2 * dcw + *pni;
+	*pcontext = expanser(*pcontext, 0, nr, nparm+1, 0, dch, dcw);
+    }
+
+/* Since a new parameter is to be added, the constant term has to be moved
+   right and a zero has to be inserted in all rows of the old context    */
+
+    for (k = 0; k < nr; k++) {
+	entier_assign(Index(*pcontext, k, nparm+1), Index(*pcontext, k, nparm));
+	entier_set_si(Index(*pcontext, k, nparm), 0);
+    }
+/* Now, insert the new rows                                              */
+
+    for (j = 0; j <= nparm+1; j++) {
+	entier_assign(Index(*pcontext, nr, j), discrp[j]); 
+	entier_assign(Index(*pcontext, nr+1, j), discrm[j]);
+    }
+    Flag(*pcontext, nr) = Unknown;
+    Flag(*pcontext, nr+1) = Unknown;
+    entier_set_si(Denom(*pcontext, nr), 1);
+    entier_set_si(Denom(*pcontext, nr+1), 1);
+    (*pnparm)++;
+    (*pnc) += 2;
+    if (verbose > 0) {
+	fprintf(dump, "enlarged context %d x %d\n", *pnparm, *pnc);
+	fflush(dump);
+    }
+
+    for (i = 0; i <= nparm+1; i++) {
+	entier_clear(discrp[i]);
+	entier_clear(discrm[i]);
+    }
+    entier_clear(x);
+}
+
+static int has_cut(Tableau *context, int nr, int nparm, int p, Entier *cut)
+{
+    int row, col;
+
+    for (row = 0; row < nr; ++row) {
+	if (entier_ne(Index(context, row, p), cut[1+nparm]))
+	    continue;
+	if (entier_ne(Index(context, row, nparm), cut[0]))
+	    continue;
+	for (col = p+1; col < nparm; ++col)
+	    if (entier_notzero_p(Index(context, row, col)))
+		break;
+	if (col < nparm)
+	    continue;
+	for (col = 0; col < p; ++col)
+	    if (entier_ne(Index(context, row, col), cut[1+col]))
+		break;
+	if (col < p)
+	    continue;
+	return 1;
+    }
+    return 0;
+}
+
+/* cut: constant parameters denominator */
+static int find_parm(Tableau *context, int nr, int nparm, Entier *cut)
+{
+    int p;
+    int col;
+    int found;
+
+    if (entier_notzero_p(cut[1+nparm-1]))
+	return -1;
+
+    entier_addto(cut[0], cut[0], cut[1+nparm]);
+    entier_decrement(cut[0], cut[0]);
+    for (p = nparm-1; p >= 0; --p) {
+	if (entier_notzero_p(cut[1+p]))
+	    break;
+	if (!has_cut(context, nr, nparm, p, cut))
+	    continue;
+	entier_increment(cut[0], cut[0]);
+	entier_subtract(cut[0], cut[0], cut[1+nparm]);
+	for (col = 0; col < 1+nparm+1; ++col)
+	    entier_oppose(cut[col], cut[col]);
+	found = has_cut(context, nr, nparm, p, cut);
+	for (col = 0; col < 1+nparm+1; ++col)
+	    entier_oppose(cut[col], cut[col]);
+	if (found)
+	    return p;
+	entier_addto(cut[0], cut[0], cut[1+nparm]);
+	entier_decrement(cut[0], cut[0]);
+    }
+    entier_increment(cut[0], cut[0]);
+    entier_subtract(cut[0], cut[0], cut[1+nparm]);
+    return -1;
+}
+
 /* integrer(.....) add a cut to the problem tableau, or return 0 when an
    integral solution has been found, or -1 when no integral solution
    exists.
@@ -156,9 +304,8 @@ int integrer(Tableau **ptp, Tableau **pcontext,
  int i, j, k, ff;
  Entier x, d;
  int ok_var, ok_const, ok_parm;
- Entier discrp[MAXPARM], discrm[MAXPARM];
- int llog();
  Entier D;
+    int parm;
 
  Entier t, delta, tau, lambda;
 
@@ -170,11 +317,6 @@ int integrer(Tableau **ptp, Tableau **pcontext,
  #if defined(LINEAR_VALUE_IS_MP)
  for(i=0; i<=ncol; i++)
    mpz_init(coupure[i]);
-
- for(i=0; i<=nparm+1; i++){
-   mpz_init(discrp[i]);
-   mpz_init(discrm[i]);
- }
 
  mpz_init(x); mpz_init(d); mpz_init(D);
  mpz_init(t); mpz_init(delta); mpz_init(tau); mpz_init(lambda);
@@ -393,115 +535,11 @@ ok_var   ok_parm   ok_const
    Let the cut be    sum_{j=0}^{nvar-1} c_j x_j + c_{nvar} +             (2)
                      sum_{j=0}^{nparm-1} c_{nvar + 1 + j} p_j >= 0.       */
            
-                               
-      if(nparm >= MAXPARM) {
-          fprintf(stderr, "Too much parameters : %d\n", *pnparm);
-          exit(4);
-          }
-/*        Build the definition of the new parameter into the solution :
-      p_{nparm} = -(sum_{j=0}^{nparm-1} c_{nvar + 1 + j} p_j 
-                     + c_{nvar})/D                             (3)
-         The minus sign is there to compensate the one in (1)     */
-
-      sol_new(nparm);
-      sol_div();
-      sol_forme(nparm+1);
-      for(j = 0; j<nparm; j++)
-      #if defined(LINEAR_VALUE_IS_MP)
-      { mpz_neg(x, coupure[j+nvar+1]);
-        sol_val(x, UN);
-      }
-      mpz_neg(x, coupure[*pnvar]);
-      sol_val(x, UN);
-      #else
-      sol_val(-coupure[j+nvar+1], UN); /* loop body. */
-      sol_val(-coupure[*pnvar], UN);
-      #endif
-      sol_val(D, UN);                     /* The divisor                */
-
-/* The value of the new parameter is specified by applying the definition of
-   Euclidean division to (3) :
-
- 0<= - sum_{j=0}^{nparm-1} c_{nvar+1+j} p_j - c_{nvar} - D * p_{nparm} < D (4)
-
-   This formula gives two inequalities which are stored in the context    */
-             
-      for(j = 0; j<nparm; j++) {
-          #if defined(LINEAR_VALUE_IS_MP)
-          mpz_set(x, coupure[j+nvar+1]);
-          mpz_neg(discrp[j], x);
-          mpz_set(discrm[j], x);
-          #else
-	  x = coupure[j+nvar+1];
-          discrp[j] = -x;
-          discrm[j] = x;
-          #endif
-          }
-      #if defined(LINEAR_VALUE_IS_MP)
-      mpz_neg(discrp[nparm], D);
-      mpz_set(discrm[nparm], D);
-      mpz_set(x, coupure[nvar]);
-      mpz_neg(discrp[nparm+1], x);
-      mpz_sub_ui(x, x, 1);
-      mpz_add(discrm[nparm+1], x, D);
-      #else
-      discrp[nparm] = -D;
-      discrm[nparm] = D;
-      x = coupure[nvar];
-      discrp[(nparm)+1] = -x;
-      discrm[(nparm)+1] = x + D -1;
-      #endif
-      if (nc+2 > (*pcontext)->height || nparm+1+1 > (*pcontext)->width) {
-          int dcw, dch;
-          #if defined(LINEAR_VALUE_IS_MP)
-          dcw = mpz_sizeinbase(D, 2);
-          #else
-          dcw = llog(D);
-          #endif
-	  dch = 2 * dcw + *pni;
-          *pcontext = expanser(*pcontext, 0, nc, nparm+1, 0, dch, dcw);
-	  }
-      /* Flag(*pcontext, *pnc) = 0; Probably useless see line A */
-
-/* Since a new parameter is to be added, the constant term has to be moved
-   right and a zero has to be inserted in all rows of the old context    */
-
-      for(k = 0; k < nc; k++) {
-          #if defined(LINEAR_VALUE_IS_MP)
-          mpz_set(Index(*pcontext, k, nparm+1), Index(*pcontext, k, nparm));
-          mpz_set_ui(Index(*pcontext, k, nparm), 0);
-          #else
-          Index(*pcontext, k, nparm+1) = Index(*pcontext, k, nparm);
-          Index(*pcontext, k, nparm) = 0;
-          #endif
-          }
-/* Now, insert the new rows                                              */
-
-      for(j = 0; j <= nparm+1; j++) {
-          #if defined(LINEAR_VALUE_IS_MP)
-          mpz_set(Index(*pcontext, nc, j), discrp[j]); 
-          mpz_set(Index(*pcontext, nc+1, j), discrm[j]);
-          #else
-          Index(*pcontext, nc, j) = discrp[j];
-          Index(*pcontext, nc+1, j) = discrm[j];
-          #endif
-          }
-      Flag(*pcontext, nc) = Unknown;                                /* A */
-      Flag(*pcontext, nc+1) = Unknown;
-      #if defined(LINEAR_VALUE_IS_MP)
-      mpz_set(Denom(*pcontext, nc), UN);
-      mpz_set(Denom(*pcontext, nc+1), UN);
-      #else
-      Denom(*pcontext, nc) = UN;
-      Denom(*pcontext, nc+1) = UN;
-      #endif
-      (*pnparm)++;
-      (*pnc) += 2;
-      if(verbose > 0){
-        fprintf(dump, "enlarged context %d x %d\n", *pnparm, *pnc);
-        fflush(dump);
-      }
-                         /* end of the construction of the new parameter */
+	parm = find_parm(*pcontext, nc, nparm, coupure+nvar);
+	if (parm == -1) {
+	    add_parm(pcontext, nc, pnparm, pni, pnc, coupure+nvar);
+	    parm = nparm;
+	}
 
 	assert(ok_var);
           if(nligne >= (*ptp)->height || ncol >= (*ptp)->width) {
@@ -526,12 +564,14 @@ ok_var   ok_parm   ok_const
 	  Denom(*ptp, nligne) = D;
           #endif
               	 /* Insert the cut */
-	  for(j = 0; j<ncol+1; j++)
+	for (j = 0; j < ncol; j++)
               #if defined(LINEAR_VALUE_IS_MP)
               mpz_set(Index(*ptp, nligne, j), coupure[j]);
               #else
 	      Index(*ptp, nligne, j) = coupure[j];
               #endif
+	entier_addto(Index(*ptp, nligne, nvar+1+parm),
+		    Index(*ptp, nligne, nvar+1+parm), coupure[ncol]);
 		 /* A new row has been added to the problem tableau.    */
 	  (*pni)++;
           goto clear;
@@ -541,10 +581,6 @@ ok_var   ok_parm   ok_const
 clear: 
    for(i=0; i <= ncol; i++)
 	entier_clear(coupure[i]);
-   for(i=0; i <= nparm+1; i++){
-	entier_clear(discrp[i]);
-	entier_clear(discrm[i]);
-   }
     entier_clear(x); entier_clear(d); entier_clear(D);
     entier_clear(t); entier_clear(tau); entier_clear(lambda); entier_clear(delta);
     return nligne;
