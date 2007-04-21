@@ -780,38 +780,21 @@ int iq, nvar, nparm, ni, nc, bigparm;
      fflush(stdout);
      sol_if();
      sol_forme(nparm+1);
-     #if defined(LINEAR_VALUE_IS_MP)
-     mpz_init_set_ui(com_dem, 0);
-     for(j = 0; j<nparm; j++) {
-       mpz_set(discr[j], Index(tp, pivi, j + nvar +1));
-       mpz_gcd(com_dem, com_dem, discr[j]);
+     entier_init_zero(com_dem);
+     for (j = 0; j < nparm; j++) {
+       entier_assign(discr[j], Index(tp, pivi, j + nvar +1));
+       entier_gcd(com_dem, com_dem, discr[j]);
      }
-     mpz_set(discr[nparm], Index(tp, pivi, nvar));
-     mpz_gcd(com_dem, com_dem, discr[nparm]);
-     for(j = 0; j<=nparm; j++) {
-       mpz_divexact(discr[j], discr[j], com_dem);
-       mpz_set(Index(context, nc, j), discr[j]);
+     entier_assign(discr[nparm], Index(tp, pivi, nvar));
+     entier_gcd(com_dem, com_dem, discr[nparm]);
+     for (j = 0; j <= nparm; j++) {
+       entier_divexact(discr[j], discr[j], com_dem);
+       entier_assign(Index(context, nc, j), discr[j]);
        sol_val(discr[j], UN);
      }
-     mpz_clear(com_dem);
+     entier_clear(com_dem);
      Flag(context, nc) = Unknown;
-     mpz_set(Denom(context, nc), UN);
-     #else
-     com_dem = 0;
-     for(j = 0; j<nparm; j++) {
-       discr[j] = Index(tp, pivi, j + nvar +1);
-       com_dem = pgcd(com_dem, discr[j]);
-     }
-     discr[nparm] = Index(tp, pivi, nvar);
-     com_dem = pgcd(com_dem, discr[nparm]);
-     for(j = 0; j<=nparm; j++) {
-       discr[j] /= com_dem;
-       Index(context, nc, j) = discr[j];
-       sol_val(discr[j], UN);
-     }
-     Flag(context, nc) = Unknown;
-     Denom(context, nc) = UN;
-     #endif
+     entier_set_si(Denom(context, nc), 1);
      Flag(ntp, pivi) = Plus;
      profondeur++;
      fflush(stdout);
