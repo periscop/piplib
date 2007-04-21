@@ -249,6 +249,8 @@ AC_SUBST(MP_DFLAGS)
 
 AC_CONFIG_FILES(Makefile example/Makefile test/Makefile)
 AC_CONFIG_FILES([genversion.sh], [chmod +x genversion.sh])
+AC_CONFIG_COMMANDS([version.h],
+    [echo '#define GIT_HEAD_ID "'`./genversion.sh`'"' > version.h])
 AC_OUTPUT
 
 
