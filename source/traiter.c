@@ -783,12 +783,16 @@ int iq, nvar, nparm, ni, nc, bigparm;
      entier_init_zero(com_dem);
      for (j = 0; j < nparm; j++)
        entier_gcd(com_dem, com_dem, Index(tp, pivi, j + nvar +1));
-     entier_gcd(com_dem, com_dem, Index(tp, pivi, nvar));
+     if (!iq)
+	 entier_gcd(com_dem, com_dem, Index(tp, pivi, nvar));
      for (j = 0; j < nparm; j++) {
        entier_divexact(Index(context, nc, j), Index(tp, pivi, j + nvar + 1), com_dem);
        sol_val(Index(context, nc, j), UN);
      }
-     entier_divexact(Index(context, nc, nparm), Index(tp, pivi, nvar), com_dem);
+     if (!iq)
+	 entier_divexact(Index(context, nc, nparm), Index(tp, pivi, nvar), com_dem);
+     else
+	 entier_pdivision(Index(context, nc, nparm), Index(tp, pivi, nvar), com_dem);
      sol_val(Index(context, nc, nparm), UN);
      entier_clear(com_dem);
      Flag(context, nc) = Unknown;
