@@ -48,6 +48,7 @@ void tab_reset(struct high_water_mark);
 void sol_reset(int);
 struct high_water_mark tab_hwm(void);
 Tableau *tab_get(FILE *, int,int,int);
+int tab_simplify(Tableau *tp, int cst);
 void sol_init(void);
 void sol_close(void);
 void tab_init(void);

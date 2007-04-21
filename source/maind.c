@@ -223,8 +223,12 @@ int main(int argc, char *argv[])
                        fflush(dump);
                       }
       ineq = tab_get(in, ni, nvar+nparm+1, nvar);
+      if (nq)
+	  tab_simplify(ineq, nvar);
       if(ineq == NULL){escape(in, out, 2); continue;}
       context = tab_get(in, nc, nparm+1, 0);
+      if (nq)
+	  tab_simplify(context, nparm);
       if(context == NULL){escape(in, out, 2); continue;}
       xq = p = sol_hwm();
 /* verification de la non-vacuite' du contexte */

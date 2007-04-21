@@ -71,6 +71,7 @@
 #define entier_gcd(g,v1,v2)	    	(mpz_gcd((g),(v1),(v2)))
 #define entier_init(val)            	(mpz_init((val)))
 #define entier_init_set(v1,v2)	    	(mpz_init_set((v1),(v2)))
+#define entier_pdivision(ref,val1,val2)	(mpz_fdiv_q((ref),(val1),(val2)))
 #define entier_pmodulus(ref,val1,val2)	(mpz_fdiv_r((ref),(val1),(val2)))
 #define entier_oppose(ref,val)       	(mpz_neg((ref),(val)))
 #define entier_set_si(val,i)    	(mpz_set_si((val),(i)))    
@@ -78,8 +79,10 @@
 #define entier_decrement(ref,val)	(mpz_sub_ui((ref),(val),1))
 #define entier_eq(v1,v2) 	    	(mpz_cmp((v1),(v2)) == 0)
 #define entier_ne(v1,v2) 	    	(mpz_cmp((v1),(v2)) != 0)
+#define entier_zero_p(val)        	(mpz_sgn(val) == 0)
 #define entier_notzero_p(val)        	(mpz_sgn(val) != 0)
 #define entier_pos_p(val)        	(mpz_sgn(val) > 0)
+#define entier_one_p(val)		(mpz_cmp_si(val,1) == 0)
 #define entier_llog(val)		(mpz_sizeinbase(val, 2))
 
 #else
@@ -92,6 +95,7 @@
 #define entier_gcd(g,v1,v2)	    	((g) = pgcd((v1),(v2)))
 #define entier_init(val)             	do { } while(0)
 #define entier_init_set(v1,v2)	    	((v1) = (v2))
+#define entier_pdivision(ref,val1,val2)	((ref) = ((val1)-mod((val1),(val2)))/(val2))
 #define entier_pmodulus(ref,val1,val2)	((ref) = mod((val1),(val2)))
 #define entier_oppose(ref,val)    	((ref) = -(val))
 #define entier_set_si(val,i)        	((val) = (Entier)(i))   
@@ -99,8 +103,10 @@
 #define entier_decrement(ref,val)	((ref) = (val)-1)
 #define entier_eq(v1,v2) 	    	((v1) == (v2))
 #define entier_ne(v1,v2) 	    	((v1) != (v2))
+#define entier_zero_p(val)        	((val) == 0)
 #define entier_notzero_p(val)        	((val) != 0)
 #define entier_pos_p(val)        	((val) > 0)
+#define entier_one_p(val)        	((val) == 1)
 #define entier_llog(val)		(llog(val))
 
 #endif

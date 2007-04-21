@@ -386,6 +386,40 @@ int Nineq, Nv, n, Shift, Bg, Urs_parms;
 }
 
 
+int tab_simplify(Tableau *tp, int cst)
+{
+    int i, j;
+    Entier gcd;
+
+    entier_init(gcd);
+    for (i = 0; i < tp->height; ++i) {
+	if (Flag(tp, i) & Unit)
+	    continue;
+	entier_set_si(gcd, 0);
+	for (j = 0; j < tp->width; ++j) {
+	    if (j == cst)
+		continue;
+	    entier_gcd(gcd, gcd, Index(tp, i, j));
+	    if (entier_one_p(gcd))
+		break;
+	}
+	if (entier_zero_p(gcd))
+	    continue;
+	if (entier_one_p(gcd))
+	    continue;
+	for (j = 0; j < tp->width; ++j) {
+	    if (j == cst)
+		entier_pdivision(Index(tp, i, j), Index(tp, i, j), gcd);
+	    else
+		entier_divexact(Index(tp, i, j), Index(tp, i, j), gcd);
+	}
+    }
+    entier_clear(gcd);
+
+    return 0;
+}
+
+
 char *Attr[] = {"Unit", "+", "-", "0", "*", "?"};
 
 void tab_display(p, foo)

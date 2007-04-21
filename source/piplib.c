@@ -773,6 +773,8 @@ PipOptions * options ;
       Nm ++ ;
       
       context = tab_Matrix2Tableau(ineqpar,Nm,Np,0, Shift,Bg-Nn, Urs_parms);
+      if (options->Nq)
+	tab_simplify(context, Np);
       
       if (Nm)
       { /* Traduction du format de matrice de la polylib vers celui de
@@ -800,6 +802,8 @@ PipOptions * options ;
     /* S'il est possible de trouver une solution, on passe au traitement. */
     if (non_vide)
     { ineq = tab_Matrix2Tableau(inequnk,Nl,Nn,Nn, Shift,Bg, Urs_parms);
+      if (options->Nq)
+	tab_simplify(ineq, Nn);
   
       compa_count = 0 ;
       traiter(ineq, context, options->Nq, Nn, Np, Nl, Nm, Bg) ;
