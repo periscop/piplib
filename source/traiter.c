@@ -781,17 +781,15 @@ int iq, nvar, nparm, ni, nc, bigparm;
      sol_if();
      sol_forme(nparm+1);
      entier_init_zero(com_dem);
+     for (j = 0; j < nparm; j++)
+       entier_gcd(com_dem, com_dem, Index(tp, pivi, j + nvar +1));
+     entier_gcd(com_dem, com_dem, Index(tp, pivi, nvar));
      for (j = 0; j < nparm; j++) {
-       entier_assign(discr[j], Index(tp, pivi, j + nvar +1));
-       entier_gcd(com_dem, com_dem, discr[j]);
+       entier_divexact(Index(context, nc, j), Index(tp, pivi, j + nvar + 1), com_dem);
+       sol_val(Index(context, nc, j), UN);
      }
-     entier_assign(discr[nparm], Index(tp, pivi, nvar));
-     entier_gcd(com_dem, com_dem, discr[nparm]);
-     for (j = 0; j <= nparm; j++) {
-       entier_divexact(discr[j], discr[j], com_dem);
-       entier_assign(Index(context, nc, j), discr[j]);
-       sol_val(discr[j], UN);
-     }
+     entier_divexact(Index(context, nc, nparm), Index(tp, pivi, nvar), com_dem);
+     sol_val(Index(context, nc, nparm), UN);
      entier_clear(com_dem);
      Flag(context, nc) = Unknown;
      entier_set_si(Denom(context, nc), 1);
