@@ -226,6 +226,10 @@ for tb in $TO_BUILD; do
     examples="$examples example$tb\$(EXEEXT)"
 done
 
+AC_SUBST(GIT_INDEX)
+if test -f $srcdir/.git/HEAD; then
+    GIT_INDEX="$srcdir/.git/index"
+fi
 
 dnl /**************************************************************************
 dnl  *                            Substitutions                               *
@@ -243,7 +247,9 @@ AC_SUBST(DFLAGS32)
 AC_SUBST(DFLAGS64)
 AC_SUBST(MP_DFLAGS)
 
-AC_OUTPUT(Makefile example/Makefile test/Makefile)
+AC_CONFIG_FILES(Makefile example/Makefile test/Makefile)
+AC_CONFIG_FILES([genversion.sh], [chmod +x genversion.sh])
+AC_OUTPUT
 
 
 echo "             /*-----------------------------------------------*"

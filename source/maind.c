@@ -35,13 +35,14 @@
 #define min(x,y) ((x) < (y)? (x) : (y))
 
 #include "pip.h"
+#include "version.h"
 
 #ifdef UNIX
 #include <sys/times.h>
 struct tms chrono;
 #endif
 
-char version[]="Version E.2 $Revision: 1.3 $\n";
+static char version[] = "Version "GIT_HEAD_ID"\n";
 
 
 extern long int cross_product, limit ;
