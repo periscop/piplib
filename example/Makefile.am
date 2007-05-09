@@ -36,7 +36,7 @@ test:
 	@failedtest=0; \
 	for x in $(PIPTEST) ; do \
 		echo "Verify file $(srcdir)/$$x" ; \
-		$(builddir)/$(EXAMPLE) < $(srcdir)/$$x.pip > xyz ;\
+		./$(EXAMPLE) < $(srcdir)/$$x.pip > xyz ;\
 		diff -w xyz $(srcdir)/$$x.ll ; \
 		result=$$?; \
 		if [ "$$result" -ne "0" ]; then \
