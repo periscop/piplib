@@ -20,6 +20,8 @@ static PipOptions *options_read(FILE *f)
       options->Urs_parms = 1;
     if (strncasecmp(s, "Urs_unknowns", 12) == 0)
       options->Urs_unknowns = 1;
+    if (strncasecmp(s, "Rational", 8) == 0)
+      options->Nq = 0;
   }
   return options;
 }
