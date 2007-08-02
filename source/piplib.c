@@ -790,9 +790,9 @@ PipOptions * options ;
     }
     else
     { Nm = 0 ;
-      context = NULL ; /* ATTENTION, en toute rigueur on devrait faire un
-                        * tab_Matrix2Tableau d'une matrice 0*0.
-			*/
+      ineqpar = pip_matrix_alloc(0, 2);
+      context = tab_Matrix2Tableau(ineqpar, Nm, Np, 0, Shift, Bg-Nn, Urs_parms);
+      pip_matrix_free(ineqpar);
       non_vide = Pip_True ;
     }
         

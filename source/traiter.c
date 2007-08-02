@@ -231,7 +231,6 @@ void compa_test(Tableau *tp, Tableau *context,
 	   discr[j] = Index(tp, i, j+nvar+1);           /* loop body. */
 	   discr[nparm] = Index(tp, i, nvar)- (isCritic ? 0 : 1);
            #endif
-           /* NdCed : Attention au contexte == NULL ! */
 	   tPlus = expanser(context, nparm, nc, nparm+1, nparm, 1, 0);
 	   Flag(tPlus, nparm+nc) = Unknown;
 	   for(j = 0; j<=nparm; j++)
