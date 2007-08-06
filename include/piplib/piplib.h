@@ -40,6 +40,7 @@
 # define VAL_ZERO 0LL
 
 #define VALUE_TO_INT(val) ((int)(val))
+#define ENTIER_TO_DOUBLE(val) ((double)(val))
 
 #elif defined(LINEAR_VALUE_IS_INT) 
 
@@ -49,6 +50,7 @@
 # define VAL_ZERO 0L
 
 #define VALUE_TO_INT(val) ((int)(val))
+#define ENTIER_TO_DOUBLE(val) ((double)(val))
 
 #elif defined(LINEAR_VALUE_IS_MP) 
 
@@ -58,6 +60,7 @@
 # define GMP_INPUT_FORMAT   "%lZd"
 
 #define VALUE_TO_INT(val) ((int)mpz_get_si(val))
+#define ENTIER_TO_DOUBLE(val) (mpz_get_d(val))
 
 #endif
 
@@ -231,6 +234,7 @@ struct pipoptions
   int Urs_unknowns;             /* -1 -> all unknowns may be negative 
 				 *  0 -> all unknowns are non-negative
 				 */
+  int Compute_dual;
 } ;      
 typedef struct pipoptions PipOptions ;
 
@@ -283,6 +287,7 @@ PipQuast * pip_solve(PipMatrix *, PipMatrix *, int, PipOptions *) ;
 #define SOL_REMOVE		(1 << 2)    /* Remove big parameter */
 #define SOL_MAX			(SOL_SHIFT | SOL_NEGATE)
 					    /* Maximum was computed */
+#define SOL_DUAL		(1 << 3)    /* Create dual leaf */
 PipQuast *sol_quast_edit(int *i, PipQuast *father, int Bg, int Urs_p, int flags);
 
 #if defined(__cplusplus)

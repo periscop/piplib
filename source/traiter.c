@@ -636,6 +636,50 @@ int pivoter(Tableau *tp, int pivi, int nvar, int nparm, int ni, int iq)
  return(0);
 }
 
+/*
+ * Sort the rows in increasing order of the largest coefficient.
+ */
+static void tab_sort_rows(Tableau *tp, int nvar, int nligne)
+{
+    int i, j;
+    int pivi;
+    double s, t, d, smax = 0;
+    struct L temp;
+
+    for (i = nvar; i < nligne; i++) {
+	if (Flag(tp,i) & Unit)
+	    continue;
+	s = 0;
+	d = ENTIER_TO_DOUBLE(Denom(tp, i));
+	for (j = 0; j < nvar; j++) {
+	    t = ENTIER_TO_DOUBLE(Index(tp,i,j))/d;
+	    s = max(s, abs(t));
+	}
+	tp->row[i].size = s;
+	smax = max(s, smax);
+    }
+
+    for (i = nvar; i < nligne; i++) {
+	if (Flag(tp,i) & Unit)
+	    continue;
+	s = smax;
+	pivi = i;
+	for (j = i; j < nligne; j++) {
+	    if (Flag(tp,j) & Unit)
+		continue;
+	    if (tp->row[j].size < s) {
+		s = tp->row[j].size;
+		pivi = j;
+	    }
+	}
+	if (pivi != i) {
+	    temp = tp->row[pivi];
+	    tp->row[pivi] = tp->row[i];
+	    tp->row[i] = temp;
+	}
+    }
+}
+
 /* dans cette version, "traiter" modifie ineq; par contre
    le contexte est immediatement recopie' */
 
@@ -648,9 +692,7 @@ int iq, nvar, nparm, ni, nc, bigparm;
  struct high_water_mark x;
  Tableau *context;
  int dch, dcw;
- double s, t, d, smax;
  int i;
- struct L temp;
  Entier discr[MAXPARM];
 
  #if !defined(LINEAR_VALUE_IS_MP)
@@ -671,50 +713,8 @@ int iq, nvar, nparm, ni, nc, bigparm;
  nligne = nvar+ni;
 
  context = expanser(ctxt, 0, nc, nparm+1, 0, dch, dcw);
-/*
- sort the rows in increasing order of the largest coefficient
-*/
-   
- smax = 0.;
 
- for(i=nvar; i<nligne; i++){
-   if(Flag(tp,i) & Unit) continue;
-   s = 0.;
-   #if defined(LINEAR_VALUE_IS_MP)
-   d = mpz_get_d(Denom(tp,i));     
-   for(j=0; j<nvar; j++){
-     t = mpz_get_d(Index(tp,i,j))/d;
-     s = max(s, abs(t));
-   }
-   #else
-   d = (float) Denom(tp,i);     
-   for(j=0; j<nvar; j++){
-       t = Index(tp,i,j)/d;
-       s = max(s, abs(t));
-       }
-   #endif
-   tp->row[i].size = s;
-   smax = max(s, smax);
- }
-     
- for(i=nvar; i<nligne; i++){
-   if(Flag(tp,i) & Unit) continue;
-   s = smax;
-   pivi = i;
-   for(j=i; j<nligne; j++){
-     if(Flag(tp,j) & Unit) continue;
-     if(tp->row[j].size < s){
-       s = tp->row[j].size;
-       pivi = j;
-     }
-   }
-   if(pivi != i) {
-     temp = tp->row[pivi];
-     tp->row[pivi] = tp->row[i];
-     tp->row[i]=temp;
-   }
- }   
-
+ tab_sort_rows(tp, nvar, nligne);
 
  for(;;) {
    if(verbose>2){
