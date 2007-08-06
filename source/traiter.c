@@ -704,7 +704,7 @@ int iq, nvar, nparm, ni, nc, bigparm;
    for(j=i; j<nligne; j++){
      if(Flag(tp,j) & Unit) continue;
      if(tp->row[j].size < s){
-       s = tp->row[i].size;
+       s = tp->row[j].size;
        pivi = j;
      }
    }
