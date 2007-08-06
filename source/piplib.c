@@ -29,6 +29,7 @@
 # include <stdlib.h>
 # include <stdio.h>
 # include <ctype.h>
+#include <string.h>
 
 #include "pip.h"
 #define min(x,y) ((x) < (y)? (x) : (y))
