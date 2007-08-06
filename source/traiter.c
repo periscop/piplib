@@ -243,7 +243,7 @@ void compa_test(Tableau *tp, Tableau *context,
            #endif
 	   
 	   p = sol_hwm();
-	   traiter(tPlus, NULL, Pip_True, nparm, 0, nc+1, 0, -1);
+	   traiter(tPlus, NULL, nparm, 0, nc+1, 0, -1, TRAITER_INT);
 	   cPlus = is_not_Nil(p);
 	   if(verbose>0){
 	     fprintf(dump, "\nThe positive case has been found ");
@@ -270,7 +270,7 @@ void compa_test(Tableau *tp, Tableau *context,
 	   Index(tMinus, nparm+nc, j) = discr[j];       /* loop body. */
 	   Denom(tMinus, nparm+nc) = UN;
            #endif
-	   traiter(tMinus, NULL, Pip_True, nparm, 0, nc+1, 0, -1);
+	   traiter(tMinus, NULL, nparm, 0, nc+1, 0, -1, TRAITER_INT);
 	   cMinus = is_not_Nil(p);
 	   if(verbose>0){
 	     fprintf(dump, "\nThe negative case has been found ");
@@ -319,6 +319,20 @@ void solution(Tableau *tp, int nvar, int nparm)
 	 sol_val(*valeur(tp, i, j), Denom(tp,i));
       sol_val(*valeur(tp, i, nvar), Denom(tp,i));
      }
+}
+
+static void solution_dual(Tableau *tp, int nvar, int nparm, int *pos)
+{
+    int i;
+
+    sol_list(tp->height - nvar);
+    for (i = 0; i < tp->height - nvar; ++i) {
+	sol_forme(1);
+	if (Flag(tp, pos[i]) & Unit)
+	    sol_val(*valeur(tp, 0, tp->row[pos[i]].objet.unit), Denom(tp, 0));
+	else
+	    sol_val(ZERO, UN);
+    }
 }
 
 int choisir_piv(Tableau *tp, int pivi, int nvar, int nligne)
@@ -379,7 +393,7 @@ int choisir_piv(Tableau *tp, int pivi, int nvar, int nligne)
 }
 
 
-int pivoter(Tableau *tp, int pivi, int nvar, int nparm, int ni, int iq)
+int pivoter(Tableau *tp, int pivi, int nvar, int nparm, int ni)
 
 {int pivj;
  int ncol = nvar + nparm + 1;
@@ -637,14 +651,26 @@ int pivoter(Tableau *tp, int pivi, int nvar, int nparm, int ni, int iq)
 }
 
 /*
- * Sort the rows in increasing order of the largest coefficient.
+ * Sort the rows in increasing order of the largest coefficient
+ * and (if TRAITER_DUAL is set) return the new position of the
+ * original constraints.
  */
-static void tab_sort_rows(Tableau *tp, int nvar, int nligne)
+static int *tab_sort_rows(Tableau *tp, int nvar, int nligne, int flags)
 {
     int i, j;
     int pivi;
     double s, t, d, smax = 0;
     struct L temp;
+    int *pos = NULL, *ineq = NULL;
+
+    if (flags & TRAITER_DUAL) {
+	ineq = malloc(tp->height * sizeof(int));
+	pos = malloc((tp->height-nvar) * sizeof(int));
+	if (!ineq || !pos) {
+	    fprintf(stderr, "Memory Overflow.\n") ;
+	    exit(1) ;
+	}
+    }
 
     for (i = nvar; i < nligne; i++) {
 	if (Flag(tp,i) & Unit)
@@ -657,6 +683,8 @@ static void tab_sort_rows(Tableau *tp, int nvar, int nligne)
 	}
 	tp->row[i].size = s;
 	smax = max(s, smax);
+	if (flags & TRAITER_DUAL)
+	    ineq[i] = i-nvar;
     }
 
     for (i = nvar; i < nligne; i++) {
@@ -676,16 +704,28 @@ static void tab_sort_rows(Tableau *tp, int nvar, int nligne)
 	    temp = tp->row[pivi];
 	    tp->row[pivi] = tp->row[i];
 	    tp->row[i] = temp;
+	    if (flags & TRAITER_DUAL) {
+		j = ineq[i];
+		ineq[i] = ineq[pivi];
+		ineq[pivi] = j;
+	     }
 	}
     }
+
+    if (flags & TRAITER_DUAL) {
+	for (i = nvar; i < nligne; i++)
+	    pos[ineq[i]] = i;
+	free(ineq);
+    }
+
+    return pos;
 }
 
 /* dans cette version, "traiter" modifie ineq; par contre
    le contexte est immediatement recopie' */
 
-void traiter(tp, ctxt, iq, nvar, nparm, ni, nc, bigparm)
-Tableau *tp, *ctxt;
-int iq, nvar, nparm, ni, nc, bigparm;
+void traiter(Tableau *tp, Tableau *ctxt, int nvar, int nparm, int ni, int nc,
+	     int bigparm, int flags)
 {
  int j;
  int pivi, nligne, ncol;
@@ -694,6 +734,7 @@ int iq, nvar, nparm, ni, nc, bigparm;
  int dch, dcw;
  int i;
  Entier discr[MAXPARM];
+ int *pos;
 
  #if !defined(LINEAR_VALUE_IS_MP)
  Entier D = UN;
@@ -714,7 +755,7 @@ int iq, nvar, nparm, ni, nc, bigparm;
 
  context = expanser(ctxt, 0, nc, nparm+1, 0, dch, dcw);
 
- tab_sort_rows(tp, nvar, nligne);
+ pos = tab_sort_rows(tp, nvar, nligne, flags);
 
  for(;;) {
    if(verbose>2){
@@ -782,13 +823,13 @@ int iq, nvar, nparm, ni, nc, bigparm;
      entier_init_zero(com_dem);
      for (j = 0; j < nparm; j++)
        entier_gcd(com_dem, com_dem, Index(tp, pivi, j + nvar +1));
-     if (!iq)
+     if (!(flags & TRAITER_INT))
 	 entier_gcd(com_dem, com_dem, Index(tp, pivi, nvar));
      for (j = 0; j < nparm; j++) {
        entier_divexact(Index(context, nc, j), Index(tp, pivi, j + nvar + 1), com_dem);
        sol_val(Index(context, nc, j), UN);
      }
-     if (!iq)
+     if (!(flags & TRAITER_INT))
 	 entier_divexact(Index(context, nc, nparm), Index(tp, pivi, nvar), com_dem);
      else
 	 entier_pdivision(Index(context, nc, nparm), Index(tp, pivi, nvar), com_dem);
@@ -801,7 +842,7 @@ int iq, nvar, nparm, ni, nc, bigparm;
      fflush(stdout);
      if(verbose > 0) fflush(dump);
      #if defined(LINEAR_VALUE_IS_MP)
-     traiter(ntp, context, iq, nvar, nparm, ni, nc+1, bigparm);
+     traiter(ntp, context, nvar, nparm, ni, nc+1, bigparm, flags);
      profondeur--;
      tab_reset(q);
      if(verbose>1)
@@ -813,7 +854,7 @@ int iq, nvar, nparm, ni, nc, bigparm;
      Flag(tp, pivi) = Minus;
      mpz_set(Denom(context, nc), UN);
      #else
-     traiter(ntp, context, iq, nvar, nparm, ni, nc+1, bigparm);
+     traiter(ntp, context, nvar, nparm, ni, nc+1, bigparm, flags);
      profondeur--;
      tab_reset(q);
      if(verbose>1)
@@ -828,8 +869,10 @@ int iq, nvar, nparm, ni, nc, bigparm;
      goto pirouette;
    }
 /* Here, all rows are positive. Do we need an integral solution?      */
-   if(!iq) {
+   if (!(flags & TRAITER_INT)) {
      solution(tp, nvar, nparm);
+     if (flags & TRAITER_DUAL)
+	solution_dual(tp, nvar, nparm, pos);
      break;
    }
 /* Yes we do! */
@@ -846,7 +889,7 @@ int iq, nvar, nparm, ni, nc, bigparm;
       a pivoting step                                                 */
 
 pirouette :
-     if(pivoter(tp, pivi, nvar, nparm, ni, iq) < 0) {
+     if (pivoter(tp, pivi, nvar, nparm, ni) < 0) {
        sol_nil();
        break;
      }
@@ -857,5 +900,6 @@ pirouette :
  for(i=0; i<MAXPARM; i++)
    mpz_clear(discr[i]);
  #endif
+ free(pos);
  return;
 }

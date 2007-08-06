@@ -255,24 +255,22 @@ void pip_list_print(FILE * foo, PipList * list, int indent)
 void pip_quast_print(FILE * foo, PipQuast * solution, int indent)
 { int i ;
   PipVector * vector ;
+  int new_indent = indent >= 0 ? indent+1 : indent;
   
   if (solution != NULL)
   { pip_newparm_print(foo,solution->newparm,indent) ;
-    if (solution->condition == NULL)
-    pip_list_print(foo,solution->list,indent) ;
-    else
+    if (solution->condition == NULL) {
+	pip_list_print(foo, solution->list, indent);
+	/* Possible dual solution */
+	if (solution->next_then)
+	    pip_quast_print(foo, solution->next_then, new_indent);
+    } else
     { for (i=0;i<indent;i++) fprintf(foo," ") ;             /* Indent. */
       fprintf(foo,"(if ") ;
       pip_vector_print(foo,solution->condition) ;
       fprintf(foo,"\n") ;
-      if (indent>=0)                                        /* Indent. */
-      { pip_quast_print(foo,solution->next_then,indent+1) ;
-        pip_quast_print(foo,solution->next_else,indent+1) ;
-      }
-      else
-      { pip_quast_print(foo,solution->next_then,indent) ;
-        pip_quast_print(foo,solution->next_else,indent) ;
-      }
+      pip_quast_print(foo, solution->next_then, new_indent);
+      pip_quast_print(foo, solution->next_else, new_indent);
       for (i=0;i<indent;i++) fprintf(foo," ") ;             /* Indent. */
       fprintf(foo,")\n") ;
     }
@@ -404,20 +402,17 @@ void pip_list_free(PipList * list)
  * 18 octobre 2001 : simplification suite a l'eclatement de PipVector.
  */
 void pip_quast_free(PipQuast * solution)
-{ if (solution != NULL)
-  { if (solution->newparm != NULL)
+{
+    if (!solution)
+	return;
     pip_newparm_free(solution->newparm) ;
   
-    if (solution->list != NULL)
     pip_list_free(solution->list) ;
 
-    if (solution->condition != NULL)
-    { pip_vector_free(solution->condition) ;
-      pip_quast_free(solution->next_then) ;
-      pip_quast_free(solution->next_else) ;
-    }
+    pip_vector_free(solution->condition);
+    pip_quast_free(solution->next_then);
+    pip_quast_free(solution->next_else);
     free(solution) ;
-  }
 }
 
 
@@ -464,6 +459,7 @@ PipOptions * pip_options_init(void)
   options->Maximize    = 0 ;  /* Do not compute maximum. */
   options->Urs_parms   = 0 ;  /* All parameters are non-negative. */
   options->Urs_unknowns= 0 ;  /* All unknows are non-negative. */
+  options->Compute_dual= 0;   /* Don't compute dual variables. */
   
   return options ;
 }
@@ -628,6 +624,54 @@ void pip_close() {
   pip_initialized = 0;
 }
  
+/*
+ * Compute dual variables of equalities from dual variables of
+ * the corresponding pair of inequalities.
+ *
+ * In practice, this means we need to remove one of the two
+ * dual variables that corrsponding to the inequalities
+ * and negate the value if it corresponds to the negative
+ * inequality.
+ */
+static void pip_quast_equalities_dual(PipQuast *solution, PipMatrix *inequnk)
+{
+    PipList **list_p, *list;
+    int i;
+
+    if (!solution)
+	return;
+    if (solution->condition) {
+	pip_quast_equalities_dual(solution->next_then, inequnk);
+	pip_quast_equalities_dual(solution->next_else, inequnk);
+    }
+    if (!solution->list)
+	return;
+    if (!solution->next_then)
+	return;
+    if (!solution->next_then->list)
+	return;
+    list_p = &solution->next_then->list;
+    for (i = 0; i < inequnk->NbRows; ++i) {
+	if (entier_zero_p(inequnk->p[i][0])) {
+	    if (entier_notzero_p((*list_p)->vector->the_vector[0])) {
+		list_p = &(*list_p)->next;
+		list = *list_p;
+		*list_p = list->next;
+		list->next = NULL;
+		pip_list_free(list);
+	    } else {
+		list = *list_p;
+		*list_p = list->next;
+		list->next = NULL;
+		pip_list_free(list);
+		entier_oppose((*list_p)->vector->the_vector[0],
+			      (*list_p)->vector->the_vector[0]);
+		list_p = &(*list_p)->next;
+	    }
+	} else
+	    list_p = &(*list_p)->next;
+    }
+}
 
 
 /******************************************************************************
@@ -782,7 +826,7 @@ PipOptions * options ;
          * traitement de Pip. Puis traitement proprement dit.
          */
 	ctxt = expanser(context, Np, Nm, Np+1, Np, 0, 0) ;
-        traiter(ctxt, NULL, Pip_True, Np, 0, Nm, 0, -1) ;
+        traiter(ctxt, NULL, Np, 0, Nm, 0, -1, TRAITER_INT);
         non_vide = is_not_Nil(p) ;
         sol_reset(p) ;
       }
@@ -801,13 +845,20 @@ PipOptions * options ;
     fprintf(dump, "%d %d %d %d %d %d\n",Nn,Np,Nl,Nm,Bg,options->Nq) ;
     
     /* S'il est possible de trouver une solution, on passe au traitement. */
-    if (non_vide)
-    { ineq = tab_Matrix2Tableau(inequnk,Nl,Nn,Nn, Shift,Bg, Urs_parms);
+    if (non_vide) {
+      int flags = 0;
+      ineq = tab_Matrix2Tableau(inequnk,Nl,Nn,Nn, Shift,Bg, Urs_parms);
       if (options->Nq)
 	tab_simplify(ineq, Nn);
   
       compa_count = 0 ;
-      traiter(ineq, context, options->Nq, Nn, Np, Nl, Nm, Bg) ;
+      if (options->Nq)
+	flags |= TRAITER_INT;
+      else if (options->Compute_dual) {
+	flags |= TRAITER_DUAL;
+	sol_flags |= SOL_DUAL;
+      }
+      traiter(ineq, context, Nn, Np, Nl, Nm, Bg, flags);
 
       if (options->Simplify)
       sol_simplify(xq) ;
@@ -816,6 +867,8 @@ PipOptions * options ;
        * de structures de type PipQuast.
        */
       solution = sol_quast_edit(&xq, NULL, Bg-Nn-1, Urs_parms, sol_flags);
+      if ((sol_flags & SOL_DUAL) && Nl > inequnk->NbRows)
+	  pip_quast_equalities_dual(solution, inequnk);
       sol_reset(p) ;
     }
     else

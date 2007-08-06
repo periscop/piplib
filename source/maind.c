@@ -235,14 +235,14 @@ int main(int argc, char *argv[])
 /* verification de la non-vacuite' du contexte */
       if(nc)
       {ctxt = expanser(context, nparm, nc, nparm+1, nparm, 0, 0);
-       traiter(ctxt, NULL, Pip_True, nparm, 0, nc, 0, -1);
+       traiter(ctxt, NULL, nparm, 0, nc, 0, -1, TRAITER_INT);
        non_vide = is_not_Nil(p);
        sol_reset(p);
       }
       else non_vide = Pip_True;
       if(non_vide) {
        compa_count = 0;
-       traiter(ineq, context, nq, nvar, nparm, ni, nc, bigparm);
+       traiter(ineq, context, nvar, nparm, ni, nc, bigparm, nq ? TRAITER_INT : 0);
 	if (verbose > 0) {
 	    fprintf(dump, "det: ");
 #if defined(LINEAR_VALUE_IS_MP)

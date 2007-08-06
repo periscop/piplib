@@ -22,6 +22,8 @@ static PipOptions *options_read(FILE *f)
       options->Urs_unknowns = 1;
     if (strncasecmp(s, "Rational", 8) == 0)
       options->Nq = 0;
+    if (strncasecmp(s, "Dual", 4) == 0)
+      options->Compute_dual = 1;
   }
   return options;
 }

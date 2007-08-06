@@ -31,7 +31,10 @@ extern "C"
   {
 #endif 
 
-void traiter(Tableau *, Tableau *, int, int, int, int, int, int);
+#define TRAITER_INT		(1 << 0)	/* Compute integer optimum */
+#define TRAITER_DUAL		(1 << 1)	/* Compute dual variables */
+void traiter(Tableau *tp, Tableau *ctxt, int nvar, int nparm, int ni, int nc,
+	     int bigparm, int flags);
 int integrer(Tableau **, Tableau **, int *, int *, int *, int *, int);
 #if defined(LINEAR_VALUE_IS_MP)
 #else

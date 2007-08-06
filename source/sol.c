@@ -791,6 +791,8 @@ PipQuast *sol_quast_edit(int *i, PipQuast *father, int Bg, int Urs_p, int flags)
                 nb_elements = p->param1 ;
                 #endif
                 solution->list = sol_list_edit(i, nb_elements, Bg, Urs_p, flags);
+		if (flags & SOL_DUAL)
+		    solution->next_then = sol_quast_edit(i, solution, Bg, Urs_p, 0);
 		break ;
     case Nil  : if (verbose)
 		fprintf(dump,"\n()") ;
