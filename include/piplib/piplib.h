@@ -24,6 +24,8 @@
  *                                                                            *
  ******************************************************************************/
 
+#include <stdio.h>
+
 /* Premiere version du 18 septembre 2002. */
 
 #if !defined(LINEAR_VALUE_IS_LONGLONG) && !defined(LINEAR_VALUE_IS_INT)
