@@ -817,7 +817,8 @@ PipOptions * options ;
       #endif
       Nm ++ ;
       
-      context = tab_Matrix2Tableau(ineqpar,Nm,Np,0, Shift,Bg-Nn, Urs_parms);
+      context = tab_Matrix2Tableau(ineqpar, Nm, Np-Urs_parms, -1,
+				   Shift, Bg-Nn-1, Urs_parms);
       if (options->Nq)
 	tab_simplify(context, Np);
       
@@ -836,7 +837,8 @@ PipOptions * options ;
     else
     { Nm = 0 ;
       ineqpar = pip_matrix_alloc(0, 2);
-      context = tab_Matrix2Tableau(ineqpar, Nm, Np, 0, Shift, Bg-Nn, Urs_parms);
+      context = tab_Matrix2Tableau(ineqpar, Nm, Np-Urs_parms, -1,
+				   Shift, Bg-Nn-1, Urs_parms);
       pip_matrix_free(ineqpar);
       non_vide = Pip_True ;
     }

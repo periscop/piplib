@@ -288,6 +288,23 @@ int h, w, n;
  * (Shift = 1) ou bien le minimum tout court (Shift = -1). La fonction
  * met alors en place le bignum s'il n'y est pas deja et prepare les
  * contraintes au calcul du maximum lexicographique.
+ *
+ * This function is called both for both the context (only parameters)
+ * and the actual domain (variables + parameters).
+ * Let Np be the number of parameters and Nn the number of variables.
+ *
+ * For the context, the columns in matrix are
+ *		1 Np 1
+ * while the result has
+ *		Np Bg Urs_parms 1
+ * Nv = Np + Bg; n = -1
+ * 
+ * For the domain, matrix has
+ *		1 Nn Np 1
+ * while the result has
+ *		Nn 1 Np Bg Urs_parms
+ * Nv = Nn; n >= 0
+ *
  * 27 juillet 2001 : Premiere version, Ced.
  * 30 juillet 2001 : Nombreuses modifications. Le calcul du nombre total
  *                   d'inequations (Nineq) se fait a present a l'exterieur.
@@ -300,18 +317,25 @@ PipMatrix * matrix ;
 int Nineq, Nv, n, Shift, Bg, Urs_parms;
 { Tableau * p ;
   unsigned i, j, k, current, new, nb_columns, decal=0, bignum_is_new ;
-  int inequality;
+  unsigned cst;
+  int inequality, ctx;
   Entier bignum;
-  
+
+  /* Are we dealing with the context? */
+  ctx = n == -1;
+  if (ctx)
+    n = 0;
   entier_init(bignum);
   nb_columns = matrix->NbColumns - 1 ;
   /* S'il faut un BigNum et qu'il n'existe pas, on lui reserve sa place. */
-  bignum_is_new = Shift && (Bg > (matrix->NbColumns - 2));
+  bignum_is_new = Shift && (Bg+ctx > (matrix->NbColumns - 2));
   if (bignum_is_new)
     nb_columns++;
-  /* Ce sont juste des parametres. */
-  if (Bg <= Nv)
+  if (ctx) {
     Shift = 0;
+    cst = Nv + Urs_parms;
+  } else
+    cst = Nv;
 
   p = tab_alloc(Nineq,nb_columns+Urs_parms,n) ;
     
@@ -333,7 +357,7 @@ int Nineq, Nv, n, Shift, Bg, Urs_parms;
      * choses dans l'ordre de Pip. Ici pour p(x) >= 0.
      */
     for (j=0;j<Nv;j++) {
-      if (bignum_is_new && 1+j == Bg)
+      if (bignum_is_new && j == Bg)
 	continue;
       if (Shift)
 	entier_addto(bignum, bignum, matrix->p[i][1+j]);
@@ -348,15 +372,14 @@ int Nineq, Nv, n, Shift, Bg, Urs_parms;
 	entier_assign(p->row[current].objet.val[j], matrix->p[i][k++]);
     }
     for (j=0; j < Urs_parms; ++j) {
-	int pos = nb_columns - Urs_parms + j;
-	if (pos <= Nv)
-	    --pos;
+	int pos_n = nb_columns - ctx + j;
+	int pos = pos_n - Urs_parms;
 	if (pos <= Bg)
 	    --pos;
-	entier_oppose(p->row[current].objet.val[nb_columns+j],
+	entier_oppose(p->row[current].objet.val[pos_n],
 		     p->row[current].objet.val[pos]);
     }
-    entier_assign(p->row[current].objet.val[Nv], 
+    entier_assign(p->row[current].objet.val[cst], 
 		 matrix->p[i][matrix->NbColumns-1]);
     if (Shift) {
       if (Shift < 0)
