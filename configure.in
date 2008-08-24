@@ -53,7 +53,7 @@ AC_PROG_INSTALL
 AC_CANONICAL_HOST
 AC_PROG_LIBTOOL
 
-CFLAGS="-fomit-frame-pointer -O2"
+AX_CC_MAXOPT
 
 dnl Checks for typedefs, structures, and compiler characteristics.
 AC_C_CONST

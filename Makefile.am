@@ -13,6 +13,8 @@
 
 SUBDIRS = . example test
 
+ACLOCAL_AMFLAGS = -I m4
+
 bin_PROGRAMS = @pips@
 EXTRA_PROGRAMS = pip32 pip64 pipMP
 lib_LTLIBRARIES = @piplibs@
