@@ -73,10 +73,10 @@ dist-hook:
 	
 check:
 	@for pip in @pips@; do \
-	    $(MAKE) test -C test PIP=$$pip; \
+	    (cd test; $(MAKE) test PIP=$$pip); \
 	done
 	@for example in @examples@; do \
-	    $(MAKE) test -C example EXAMPLE=$$example; \
+	    (cd example; $(MAKE) test  EXAMPLE=$$example); \
 	done
 	
 total:
