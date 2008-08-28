@@ -43,6 +43,7 @@ Entier mod(Entier,Entier);
 int llog(Entier);
 #endif
 
+int dgetc(FILE *foo);
 int sol_hwm(void);
 void sol_simplify(int);
 int is_not_Nil(int);
