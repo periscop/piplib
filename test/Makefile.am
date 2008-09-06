@@ -4,7 +4,7 @@
 #
 # Permission is granted to copy, use, and distribute
 # for any commercial or noncommercial purpose under the terms
-# of the GNU General Public license, version 2, June 1991
+# of the GNU Lesser General Public license, version 2.1, February 1999
 # (see file : ../LICENSE).
 #
 # @author: Bart Kienhuis
