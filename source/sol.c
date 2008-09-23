@@ -641,7 +641,7 @@ PipNewparm * sol_newparm_edit(int *i, int Bg, int Urs_p, int flags)
     else
       newparm_first = newparm;
     newparm_now = newparm ;
-    if (verbose)
+    if (verbose > 0)
     { fprintf(dump,"\n(newparm ") ;
       fprintf(dump,FORMAT,newparm->rank) ;
       fprintf(dump," (div ") ;
@@ -693,7 +693,7 @@ PipList * sol_list_edit(int *i, int nb_elements, int Bg, int Urs_p, int flags)
   list->vector = sol_vector_edit(i, Bg, Urs_p, flags);
 
   list_now = list ;
-  if (verbose)
+  if (verbose > 0)
   { fprintf(dump,"\n(list ") ;
     pip_vector_print(dump,list->vector) ;
   }
@@ -709,14 +709,14 @@ PipList * sol_list_edit(int *i, int nb_elements, int Bg, int Urs_p, int flags)
     list_new->vector = sol_vector_edit(i, Bg, Urs_p, flags);
     list_new->next = NULL ;
 		    
-    if (verbose)
+    if (verbose > 0)
     { fprintf(dump,"\n") ;
       pip_vector_print(dump,list_new->vector) ;
     }
     list_now->next = list_new ;
     list_now = list_now->next ;
   }
-  if (verbose)
+  if (verbose > 0)
   fprintf(dump,"\n)") ;
   
   return(list) ;
@@ -794,22 +794,22 @@ PipQuast *sol_quast_edit(int *i, PipQuast *father, int Bg, int Urs_p, int flags)
 		if (flags & SOL_DUAL)
 		    solution->next_then = sol_quast_edit(i, solution, Bg, Urs_p, 0);
 		break ;
-    case Nil  : if (verbose)
+    case Nil  : if (verbose > 0)
 		fprintf(dump,"\n()") ;
                 break ;
     case If   : solution->condition = 
 			    sol_vector_edit(i, Bg, Urs_p, flags & SOL_REMOVE);
-                if (verbose)
+                if (verbose > 0)
 		{ fprintf(dump,"\n(if ") ;
                   pip_vector_print(dump,solution->condition) ;
                 }
 		solution->next_then = sol_quast_edit(i, solution, Bg, Urs_p, flags);
                 solution->next_else = sol_quast_edit(i, solution, Bg, Urs_p, flags);
-                if (verbose)
+                if (verbose > 0)
 		fprintf(dump,"\n)") ;
                 break ;
     default   : fprintf(stderr,"\nAie !!! Flag %d inattendu.\n",p->flags) ;
-                if (verbose)
+                if (verbose > 0)
 		fprintf(dump,"\nAie !!! Flag %d inattendu.\n",p->flags) ;
                 exit(1) ;
   }
