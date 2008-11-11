@@ -193,7 +193,6 @@ int exam_coef(Tableau *tp, int nvar, int ncol, int bigparm)
 void compa_test(Tableau *tp, Tableau *context,
 		int ni, int nvar, int nparm, int nc)
 {
- Entier discr[MAXPARM];
  int i, j;
  int ff;
  int cPlus, cMinus, isCritic;
@@ -208,10 +207,6 @@ void compa_test(Tableau *tp, Tableau *context,
      exit(1);
      }
  q = tab_hwm();
- #if defined(LINEAR_VALUE_IS_MP)
- for(i=0; i<=nparm; i++)
-   mpz_init(discr[i]);
- #endif
 
  for(i = 0; i<ni + nvar; i++)
      {ff = Flag(tp,i);
@@ -227,25 +222,15 @@ void compa_test(Tableau *tp, Tableau *context,
 		  break;
 		 }
            compa_count++;
-	   for(j = 0; j < nparm; j++)
-           #if defined(LINEAR_VALUE_IS_MP)
-	   mpz_set(discr[j], Index(tp, i, j+nvar+1));   /* loop body. */
-	   mpz_set(discr[nparm], Index(tp, i, nvar));
-           mpz_sub_ui(discr[nparm], discr[nparm], (isCritic ? 0 : 1));
-           #else
-	   discr[j] = Index(tp, i, j+nvar+1);           /* loop body. */
-	   discr[nparm] = Index(tp, i, nvar)- (isCritic ? 0 : 1);
-           #endif
 	   tPlus = expanser(context, nparm, nc, nparm+1, nparm, 1, 0);
 	   Flag(tPlus, nparm+nc) = Unknown;
-	   for(j = 0; j<=nparm; j++)
-           #if defined(LINEAR_VALUE_IS_MP)
-	   mpz_set(Index(tPlus, nparm+nc, j),discr[j]); /* loop body. */
-	   mpz_set(Denom(tPlus, nparm+nc), UN);
-           #else
-	   Index(tPlus, nparm+nc, j) = discr[j];        /* loop body. */
-	   Denom(tPlus, nparm+nc) = UN;
-           #endif
+	   for (j = 0; j < nparm; j++)
+	       entier_assign(Index(tPlus, nparm+nc, j), Index(tp, i, j+nvar+1));
+	   entier_assign(Index(tPlus, nparm+nc, nparm), Index(tp, i, nvar));
+	   if (!isCritic)
+	       entier_decrement(Index(tPlus, nparm+nc, nparm),
+				    Index(tPlus, nparm+nc, nparm));
+	   entier_assign(Denom(tPlus, nparm+nc), UN);
 	   
 	   p = sol_hwm();
 	   traiter(tPlus, NULL, nparm, 0, nc+1, 0, -1, TRAITER_INT);
@@ -257,24 +242,14 @@ void compa_test(Tableau *tp, Tableau *context,
 	   }
 
 	   sol_reset(p);
-	   for(j = 0; j<nparm+1; j++)
-           #if defined(LINEAR_VALUE_IS_MP)
-	   mpz_neg(discr[j], discr[j]);                 /* loop body. */
-	   mpz_sub_ui(discr[nparm], discr[nparm], (isCritic ? 1 : 2));
-           #else
-	   discr[j] = -discr[j];                        /* loop body. */
-	   discr[nparm] = discr[nparm] - (isCritic ? 1 : 2);
-           #endif
 	   tMinus = expanser(context, nparm, nc, nparm+1, nparm, 1, 0);
 	   Flag(tMinus, nparm+nc) = Unknown;
-	   for(j = 0; j<= nparm; j++)
-           #if defined(LINEAR_VALUE_IS_MP)
-	   mpz_set(Index(tMinus, nparm+nc, j),discr[j]);/* loop body. */
-	   mpz_set(Denom(tMinus, nparm+nc), UN);
-           #else
-	   Index(tMinus, nparm+nc, j) = discr[j];       /* loop body. */
-	   Denom(tMinus, nparm+nc) = UN;
-           #endif
+	   for (j = 0; j < nparm; j++)
+	       entier_oppose(Index(tMinus, nparm+nc, j), Index(tp, i, j+nvar+1));
+	   entier_oppose(Index(tMinus, nparm+nc, nparm), Index(tp, i, nvar));
+	   entier_decrement(Index(tMinus, nparm+nc, nparm),
+				Index(tMinus, nparm+nc, nparm));
+	   entier_assign(Denom(tMinus, nparm+nc), UN);
 	   traiter(tMinus, NULL, nparm, 0, nc+1, 0, -1, TRAITER_INT);
 	   cMinus = is_not_Nil(p);
 	   if(verbose>0){
@@ -297,11 +272,6 @@ void compa_test(Tableau *tp, Tableau *context,
 	  }
      }
  tab_reset(q);
-
- #if defined(LINEAR_VALUE_IS_MP)
- for(i=0; i<=nparm; i++)
-   mpz_clear(discr[i]);
- #endif
  
  return;
 }
@@ -738,7 +708,6 @@ void traiter(Tableau *tp, Tableau *ctxt, int nvar, int nparm, int ni, int nc,
  Tableau *context;
  int dch, dcw;
  int i;
- Entier discr[MAXPARM];
  int *pos;
 
  #if !defined(LINEAR_VALUE_IS_MP)
@@ -746,8 +715,6 @@ void traiter(Tableau *tp, Tableau *ctxt, int nvar, int nparm, int ni, int nc,
  #endif
 
  #if defined(LINEAR_VALUE_IS_MP)
- for(i=0; i<MAXPARM; i++)
-   mpz_init(discr[i]);
  dcw = mpz_sizeinbase(tp->determinant, 2);
  #else
  dcw = 0;
@@ -901,10 +868,6 @@ pirouette :
  }
 /* Danger : a premature return would induce memory leaks   */
  tab_reset(x);
- #if defined(LINEAR_VALUE_IS_MP)
- for(i=0; i<MAXPARM; i++)
-   mpz_clear(discr[i]);
- #endif
  free(pos);
  return;
 }
