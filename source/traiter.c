@@ -105,6 +105,16 @@ Tableau *expanser(Tableau *tp, int virt, int reel, int ncol,
  return(rp);
 }
 
+/* Check for "obvious" signs of the parametric constant terms
+ * of the inequalities.  As soon as a negative sign is found
+ * we return from this function and handle this constraint
+ * in the calling function.  The signs of the other constraints
+ * are then mostly irrelevant.
+ * If any of the negative signs is due to the "big parameter",
+ * then we want to use this constraint first.
+ * We therefore check for signs determined by the coefficient
+ * of the big parameter first.
+ */
 int exam_coef(Tableau *tp, int nvar, int ncol, int bigparm)
 {int i, j ;
  int ff, fff;
@@ -115,27 +125,22 @@ int exam_coef(Tableau *tp, int nvar, int ncol, int bigparm)
  #endif
  Entier *p;
  
+ if (bigparm >= 0)
+    for (i = 0; i<tp->height; i++) {
+	if (Flag(tp, i) != Unknown)
+	    continue;
+	x = entier_sgn(Index(tp,i, bigparm));
+	if (x < 0) {
+	    Flag(tp, i) = Minus;
+	    return i;
+	} else if (x > 0)     
+	    Flag(tp, i) = Plus;
+    }
+
  for(i = 0; i<tp->height; i++)
      {ff = Flag(tp,i);
       if(ff == 0) break;
       if(ff == Unknown) {
-           #if defined(LINEAR_VALUE_IS_MP)
-           if(bigparm >= 0){
-	      x = mpz_sgn(Index(tp,i, bigparm));
-	   #else
-	   if(bigparm >= 0 && (x = Index(tp,i, bigparm))) {
-           #endif
-	      if(x<0)    {
-	                  Flag(tp, i) = Minus;
-			  return(i);
-		         }
-	       else      
-                         #if defined(LINEAR_VALUE_IS_MP)
-	                 if(x>0)
-                         #endif
-	                 Flag(tp, i) = Plus;
-	       continue;
-	   }
 	   ff = Zero;
 	   p = &(tp->row[i].objet.val[nvar+1]);
 	   for(j = nvar+1; j<ncol; j++) {

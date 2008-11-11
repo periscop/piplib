@@ -83,11 +83,9 @@
 #define entier_set_si(val,i)    	(mpz_set_si((val),(i)))    
 #define entier_subtract(ref,val1,val2) 	(mpz_sub((ref),(val1),(val2)))
 #define entier_decrement(ref,val)	(mpz_sub_ui((ref),(val),1))
+#define entier_sgn(val)			(mpz_sgn(val))
 #define entier_eq(v1,v2) 	    	(mpz_cmp((v1),(v2)) == 0)
 #define entier_ne(v1,v2) 	    	(mpz_cmp((v1),(v2)) != 0)
-#define entier_zero_p(val)        	(mpz_sgn(val) == 0)
-#define entier_notzero_p(val)        	(mpz_sgn(val) != 0)
-#define entier_pos_p(val)        	(mpz_sgn(val) > 0)
 #define entier_one_p(val)		(mpz_cmp_si(val,1) == 0)
 #define entier_llog(val)		(mpz_sizeinbase(val, 2))
 
@@ -108,16 +106,17 @@
 #define entier_set_si(val,i)        	((val) = (Entier)(i))   
 #define entier_subtract(ref,val1,val2) 	((ref) = (val1)-(val2))
 #define entier_decrement(ref,val)	((ref) = (val)-1)
+#define entier_sgn(val)			(val)
 #define entier_eq(v1,v2) 	    	((v1) == (v2))
 #define entier_ne(v1,v2) 	    	((v1) != (v2))
-#define entier_zero_p(val)        	((val) == 0)
-#define entier_notzero_p(val)        	((val) != 0)
-#define entier_pos_p(val)        	((val) > 0)
 #define entier_one_p(val)        	((val) == 1)
 #define entier_llog(val)		(llog(val))
 
 #endif
 
+#define entier_zero_p(val)        	(entier_sgn(val) == 0)
+#define entier_notzero_p(val)        	(entier_sgn(val) != 0)
+#define entier_pos_p(val)        	(entier_sgn(val) > 0)
 
 #ifndef PIPLIB_H
 #define PIPLIB_H
