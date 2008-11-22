@@ -44,6 +44,7 @@ int llog(Entier);
 #endif
 
 int dgetc(FILE *foo);
+FILE *pip_create_dump_file();
 int sol_hwm(void);
 void sol_simplify(int);
 int is_not_Nil(int);

@@ -49,7 +49,6 @@ extern long int cross_product, limit ;
 extern int allocation, comptage, verbose ;
 extern FILE * dump ;
 extern int compa_count ;
-extern char dump_name[] ;
 extern int deepest_cut;
 
 void balance(FILE *foo, FILE *bar)
@@ -124,18 +123,9 @@ int main(int argc, char *argv[])
      while(*g++ == 'v') verbose++;
 	  
      p = 2;
-     g = getenv("DEBUG");
-     if(g && *g)
-     { dump = fopen(g, "w");
-       if(dump == NULL)
-       { fprintf(stderr, "%s unaccessible\n", g);
-         verbose = 0;
-       }
-     }
-     else
-     { mkstemp(dump_name);
-       dump = fopen(dump_name, "w");
-     }
+     dump = pip_create_dump_file();
+     if (!dump)
+	verbose = 0;
    }
    if(argc>p && strcmp(argv[p], "-d") == 0)
    { deepest_cut = 1;

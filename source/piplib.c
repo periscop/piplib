@@ -76,6 +76,23 @@ int dgetc(FILE *foo)
  return inbuff[inptr++];
 }
 
+FILE *pip_create_dump_file()
+{
+    char *g;
+    FILE *dump;
+
+    g = getenv("DEBUG");
+    if (g && *g) {
+    	dump = fopen(g, "w");
+        if (!dump)
+	    fprintf(stderr, "%s unaccessible\n", g);
+    } else {
+	mkstemp(dump_name);
+        dump = fopen(dump_name, "w");
+    }
+    return dump;
+}
+
 
 #if defined(LINEAR_VALUE_IS_MP)
 int dscanf(FILE *foo, Entier  val)
@@ -729,19 +746,10 @@ PipOptions * options ;
    */
   verbose = options->Verbose ;
   deepest_cut = options->Deepest_cut ;
-  if (verbose > 0)
-  { g = getenv("DEBUG") ;
-    if(g && *g)
-    { dump = fopen(g, "w") ;
-      if(dump == NULL)
-      { fprintf(stderr,"%s unaccessible\n",g) ;
-	verbose = 0 ;
-      }
-    }
-    else
-    { mkstemp(dump_name) ;
-      dump = fopen(dump_name, "w") ;
-    }
+  if (verbose > 0) {
+     dump = pip_create_dump_file();
+     if (!dump)
+	verbose = 0;
   }
   #if defined(LINEAR_VALUE_IS_MP)
   limit = 0LL ;
