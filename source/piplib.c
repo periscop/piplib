@@ -30,6 +30,9 @@
 # include <stdio.h>
 # include <ctype.h>
 #include <string.h>
+#ifdef WIN32
+#include <windows.h>
+#endif
 
 #include "pip.h"
 #define min(x,y) ((x) < (y)? (x) : (y))
@@ -45,7 +48,6 @@ int compa_count;
 int deepest_cut = 0;
 
 FILE *dump = NULL;
-char dump_name[] = "PipXXXXXX";
 
 /* Larger line buffer to accomodate Frédo Vivien exemples. A version
 handling arbitrary line length should be written ASAP.
@@ -76,6 +78,26 @@ int dgetc(FILE *foo)
  return inbuff[inptr++];
 }
 
+#ifdef WIN32
+static char *create_temp_filename()
+{
+    static char dump_name[MAX_PATH];
+
+    GetTempFileName(".", "Pip", 0, dump_name);
+    return dump_name;
+}
+#else
+static char *create_temp_filename()
+{
+    static char dump_name_template[] = "PipXXXXXX";
+    static char dump_name[sizeof(dump_name_template)];
+
+    strcpy(dump_name, dump_name_template);
+    mkstemp(dump_name);
+    return dump_name;
+}
+#endif
+
 FILE *pip_create_dump_file()
 {
     char *g;
@@ -86,10 +108,8 @@ FILE *pip_create_dump_file()
     	dump = fopen(g, "w");
         if (!dump)
 	    fprintf(stderr, "%s unaccessible\n", g);
-    } else {
-	mkstemp(dump_name);
-        dump = fopen(dump_name, "w");
-    }
+    } else
+        dump = fopen(create_temp_filename(), "w");
     return dump;
 }
 
