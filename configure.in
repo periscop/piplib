@@ -53,6 +53,8 @@ dnl Configure needs an empty install.sh file with this, i HATE that...
 AC_PROG_INSTALL
 AC_CANONICAL_HOST
 AC_PROG_LIBTOOL
+AC_CHECK_PROG(TEXI2DVI, texi2dvi, texi2dvi, [])
+AM_CONDITIONAL(HAVE_TEXI2DVI, test -n "$TEXI2DVI")
 
 AX_CC_MAXOPT
 
@@ -248,7 +250,7 @@ AC_SUBST(DFLAGS32)
 AC_SUBST(DFLAGS64)
 AC_SUBST(MP_DFLAGS)
 
-AC_CONFIG_FILES(Makefile example/Makefile test/Makefile)
+AC_CONFIG_FILES(Makefile example/Makefile test/Makefile doc/Makefile)
 AC_CONFIG_FILES([genversion.sh], [chmod +x genversion.sh])
 AC_CONFIG_COMMANDS([version.h],
     [echo '#define GIT_HEAD_ID "'`./genversion.sh`'"' > version.h])

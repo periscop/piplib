@@ -11,7 +11,7 @@
 # makefile, you must run the 'configure' shellscript to generate the Makefile
 # thanks to this file. 
 
-SUBDIRS = . example test
+SUBDIRS = . example doc test
 
 ACLOCAL_AMFLAGS = -I m4
 
@@ -65,10 +65,7 @@ EXTRA_DIST = \
 	autogen.sh
 
 dist-hook:
-	mkdir $(distdir)/doc
-	(cd $(srcdir)/doc/source && make all pdf) && \
-	    cp $(srcdir)/doc/source/pip.pdf \
-	       $(srcdir)/doc/source/pip.ps $(distdir)/doc/
+	(cd doc; make piplib.pdf) && cp doc/piplib.pdf $(distdir)/doc/
 	$(top_builddir)/genversion.sh > $(distdir)/GIT_HEAD_ID
 	
 check:
