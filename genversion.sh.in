@@ -9,7 +9,7 @@ if test -f $srcdir/.git/HEAD; then
 elif test -f $srcdir/GIT_HEAD_ID; then
     GIT_HEAD_ID=`cat $srcdir/GIT_HEAD_ID`
 else
-    GIT_HEAD_ID="$PACKAGE-$VERSION-UNKNWON"
+    GIT_HEAD_ID="$PACKAGE-$VERSION-UNKNOWN"
 fi
 
 echo $GIT_HEAD_ID
