@@ -36,7 +36,7 @@
 @settitle PIP/PipLib - Parametric Integer Programming
 
 @set EDITION 5.0
-@set VERSION 1.4.0
+@include gitversion.texi
 @set UPDATED July 9th 2007
 @setchapternewpage odd
 
