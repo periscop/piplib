@@ -59,14 +59,14 @@ pipMP_CPPFLAGS = @MP_DFLAGS@ -I$(srcdir)/include
 pipMP_LDADD = libpiplibMP.la @EXTRA_LIBS@
 
 version.h: @GIT_INDEX@
-	echo '#define GIT_HEAD_ID "'`$(top_builddir)/genversion.sh`'"' > $@
+	echo '#define PIPLIB_HEAD "'`$(top_builddir)/genversion.sh`'"' > $@
 
 EXTRA_DIST = \
 	autogen.sh
 
 dist-hook:
 	(cd doc; make piplib.pdf) && cp doc/piplib.pdf $(distdir)/doc/
-	$(top_builddir)/genversion.sh > $(distdir)/GIT_HEAD_ID
+	$(top_builddir)/genversion.sh > $(distdir)/PIPLIB_HEAD
 	
 check:
 	@for pip in @pips@; do \

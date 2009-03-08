@@ -42,7 +42,7 @@
 struct tms chrono;
 #endif
 
-static char version[] = "Version "GIT_HEAD_ID"\n";
+static char version[] = "Version "PIPLIB_HEAD"\n";
 
 
 extern long int cross_product, limit ;
