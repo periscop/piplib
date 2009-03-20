@@ -19,9 +19,9 @@ AC_PREREQ(2.13)
 AC_INIT(source/piplib.c)
 AC_CONFIG_AUX_DIR(autoconf)
 AC_CONFIG_MACRO_DIR([m4])
-AM_INIT_AUTOMAKE(piplib, 1.3.6)
+AM_INIT_AUTOMAKE(piplib, 1.4.0)
 AC_SUBST(versioninfo)
-versioninfo=2:0:0
+versioninfo=3:0:1
 
 TO_BUILD_32="32"
 TO_BUILD_64="64"
