@@ -216,7 +216,7 @@ done
 
 AC_SUBST(GIT_INDEX)
 if test -f $srcdir/.git/HEAD; then
-    GIT_INDEX="$srcdir/.git/index"
+    GIT_INDEX="\$(top_srcdir)/.git/index"
 fi
 
 dnl /**************************************************************************
