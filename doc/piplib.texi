@@ -1458,7 +1458,7 @@ After replacement of @math{i,j,n} and @math{f} by the new variables
 @math{G,P,i',j',n'} and @math{f'}, we obtain the set
 @tex
 $$
-\eqalign{ \{\, (f',i',j') \mid
+\eqalign{ \{\, (f',i',j') \mid {}
     & f' -i' + 2j' - 2 G \geq 0 \, \wedge \cr
     & 4 (n'-P) -20 \leq i' + j' - 2 G \leq 0 \, \wedge \cr
     & -2 (n'-P) - 10 \leq i' - j' \leq 2 (n'-P) + 10 \,\},}
