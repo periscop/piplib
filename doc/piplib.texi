@@ -1413,9 +1413,6 @@ As above, we introduce a new unknown @math{f} and the inequality
 Since we want to optimize @math{f}, @math{f}
 will appear as the first unknown.
 
-To allow @math{n} (or any other parameter) to become negative, 
-we apply the standard trick of replacing @math{n} by @math{n = n' - n''},
-where @math{n'} and @math{n''} are two new parameters, both non-negative.
 For handling possibly negative unknows, we add a number @math{G} to each
 of the unknowns that ensures that
 @tex
@@ -1447,22 +1444,32 @@ $$
 @end ifnottex
 Hence, @math{G}
 is again a big parameter. 
+Possibly negative parameters can be handled in a similar way,
+by adding an additional parameter @math{P} to each of the parameters,
+i.e., by considering @math{n' = n + P}.  For each value of @math{n},
+there is a pair of non-negative values of @math{n'} and @math{P},
+so any solution that is valid for all non-negative values
+of @math{n'} and @math{P} satisfying the constraints, is also
+valid for all values of @math{n} satisfying the constraints.
+The same additional parameter @math{P} can be used to handle
+all possibly negative parameters, but @math{P} needs to be distinct
+from @math{G} and @math{P} need not be a big parameter.
 After replacement of @math{i,j,n} and @math{f} by the new variables
-@math{i',j',n',n''} and @math{f'}, we obtain the set
+@math{G,P,i',j',n'} and @math{f'}, we obtain the set
 @tex
 $$
 \eqalign{ \{\, (f',i',j') \mid
     & f' -i' + 2j' - 2 G \geq 0 \, \wedge \cr
-    & 4 (n'-n'') -20 \leq i' + j' - 2 G \leq 0 \, \wedge \cr
-    & -2 (n'-n'') - 10 \leq i' - j' \leq 2 (n'-n'') + 10 \,\},}
+    & 4 (n'-P) -20 \leq i' + j' - 2 G \leq 0 \, \wedge \cr
+    & -2 (n'-P) - 10 \leq i' - j' \leq 2 (n'-P) + 10 \,\},}
 $$
 @end tex
 @ifnottex
 @example
 @group
 @math{@{(f',i',j') | f' -i' + 2j' - 2 G >= 0,
-              4 (n'-n'') -20 >= i' + j' - 2 G >= 0,
-              -2 (n'-n'') - 10 >= i' - j' >= 2 (n'-n'') + 10@}}
+              4 (n'-P) -20 >= i' + j' - 2 G >= 0,
+              -2 (n'-P) - 10 >= i' - j' >= 2 (n'-P) + 10@}}
 @end group
 @end example
 @end ifnottex
@@ -1471,7 +1478,7 @@ which corresponds to the following input:
 @group
 ( ( Solving MIN(i-2.j) under the following constraints:
     Unknowns may be negative.
-    Order: f' i' j' constant G n'' n'
+    Order: f' i' j' constant G P n'
   )
   3 3 5 0 4 1
   ( #[ 1 -1  2  0 -2  0  0 ]
@@ -1490,7 +1497,7 @@ The result is:
 @group
 ( ( Solving MIN(i-2.j) under the following constraints:
     Unknowns may be negative.
-    Order: f' i' j' constant G n'' n' -1
+    Order: f' i' j' constant G P n' -1
   )
   ( if #[ 0 -1 1 5]
     (list #[ 1  3 -3 -15]
@@ -1505,16 +1512,16 @@ The result is:
 which should be read as:
 @tex
 $$
-\eqalign{(f',i',j') =\; & {\tt if}\;  (-n''+n'+5 \geq 0) \cr
-                      & {\tt then} \; (G+3n''-3n'-15, G+n''-n'-5,G-n''+n'+5) \cr
+\eqalign{(f',i',j') =\; & {\tt if}\;  (-P+n'+5 \geq 0) \cr
+                      & {\tt then} \; (G+3P-3n'-15, G+P-n'-5,G-P+n'+5) \cr
                       & {\tt else} \; \bot}
 $$
 @end tex
 @ifnottex
 @example
 @group
-@math{(f',i',j') = @strong{if} (-n''+n'+5 >= 0)
-             @strong{then} (G+3n''-3n'-15, G+n''-n'-5,G-n''+n'+5)
+@math{(f',i',j') = @strong{if} (-P+n'+5 >= 0)
+             @strong{then} (G+3P-3n'-15, G+P-n'-5,G-P+n'+5)
              @strong{else} bottom}
 @end group
 @end example
