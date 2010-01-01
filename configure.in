@@ -87,15 +87,6 @@ eval DFLAGS$LONG_BITS=-DLINEAR_VALUE_IS_LONGLONG
 MP_BITS="MP"
 MP_DFLAGS=-DLINEAR_VALUE_IS_MP
 NEED_MP="no"
-GMP_INC="/usr/local/include"
-GMP_LIB="/usr/local/lib"
-
-
-dnl Some default values cause I'm not sure whether autoconf set them, while
-dnl documentation says it does...
-gmp_package="yes"
-gmp_include_package="yes"
-gmp_library_package="yes"
 
 
 dnl Options.
@@ -108,26 +99,29 @@ AC_ARG_WITH(pip,
 	  fi ])
 
 AC_ARG_WITH(gmp,
-        [  --with-gmp=DIR          DIR where the gmp package is installed],
-	[ echo "Package gmp : $withval" &&
-	  gmp_package=$withval &&
-          GMP_INC=$gmp_package/include &&
-          GMP_LIB=$gmp_package/lib &&
-          NEED_MP="yes"])
+	    [AS_HELP_STRING([--with-gmp],
+			    [Build gmp version])])
+if test "x$with_gmp" = "x"; then
+	with_gmp=yes
+fi
+AC_ARG_WITH(gmp_prefix,
+	    [AS_HELP_STRING([--with-gmp-prefix=DIR],
+			    [Prefix of gmp installation])])
+AC_ARG_WITH(gmp_exec_prefix,
+	    [AS_HELP_STRING([--with-gmp-exec-prefix=DIR],
+			    [Exec prefix of gmp installation])])
 
-AC_ARG_WITH(gmp_include,
-        [  --with-gmp-include=DIR  DIR where gmp.h is installed],
-	[ echo "Package gmp-include : $withval" &&
-	  gmp_include_package=$withval &&
-          GMP_INC=$gmp_include_package &&
-	  NEED_MP="yes"])
+if test "x$with_gmp_prefix" != "x" -o "x$with_gmp_exec_prefix" != "x"; then
+	with_gmp=yes
+fi
 
-AC_ARG_WITH(gmp_library,
-        [  --with-gmp-library=DIR  DIR where the gmp library is installed],
-	[ echo "Package gmp-library : $withval" &&
-	  gmp_library_package=$withval &&
-          GMP_LIB=$gmp_library_package &&
-	  NEED_MP="yes"])
+if test "x$with_gmp" = "xyes"; then
+	NEED_MP="yes"
+fi
+
+if test "x$with_gmp_prefix" != "x" -a "x$with_gmp_exec_prefix" = "x"; then
+	with_gmp_exec_prefix=$with_gmp_prefix
+fi
 
 AC_ARG_WITH(bits,
 	[AS_HELP_STRING([--with-bits=32,64,gmp,all],
@@ -155,29 +149,17 @@ dnl  **************************************************************************/
 
 
 dnl Checking for gmp
-if test "$gmp_package" = "no"; then
+if test "$with_gmp" = "no"; then
   echo "GMP package not defined"
 else
   if test "$TEST_MP" != "no"; then
-    dnl Default given by --with-X is "yes", --without-X is "no".
-    if test "$gmp_package" != "yes" ; then
-      echo "(GMP path has been set by user)"
-      GMP_DIR=$gmp_package
-      GMP_LIB=$GMP_DIR/lib
-      GMP_INC=$GMP_DIR/include
-      EXTRA_LIBS="$EXTRA_LIBS -L$GMP_LIB"
-      dnl Useful for AC_CHECK_X to find what we want.
-      CPPFLAGS="-I$GMP_DIR/include $CPPFLAGS"
-      LDFLAGS="-L$GMP_DIR/lib $LDFLAGS"
+    if test "x$with_gmp_prefix" != "x" ; then
+      CPPFLAGS="-I$with_gmp_prefix/include $CPPFLAGS"
     fi
     
-    if test "$gmp_include_package" != "yes" ; then
-      CPPFLAGS="-I$GMP_DIR/include $CPPFLAGS"
-    fi
-    
-    if test "$gmp_library_package" != "yes" ; then
-      EXTRA_LIBS="$EXTRA_LIBS -L$GMP_LIB"
-      LDFLAGS="-L$GMP_DIR/lib $LDFLAGS"
+    if test "x$with_gmp_exec_prefix" != "x" ; then
+      EXTRA_LIBS="$EXTRA_LIBS -L$with_gmp_exec_prefix/lib"
+      LDFLAGS="-L$with_gmp_exec_prefix/lib $LDFLAGS"
     fi
      
     gmp_found=no
