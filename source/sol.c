@@ -540,7 +540,7 @@ PipVector * sol_vector_edit(int *i, int Bg, int Urs_p, int flags)
     exit(1) ;
   }
   p = sol_space + (*i) ;
-  n = VALUE_TO_INT(p->param1);
+  n = ENTIER_TO_INT(p->param1);
   if (flags & SOL_REMOVE)
     --n;
   n -= Urs_p;
@@ -627,7 +627,7 @@ PipNewparm * sol_newparm_edit(int *i, int Bg, int Urs_p, int flags)
       exit(1) ;
     }
     newparm->vector = sol_vector_edit(i, Bg, Urs_p, flags);
-    newparm->rank = VALUE_TO_INT(p->param1);
+    newparm->rank = ENTIER_TO_INT(p->param1);
     /* On met p a jour pour lire le denominateur (un Val de param2 UN). */
     p = sol_space + (*i) ;
     entier_init_set(newparm->deno, p->param1);

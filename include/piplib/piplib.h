@@ -41,7 +41,7 @@
 # define VAL_UN   1LL
 # define VAL_ZERO 0LL
 
-#define VALUE_TO_INT(val) ((int)(val))
+#define ENTIER_TO_INT(val) ((int)(val))
 #define ENTIER_TO_DOUBLE(val) ((double)(val))
 
 #elif defined(LINEAR_VALUE_IS_INT) 
@@ -51,7 +51,7 @@
 # define VAL_UN   1L
 # define VAL_ZERO 0L
 
-#define VALUE_TO_INT(val) ((int)(val))
+#define ENTIER_TO_INT(val) ((int)(val))
 #define ENTIER_TO_DOUBLE(val) ((double)(val))
 
 #elif defined(LINEAR_VALUE_IS_MP) 
@@ -61,7 +61,7 @@
 # define FORMAT   "%d"
 # define GMP_INPUT_FORMAT   "%lZd"
 
-#define VALUE_TO_INT(val) ((int)mpz_get_si(val))
+#define ENTIER_TO_INT(val) ((int)mpz_get_si(val))
 #define ENTIER_TO_DOUBLE(val) (mpz_get_d(val))
 
 #endif
