@@ -32,7 +32,7 @@ pip = ""
 if (len(sys.argv) >= 4):# and os.path.exists(sys.argv[3]) and os.access(sys.argv[3], os.X_OK)):
 	pip = sys.argv[3]
 else:
-	pip = "exemple32"
+	pip = "exemple"
 # Final pip
 print "pip =", pip
 

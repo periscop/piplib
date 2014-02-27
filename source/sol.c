@@ -30,14 +30,15 @@
 
 #include "pip.h"
 
+
 extern long int cross_product, limit;
 extern int verbose;
-extern FILE *dump;
+extern FILE* dump;
 
-struct S
-    {int flags;
-     Entier param1, param2;
-    };
+struct S {
+  int flags;
+  osl_int_t param1, param2;
+};
 
 #define Free 0
 #define Nil  1
@@ -49,22 +50,8 @@ struct S
 #define Val  7
 #define Error 8
 
-struct S * sol_space;
+struct S* sol_space;
 static int sol_free;
-
-#if !defined(LINEAR_VALUE_IS_MP)
-Entier mod(Entier, Entier);
-
-Entier pgcd(Entier x, Entier y)
-{Entier r;
- while(y)
-     {r = mod(x, y);
-      x = y;
-      y = r;
-     }
- return(x>= 0? x : -x);
-}
-#endif
 
 void sol_init(void)
 {
@@ -89,12 +76,10 @@ int p;
      {fprintf(stderr, "Syserr : sol_reset : Memory allocation error\n");
       exit(40);
      }
- #if defined(LINEAR_VALUE_IS_MP)
  for(i=p; i<sol_free; i++){
-   mpz_clear(sol_space[i].param1);
-   mpz_clear(sol_space[i].param2);
+   osl_int_clear(PIPLIB_INT_PRECISION, &sol_space[i].param1);
+   osl_int_clear(PIPLIB_INT_PRECISION, &sol_space[i].param2);
  }
- #endif
  sol_free = p;
 }
 
@@ -102,12 +87,8 @@ struct S *sol_alloc(void)
 {struct S *r;
  r = sol_space + sol_free;
  r->flags = Free;
- #if defined(LINEAR_VALUE_IS_MP)
- mpz_init_set_si(r->param1,0);
- mpz_init_set_si(r->param2,0);
- #else
- r->param1 = r->param2 = 0;
- #endif
+ osl_int_init_set_si(PIPLIB_INT_PRECISION, &r->param1, 0);
+ osl_int_init_set_si(PIPLIB_INT_PRECISION, &r->param2, 0);
  sol_free++;
  if(sol_free >= SOL_SIZE)
      {fprintf(stderr, "The solution is too complex! : sol\n");
@@ -132,11 +113,7 @@ void sol_error(int c)
  struct S *r;
  r = sol_alloc();
  r->flags = Nil;
- #if defined(LINEAR_VALUE_IS_MP)
- mpz_set_si(r->param1, c);
- #else
- r->param1 = c;
- #endif
+ osl_int_set_si(PIPLIB_INT_PRECISION, &r->param1, c);
  if(verbose > 0) {
      fprintf(dump, "Erreur %d\n", c);
      fflush(dump);
@@ -165,11 +142,7 @@ int n;
 {struct S * r;
  r = sol_alloc();
  r->flags = List;
- #if defined(LINEAR_VALUE_IS_MP)
- mpz_set_si(r->param1, n);
- #else
- r->param1 = n;
- #endif
+ osl_int_set_si(PIPLIB_INT_PRECISION, &r->param1, n);
  if(verbose > 0) {
      fprintf(dump, "\nList %d ", n);
      fflush(dump);
@@ -182,11 +155,7 @@ int l;
  struct S *r;
  r = sol_alloc();
  r -> flags = Form;
- #if defined(LINEAR_VALUE_IS_MP)
- mpz_set_ui(r -> param1, l);
- #else
- r -> param1 = l;
- #endif
+ osl_int_set_si(PIPLIB_INT_PRECISION, &r -> param1, l);
  if(verbose > 0) {
      fprintf(dump, "\nForme %d ", l);
      fflush(dump);
@@ -199,11 +168,7 @@ int k;
  struct S *r;
  r = sol_alloc();
  r -> flags = New;
- #if defined(LINEAR_VALUE_IS_MP)
- mpz_set_ui(r -> param1, k);
- #else
- r -> param1 = k;
- #endif
+ osl_int_set_si(PIPLIB_INT_PRECISION, &r -> param1, k);
  if(verbose > 0) {
      fprintf(dump, "New %d ", k);
      fflush(dump);
@@ -222,29 +187,18 @@ void sol_div()
 }
 
 void sol_val(n, d)
-Entier n, d;
+osl_int_t n, d;
 {
  struct S *r;
  r = sol_alloc();
  r -> flags = Val;
- #if defined(LINEAR_VALUE_IS_MP)
- mpz_set(r -> param1, n);
- mpz_set(r -> param2, d);
- #else
- r -> param1 = n;
- r -> param2 = d;
- #endif
+ osl_int_assign(PIPLIB_INT_PRECISION, &r -> param1, n);
+ osl_int_assign(PIPLIB_INT_PRECISION, &r -> param2, d);
  if(verbose > 0) {
    fprintf(dump, "val(");
-   #if defined(LINEAR_VALUE_IS_MP)
-   mpz_out_str(dump, 10, n);
+   osl_int_print(dump, PIPLIB_INT_PRECISION, n);
    fprintf(dump, "/");
-   mpz_out_str(dump, 10, d);
-   #else
-   fprintf(dump, FORMAT, n);
-   fprintf(dump, "/");
-   fprintf(dump, FORMAT, d);
-   #endif
+   osl_int_print(dump, PIPLIB_INT_PRECISION, d);
    fprintf(dump, ") ");
    fflush(dump);
   }
@@ -276,11 +230,7 @@ int skip (int i)
 	   i = skip(i);          /* sauter le vrai */
 	   i = skip(i); break;   /* sauter le faux */
  case List : case Form :
-           #if defined(LINEAR_VALUE_IS_MP)
-           n = mpz_get_si(sol_space[i].param1);
-           #else
-           n = sol_space[i].param1;
-           #endif
+           n = osl_int_get_si(PIPLIB_INT_PRECISION, sol_space[i].param1);
 	   i++;
 	   while(n--) i = skip(i);
 	   break;
@@ -316,12 +266,10 @@ void sol_simplify(int i)
 int sol_edit(FILE *foo, int i)
 {int j, n;
  struct S *p;
- Entier N, D, d;
- #if defined(LINEAR_VALUE_IS_MP)
- mpz_init(N);
- mpz_init(D);
- mpz_init(d);
- #endif
+ osl_int_t N, D, d;
+ osl_int_init(PIPLIB_INT_PRECISION, &N);
+ osl_int_init(PIPLIB_INT_PRECISION, &D);
+ osl_int_init(PIPLIB_INT_PRECISION, &d);
  
  p = sol_space + i;
  for(;;) {
@@ -331,11 +279,7 @@ int sol_edit(FILE *foo, int i)
      continue;
    }
    if(p->flags == New) {
-     #if defined(LINEAR_VALUE_IS_MP)
-     n = mpz_get_si(p->param1);
-     #else
-     n = p->param1;
-     #endif
+     n = osl_int_get_si(PIPLIB_INT_PRECISION, p->param1);
      fprintf(foo, "(newparm %d ", n);
      if(verbose>0)fprintf(dump, "(newparm %d ", n);
      i = sol_edit(foo, ++i);
@@ -351,15 +295,9 @@ int sol_edit(FILE *foo, int i)
    if(verbose>0)fprintf(dump, "()\n");
    i++; break;
  case Error :
-   #if defined(LINEAR_VALUE_IS_MP)
-   fprintf(foo, "Error %d\n", mpz_get_si(p->param1));
+   fprintf(foo, "Error %d\n", osl_int_get_si(PIPLIB_INT_PRECISION, p->param1));
    if(verbose>0)
-   fprintf(dump, "Error %d\n", mpz_get_si(p->param1));
-   #else
-   fprintf(foo, "Error %d\n", p->param1);
-   if(verbose>0)
-   fprintf(dump, "Error %d\n", p->param1);
-   #endif
+   fprintf(dump, "Error %d\n", osl_int_get_si(PIPLIB_INT_PRECISION, p->param1));
    i++; break;
  case If  : fprintf(foo, "(if ");
    if(verbose>0)fprintf(dump, "(if ");
@@ -371,11 +309,7 @@ int sol_edit(FILE *foo, int i)
    break;
  case List: fprintf(foo, "(list ");
    if(verbose>0)fprintf(dump, "(list ");
-   #if defined(LINEAR_VALUE_IS_MP)
-   n = mpz_get_si(p->param1);
-   #else
-   n = p->param1;
-   #endif
+   n = osl_int_get_si(PIPLIB_INT_PRECISION, p->param1);
    i++;
    while(n--) i = sol_edit(foo, i);
    fprintf(foo, ")\n");
@@ -383,63 +317,34 @@ int sol_edit(FILE *foo, int i)
    break;
  case Form: fprintf(foo, "#[");
    if(verbose>0)fprintf(dump, "#[");
-   #if defined(LINEAR_VALUE_IS_MP)
-   n = mpz_get_si(p->param1);
-   #else
-   n = p->param1;
-   #endif
+   n = osl_int_get_si(PIPLIB_INT_PRECISION, p->param1);
    for(j = 0; j<n; j++){
      i++; p++;
-     #if defined(LINEAR_VALUE_IS_MP)
-     mpz_set(N, p->param1); mpz_set(D, p->param2);
-     mpz_gcd(d, N, D);
-     if(mpz_cmp(d, D) == 0){
+     osl_int_assign(PIPLIB_INT_PRECISION, &N, p->param1); osl_int_assign(PIPLIB_INT_PRECISION, &D, p->param2);
+     osl_int_gcd(PIPLIB_INT_PRECISION, &d, N, D);
+     if (osl_int_eq(PIPLIB_INT_PRECISION, d, D)) {
        putc(' ', foo);
-       mpz_divexact(N, N, d);
-       mpz_out_str(foo, 10, N);
+       osl_int_div_exact(PIPLIB_INT_PRECISION, &N, N, d);
+       osl_int_print(foo, PIPLIB_INT_PRECISION, N);
        if(verbose>0){
          putc(' ', dump);
-         mpz_out_str(dump, 10, N);
+         osl_int_print(dump, PIPLIB_INT_PRECISION, N);
        }
      }
      else{
-       mpz_divexact(N, N, d);
-       mpz_divexact(D, D, d);
+       osl_int_div_exact(PIPLIB_INT_PRECISION, &N, N, d);
+       osl_int_div_exact(PIPLIB_INT_PRECISION, &D, D, d);
        putc(' ', foo);
-       mpz_out_str(foo, 10, N);
+       osl_int_print(foo, PIPLIB_INT_PRECISION, N);
        putc('/', foo);
-       mpz_out_str(foo, 10, D);
+       osl_int_print(foo, PIPLIB_INT_PRECISION, D);
        if(verbose>0){
          putc(' ', dump);
-         mpz_out_str(dump, 10, N);
+         osl_int_print(dump, PIPLIB_INT_PRECISION, N);
          putc('/', dump);
-         mpz_out_str(dump, 10, D);
+         osl_int_print(dump, PIPLIB_INT_PRECISION, D);
        }
      }
-     #else
-     N = p->param1; D = p->param2;
-     d = pgcd(N, D);
-     if(d == D){
-       putc(' ', foo);
-       fprintf(foo, FORMAT, N/d);
-       if(verbose>0){
-	 putc(' ', dump);
-	 fprintf(dump, FORMAT, N/d);
-       }
-     }
-     else{
-       putc(' ', foo);
-       fprintf(foo,FORMAT,N/d);
-       fprintf(foo,"/");
-       fprintf(foo,FORMAT, D/d);
-       if(verbose>0){
-	 putc(' ', dump);
-	 fprintf(dump,FORMAT,N/d);
-	 fprintf(dump,"/");
-	 fprintf(dump,FORMAT, D/d);
-       }
-     }
-     #endif
    }
    fprintf(foo, "]\n");
    if(verbose>0)fprintf(dump, "]\n");
@@ -453,65 +358,42 @@ int sol_edit(FILE *foo, int i)
    if(verbose>0)fprintf(dump, ")\n");
    break;
  case Val :
-   #if defined(LINEAR_VALUE_IS_MP)
-   mpz_set(N, p->param1); mpz_set(D, p->param2);
-   mpz_gcd(d, N, D);
-   if(mpz_cmp(d, D) == 0){
-     mpz_divexact(N, N, d);
+   osl_int_assign(PIPLIB_INT_PRECISION, &N, p->param1); osl_int_assign(PIPLIB_INT_PRECISION, &D, p->param2);
+   osl_int_gcd(PIPLIB_INT_PRECISION, &d, N, D);
+   if (osl_int_eq(PIPLIB_INT_PRECISION, d, D)) {
+     osl_int_div_exact(PIPLIB_INT_PRECISION, &N, N, d);
      putc(' ', foo);
-     mpz_out_str(foo, 10, N);
+     osl_int_print(foo, PIPLIB_INT_PRECISION, N);
      if(verbose>0){
        putc(' ', dump);
-       mpz_out_str(dump, 10, N);
+       osl_int_print(dump, PIPLIB_INT_PRECISION, N);
      }
    }
    else{
-     mpz_divexact(N, N, d);
-     mpz_divexact(D, D, d);
+     osl_int_div_exact(PIPLIB_INT_PRECISION, &N, N, d);
+     osl_int_div_exact(PIPLIB_INT_PRECISION, &D, D, d);
      putc(' ', foo);
-     mpz_out_str(foo, 10, N);
+     osl_int_print(foo, PIPLIB_INT_PRECISION, N);
      fprintf(foo, "/");
-     mpz_out_str(foo, 10, D);
+     osl_int_print(foo, PIPLIB_INT_PRECISION, D);
      if(verbose>0){
        putc(' ', dump);
-       mpz_out_str(dump, 10, N);
+       osl_int_print(dump, PIPLIB_INT_PRECISION, N);
        fprintf(dump, "/");
-       mpz_out_str(dump, 10, D);
+       osl_int_print(dump, PIPLIB_INT_PRECISION, D);
      }
    }
-   #else
-   N = p->param1; D = p->param2;
-   d = pgcd(N, D);
-   if(d == D){putc(' ', foo);
-   fprintf(foo, FORMAT, N/d);
-   if(verbose>0)
-     {putc(' ', dump);
-     fprintf(dump, FORMAT, N/d);
-     }
-   }
-   else{putc(' ', foo);
-   fprintf(foo, FORMAT, N/d);
-   fprintf(foo, "/");
-   fprintf(foo, FORMAT, D/d);
-   if(verbose>0)
-     {putc(' ', dump);
-     fprintf(dump, FORMAT, N/d);
-     fprintf(dump, "/");
-     fprintf(dump, FORMAT, D/d);
-     }
-   }
-   #endif
    i++;
    break;
  default  : fprintf(foo, "Inconnu : sol\n");
    if(verbose>0)fprintf(dump, "Inconnu : sol\n");
  }
- #if defined(LINEAR_VALUE_IS_MP)
- mpz_clear(d);
- mpz_clear(D);
- mpz_clear(N);
- #endif
- return(i);
+
+ osl_int_clear(PIPLIB_INT_PRECISION, &d);
+ osl_int_clear(PIPLIB_INT_PRECISION, &D);
+ osl_int_clear(PIPLIB_INT_PRECISION, &N);
+
+ return i;
 }
 
 
@@ -527,12 +409,12 @@ int sol_edit(FILE *foo, int i)
 PipVector * sol_vector_edit(int *i, int Bg, int Urs_p, int flags)
 { int j, k, n, unbounded  = 0, first_urs;
   struct S *p ;
-  Entier N, D, d ;
+  osl_int_t N, D, d ;
   PipVector * vector ;
 
-  entier_init(N);
-  entier_init(D);
-  entier_init(d);
+  osl_int_init(PIPLIB_INT_PRECISION, &N);
+  osl_int_init(PIPLIB_INT_PRECISION, &D);
+  osl_int_init(PIPLIB_INT_PRECISION, &d);
   
   vector = (PipVector *)malloc(sizeof(PipVector)) ;
   if (vector == NULL)
@@ -540,18 +422,18 @@ PipVector * sol_vector_edit(int *i, int Bg, int Urs_p, int flags)
     exit(1) ;
   }
   p = sol_space + (*i) ;
-  n = ENTIER_TO_INT(p->param1);
+  n = osl_int_get_si(PIPLIB_INT_PRECISION, p->param1);
   if (flags & SOL_REMOVE)
     --n;
   n -= Urs_p;
   first_urs = Urs_p + (Bg >= 0);
   vector->nb_elements = n ;
-  vector->the_vector = (Entier *)malloc(sizeof(Entier)*n) ;
+  vector->the_vector = (osl_int_t *)malloc(sizeof(osl_int_t)*n) ;
   if (vector->the_vector == NULL)
   { fprintf(stderr, "Memory Overflow.\n") ;
     exit(1) ;
   }
-  vector->the_deno = (Entier *)malloc(sizeof(Entier)*n) ;
+  vector->the_deno = (osl_int_t *)malloc(sizeof(osl_int_t)*n) ;
   if (vector->the_deno == NULL)
   { fprintf(stderr, "Memory Overflow.\n") ;
     exit(1) ;
@@ -561,13 +443,13 @@ PipVector * sol_vector_edit(int *i, int Bg, int Urs_p, int flags)
     (*i)++ ;
     p++ ;
 
-    entier_assign(N, p->param1);
-    entier_assign(D, p->param2);
-    entier_gcd(d, N, D);
+    osl_int_assign(PIPLIB_INT_PRECISION, &N, p->param1);
+    osl_int_assign(PIPLIB_INT_PRECISION, &D, p->param2);
+    osl_int_gcd(PIPLIB_INT_PRECISION, &d, N, D);
 
     if ((flags & SOL_SHIFT) && j == Bg) {
-      entier_subtract(N, N, D);   /* subtract 1 */
-      if (entier_notzero_p(N))
+      osl_int_sub(PIPLIB_INT_PRECISION, &N, N, D);   /* subtract 1 */
+      if (! osl_int_zero(PIPLIB_INT_PRECISION, N))
 	unbounded = 1;
     }
 
@@ -577,25 +459,25 @@ PipVector * sol_vector_edit(int *i, int Bg, int Urs_p, int flags)
     if (first_urs <= j && j < first_urs+Urs_p)
       continue;
 
-    entier_init(vector->the_vector[k]);
-    entier_divexact(vector->the_vector[k], N, d);
+    osl_int_init(PIPLIB_INT_PRECISION, &vector->the_vector[k]);
+    osl_int_div_exact(PIPLIB_INT_PRECISION, &vector->the_vector[k], N, d);
     if (flags & SOL_NEGATE)
-      entier_oppose(vector->the_vector[k], vector->the_vector[k]);
-    entier_init(vector->the_deno[k]);
-    if (entier_eq(d, D))
-      entier_assign(vector->the_deno[k], UN);
+      osl_int_oppose(PIPLIB_INT_PRECISION, &vector->the_vector[k], vector->the_vector[k]);
+    osl_int_init(PIPLIB_INT_PRECISION, &vector->the_deno[k]);
+    if (osl_int_eq(PIPLIB_INT_PRECISION, d, D))
+      osl_int_assign(PIPLIB_INT_PRECISION, &vector->the_deno[k], UN);
     else
-      entier_divexact(vector->the_deno[k], D, d);
+      osl_int_div_exact(PIPLIB_INT_PRECISION, &vector->the_deno[k], D, d);
     ++k;
   }
   if (unbounded)
     for (k=0; k < n; k++)
-      entier_assign(vector->the_deno[k], ZERO);
+      osl_int_assign(PIPLIB_INT_PRECISION, &vector->the_deno[k], ZERO);
   (*i)++ ;
 
-  entier_clear(d);
-  entier_clear(D);
-  entier_clear(N);
+  osl_int_clear(PIPLIB_INT_PRECISION, &d);
+  osl_int_clear(PIPLIB_INT_PRECISION, &D);
+  osl_int_clear(PIPLIB_INT_PRECISION, &N);
 
   return(vector) ;
 }
@@ -627,10 +509,11 @@ PipNewparm * sol_newparm_edit(int *i, int Bg, int Urs_p, int flags)
       exit(1) ;
     }
     newparm->vector = sol_vector_edit(i, Bg, Urs_p, flags);
-    newparm->rank = ENTIER_TO_INT(p->param1);
+    newparm->rank = osl_int_get_si(PIPLIB_INT_PRECISION, p->param1);
     /* On met p a jour pour lire le denominateur (un Val de param2 UN). */
     p = sol_space + (*i) ;
-    entier_init_set(newparm->deno, p->param1);
+	osl_int_init(PIPLIB_INT_PRECISION, &newparm->deno);
+    osl_int_assign(PIPLIB_INT_PRECISION, &newparm->deno, p->param1);
     if (flags & SOL_REMOVE)
       newparm->rank--;
     newparm->rank -= Urs_p;
@@ -643,15 +526,11 @@ PipNewparm * sol_newparm_edit(int *i, int Bg, int Urs_p, int flags)
     newparm_now = newparm ;
     if (verbose > 0)
     { fprintf(dump,"\n(newparm ") ;
-      fprintf(dump,FORMAT,newparm->rank) ;
+      fprintf(dump,"%d",newparm->rank) ;
       fprintf(dump," (div ") ;
       pip_vector_print(dump,newparm->vector) ;
-      fprintf(dump," ") ;
-      #if defined(LINEAR_VALUE_IS_MP)
-      mpz_out_str(dump,10,newparm->deno) ;
-      #else
-      fprintf(dump,FORMAT,newparm->deno) ;
-      #endif
+      fprintf(dump," ");
+      osl_int_print(dump, PIPLIB_INT_PRECISION, newparm->deno);
       fprintf(dump,"))") ;
     }
   
@@ -750,9 +629,7 @@ PipQuast *sol_quast_edit(int *i, PipQuast *father, int Bg, int Urs_p, int flags)
 { int nb_elements ;
   struct S * p ;
   PipQuast * solution ;
-  PipList * list_new, * list_now ;
-  PipNewparm * newparm_new, * newparm_now ;
-    
+
   /* On place p au lieu de lecture. */
   p = sol_space + (*i) ;
   /* En cas d'utilisation de l'option de simplification, une plage de
@@ -784,12 +661,8 @@ PipQuast *sol_quast_edit(int *i, PipQuast *father, int Bg, int Urs_p, int flags)
   /* ...ensuite soit par une liste (vide ou non) soit par un if. */
   (*i)++ ; /* Factorise de List, Nil et If. */
   switch (p->flags)
-  { case List : 
-                #if defined(LINEAR_VALUE_IS_MP)
-                nb_elements = mpz_get_si(p->param1) ;
-                #else
-                nb_elements = p->param1 ;
-                #endif
+  { case List :
+                nb_elements = osl_int_get_si(PIPLIB_INT_PRECISION, p->param1) ;
                 solution->list = sol_list_edit(i, nb_elements, Bg, Urs_p, flags);
 		if (flags & SOL_DUAL)
 		    solution->next_then = sol_quast_edit(i, solution, Bg, Urs_p, 0);

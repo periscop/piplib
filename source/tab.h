@@ -26,30 +26,35 @@
 
 #ifndef TAB_H
 #define TAB_H
+
+#include <osl/int.h>
+
+
 #if defined(__cplusplus)
 extern "C" 
   {
-#endif 
+#endif
 
-struct A
-    {struct A *precedent;
-     char *bout;
-     char *free;
-    };
+struct A {
+  struct A* precedent;
+  char* bout;
+  char* free;
+};
 
-struct L
-    {int flags;
-     Entier d;
-     float size;
-     union { int unit;
-	     Entier * val;
-	   } objet;
-    };
+struct L {
+  int flags;
+  osl_int_t d;
+  float size;
+  union {
+    int unit;
+    osl_int_t* val;
+  } objet;
+};
 
 struct high_water_mark {
-    int chunk;
-    void * top;
-    };
+  int chunk;
+  void* top;
+};
 
 #define Unit 1
 #define Plus 2
@@ -63,31 +68,23 @@ struct high_water_mark {
 #define Index(p,i,j) (p)->row[i].objet.val[j]
 #define Flag(p,i)    (p)->row[i].flags
 #define Denom(p,i)   (p)->row[i].d
-#define MAX_DETERMINANT 4
 
-#if defined(LINEAR_VALUE_IS_MP)
-struct T
-    {int height, width, taille;
-     Entier determinant;
-     struct L row[1];
-    };
-#else
-struct T
-    {int height, width;
-     Entier determinant[MAX_DETERMINANT];
-     int l_determinant;
-     struct L row[1];
-    };
-#endif
+struct T {
+  int height, width, taille;
+  osl_int_t determinant;
+  struct L row[1];
+};
 
 typedef struct T Tableau;
 
 /* Ced : ajouts specifiques a la PipLib pour funcall. */
-Tableau * tab_Matrix2Tableau(PipMatrix *, int, int, int, int, int, int);
-Tableau * tab_Matrix2TableauMax(PipMatrix *, int, int, int, int) ;
+Tableau* tab_Matrix2Tableau(PipMatrix*, int, int, int, int, int, int);
+Tableau* tab_Matrix2TableauMax(PipMatrix*, int, int, int, int) ;
+
+int dscanf(FILE*, osl_int_p);
 
 #if defined(__cplusplus)
   }
-#endif 
-#endif /* define _H */
+#endif
 
+#endif /* TAB_H */
