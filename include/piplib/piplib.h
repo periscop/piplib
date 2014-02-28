@@ -168,6 +168,9 @@ PipOptions* pip_options_init(void);
  
 
 /* Initialization of pip library */
+
+extern int PIPLIB_INT_PRECISION;
+
 void pip_init();
 void pip_init_sp();
 void pip_init_dp();

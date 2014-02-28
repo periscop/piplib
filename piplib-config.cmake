@@ -10,13 +10,13 @@ if (PIPLIB_INCLUDE_DIR AND PIPLIB_LIBRARY)
 	set(PIPLIB_FIND_QUIETLY TRUE)
 endif()
 
-find_path(PIPLIB_INCLUDE_DIR NAMES piplib/PIPLIB.h)
-find_library(PIPLIB_LIBRARY NAMES PIPLIB)
+find_path(PIPLIB_INCLUDE_DIR NAMES piplib/piplib.h)
+find_library(PIPLIB_LIBRARY NAMES piplib)
 
 if (PIPLIB_LIBRARY AND PIPLIB_INCLUDE_DIR)
-	message(STATUS "Library PIPLIB found =) ${PIPLIB_LIBRARY}")
+	message(STATUS "Library piplib found =) ${PIPLIB_LIBRARY}")
 else()
-	message(STATUS "Library PIPLIB not found =(")
+	message(STATUS "Library piplib not found =(")
 endif()
 
 
