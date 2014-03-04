@@ -6,8 +6,12 @@
 
 #include <stdio.h>
 #include <string.h>
+
 #include <unistd.h>
+#include <strings.h>
+
 #include <piplib/piplib.h>
+
 
 static PipOptions *options_read(FILE *f)
 {
@@ -28,8 +32,8 @@ static PipOptions *options_read(FILE *f)
   return options;
 }
 
-int main(int argc, const char **argv)
-{ int bignum ;
+int main(int argc, const char **argv) {
+  int bignum ;
   PipMatrix  * domain, * context  ;
   PipQuast   * solution ;
   PipOptions * options ;

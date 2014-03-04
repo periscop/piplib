@@ -29,10 +29,6 @@
 #include <string.h>
 #include <sys/types.h>
 #include <stdlib.h>
-#ifdef __TURBOC__
-#include <dir.h>
-#endif
-#define min(x,y) ((x) < (y)? (x) : (y))
 
 #include "pip.h"
 #include "version.h"
@@ -89,22 +85,11 @@ int main(int argc, char *argv[])
  struct high_water_mark hq;
  int c, non_vide;
  int p, q, xq;
- long temps;
- char *date;
- Entier x ;
- #if defined(LINEAR_VALUE_IS_MP)
- mpz_init(x);
- #else
- Entier i;
- #endif
+ osl_int_t x ;
+ osl_int_init(PIPLIB_INT_PRECISION, &x);
  
- #if defined(LINEAR_VALUE_IS_MP)
- mpz_init_set_si(UN, 1);
- mpz_init_set_si(ZERO, 0);
- #else
- UN   = VAL_UN ;
- ZERO = VAL_ZERO ;
- #endif
+ osl_int_init_set_si(PIPLIB_INT_PRECISION, &UN, 1);
+ osl_int_init_set_si(PIPLIB_INT_PRECISION, &ZERO, 0);
  
  in = stdin; out = stdout;
  p = 1;
@@ -164,45 +149,24 @@ int main(int argc, char *argv[])
      {if(c != '(') continue;
       fprintf(out, "(");
       balance(in, out);
-      #if defined(LINEAR_VALUE_IS_MP)
-      if(dscanf(in, x) < 0){escape(in, out, 1); continue;}
-      else
-        nvar = mpz_get_si(x);
-      if(dscanf(in, x) < 0){escape(in, out, 1); continue;}
-      else
-        nparm = mpz_get_si(x);
-      if(dscanf(in, x) < 0){escape(in, out, 1); continue;}
-      else
-        ni = mpz_get_si(x);
-      if(dscanf(in, x) < 0){escape(in, out, 1); continue;}
-      else
-        nc = mpz_get_si(x);
-      if(dscanf(in, x) < 0){escape(in, out, 1); continue;}
-      else
-        bigparm = mpz_get_si(x);
-      if(dscanf(in, x) < 0){escape(in, out, 1); continue;}
-      else
-        nq = mpz_get_si(x);
-      #else
-      if(dscanf(in, &x) < 0){escape(in, out, 1); continue;}
-      else 
-        nvar = (int) x;
       if(dscanf(in, &x) < 0){escape(in, out, 1); continue;}
       else
-        nparm = (int) x;
-      if(dscanf(in, &x) < 0){escape(in, out, 1); continue;}
-      else 
-        ni = (int) x;
+        nvar = osl_int_get_si(PIPLIB_INT_PRECISION, x);
       if(dscanf(in, &x) < 0){escape(in, out, 1); continue;}
       else
-        nc = (int) x;
+        nparm = osl_int_get_si(PIPLIB_INT_PRECISION, x);
       if(dscanf(in, &x) < 0){escape(in, out, 1); continue;}
-      else 
-        bigparm = (int) x;
+      else
+        ni = osl_int_get_si(PIPLIB_INT_PRECISION, x);
       if(dscanf(in, &x) < 0){escape(in, out, 1); continue;}
-      else 
-        nq = (int) x;
-      #endif
+      else
+        nc = osl_int_get_si(PIPLIB_INT_PRECISION, x);
+      if(dscanf(in, &x) < 0){escape(in, out, 1); continue;}
+      else
+        bigparm = osl_int_get_si(PIPLIB_INT_PRECISION, x);
+      if(dscanf(in, &x) < 0){escape(in, out, 1); continue;}
+      else
+        nq = osl_int_get_si(PIPLIB_INT_PRECISION, x);
       
       if(verbose > 0) {fprintf(dump, "%d %d %d %d %d %d\n",nvar, nparm, ni, nc,
                                bigparm, nq);
@@ -210,7 +174,7 @@ int main(int argc, char *argv[])
                       }
       cross_product = 0;
       hq = tab_hwm();
-      if(verbose > 0) {fprintf(dump, "hwm %x\n", g);
+      if(verbose > 0) {fprintf(dump, "hwm %p\n", g);
                        fflush(dump);
                       }
       ineq = tab_get(in, ni, nvar+nparm+1, nvar);
@@ -235,14 +199,7 @@ int main(int argc, char *argv[])
        traiter(ineq, context, nvar, nparm, ni, nc, bigparm, nq ? TRAITER_INT : 0);
 	if (verbose > 0) {
 	    fprintf(dump, "det: ");
-#if defined(LINEAR_VALUE_IS_MP)
-	    mpz_out_str(dump, 10, ineq->determinant);
-#else
-	    for (i=0; i<ineq->l_determinant; i++) {
-		fprintf(dump, FORMAT, ineq->determinant[i]);
-		fprintf(dump, " ");
-	    }
-#endif
+	    osl_int_print(dump, PIPLIB_INT_PRECISION, ineq->determinant);
 	    fprintf(dump, "\n");
 	}
 	fputs(")\n",out);
@@ -268,9 +225,7 @@ int main(int argc, char *argv[])
  comptage, chrono.tms_utime, chrono.tms_stime);
 #endif
 
-#if defined(LINEAR_VALUE_IS_MP)
- mpz_clear(x);
-#endif
+ osl_int_clear(PIPLIB_INT_PRECISION, &x);
  pip_close();
  exit(0);
 }

@@ -30,24 +30,35 @@
 # include <stdio.h>
 # include <ctype.h>
 #include <string.h>
+
 #ifdef WIN32
-#include <windows.h>
+  #include <windows.h>
+#else
+  #include <unistd.h>
 #endif
 
+#include <osl/macros.h>
+
 #include "pip.h"
-#define min(x,y) ((x) < (y)? (x) : (y))
 
-Entier UN;
-Entier ZERO;
 
-long int cross_product, limit;
+osl_int_t UN;
+osl_int_t ZERO;
+
+#ifdef OSL_GMP_IS_HERE
+int PIPLIB_INT_PRECISION = OSL_PRECISION_MP;
+#else
+int PIPLIB_INT_PRECISION = OSL_PRECISION_DP;
+#endif
+
+long long int cross_product, limit;
 int allocation, comptage;
 int verbose = 0;
 int profondeur = 0;
 int compa_count;
 int deepest_cut = 0;
 
-FILE *dump = NULL;
+FILE* dump = NULL;
 
 /* Larger line buffer to accomodate Frédo Vivien exemples. A version
 handling arbitrary line length should be written ASAP.
@@ -71,7 +82,7 @@ int dgetc(FILE *foo)
  if(inptr >= proviso)
    {p = fgets(inbuff, INLENGTH, foo);
     if(p == NULL) return EOF;
-    proviso = min(INLENGTH, strlen(inbuff));
+    proviso = OSL_min(INLENGTH, strlen(inbuff));
     inptr = 0;
     if(verbose > 2) fprintf(dump, "-- %s", inbuff);
   }
@@ -114,14 +125,11 @@ FILE *pip_create_dump_file()
 }
 
 
-#if defined(LINEAR_VALUE_IS_MP)
-int dscanf(FILE *foo, Entier  val)
-#else
-int dscanf(FILE *foo, Entier *val)
-#endif
+int dscanf(FILE *foo, osl_int_p val)
 {
  char * p;
  int c;
+ char * * inbuff_ptr;
 
  for(;inptr < proviso; inptr++)
    if(inbuff[inptr] != ' ' && inbuff[inptr] != '\n' && inbuff[inptr] != '\t')
@@ -139,12 +147,11 @@ int dscanf(FILE *foo, Entier *val)
        && inbuff[inptr] != '\n'
        && inbuff[inptr] != '\t') break;
   }
- #if defined(LINEAR_VALUE_IS_MP)
- if(gmp_sscanf(inbuff+inptr, GMP_INPUT_FORMAT, val) != 1)
- #else
- if(sscanf(inbuff+inptr, FORMAT, val) != 1)
- #endif
- return -1;
+
+  inbuff_ptr = (char * *)(inbuff+inptr);
+  osl_int_sread(inbuff_ptr, PIPLIB_INT_PRECISION, val);
+  if (inbuff_ptr == (char * *)(inbuff+inptr)) return -1;
+  inbuff_ptr = NULL;
  
  for(; inptr < proviso; inptr++)
 	if((c = inbuff[inptr]) != '-' && !isdigit(c)) break;
@@ -163,21 +170,17 @@ int dscanf(FILE *foo, Entier *val)
  * Premiere version : Ced. 29 juillet 2001. 
  */
 void pip_matrix_print(FILE * foo, PipMatrix * Mat)
-{ Entier * p;
-  int i, j ;
-  unsigned NbRows, NbColumns ;
+{ osl_int_t * p;
+  unsigned int i, j ;
+  unsigned int NbRows, NbColumns ;
 
   fprintf(foo,"%d %d\n", NbRows=Mat->NbRows, NbColumns=Mat->NbColumns) ;
   for (i=0;i<NbRows;i++) 
   { p=*(Mat->p+i) ;
     for (j=0;j<NbColumns;j++)
-    #if defined(LINEAR_VALUE_IS_MP)
     { fprintf(foo," ") ;
-      mpz_out_str(foo,10,*p++) ;
+      osl_int_print(foo, PIPLIB_INT_PRECISION, *p++) ;
     }
-    #else
-    fprintf(foo," "FORMAT, *p++) ;
-    #endif
     fprintf(foo, "\n") ;
   }
 } 
@@ -195,19 +198,10 @@ void pip_vector_print(FILE * foo, PipVector * vector)
   { fprintf(foo,"#[") ;
     for (i=0;i<vector->nb_elements;i++)
     { fprintf(foo," ") ;
-      #if defined(LINEAR_VALUE_IS_MP)
-      mpz_out_str(foo,10,vector->the_vector[i]) ;
-      if (mpz_cmp(vector->the_deno[i],UN) != 0)
-      #else
-      fprintf(foo,FORMAT,vector->the_vector[i]) ;
-      if (vector->the_deno[i] != UN)
-      #endif
+      osl_int_print(foo, PIPLIB_INT_PRECISION, vector->the_vector[i]) ;
+      if (! osl_int_one(PIPLIB_INT_PRECISION, vector->the_deno[i]))
       { fprintf(foo,"/") ;
-        #if defined(LINEAR_VALUE_IS_MP)
-        mpz_out_str(foo,10,vector->the_deno[i]) ;
-        #else
-        fprintf(foo,FORMAT,vector->the_deno[i]) ;
-        #endif
+        osl_int_print(foo, PIPLIB_INT_PRECISION, vector->the_deno[i]);
       }
     }
     fprintf(foo,"]") ;
@@ -234,11 +228,7 @@ void pip_newparm_print(FILE * foo, PipNewparm * newparm, int indent)
       fprintf(foo," (div ") ;
       pip_vector_print(foo,newparm->vector) ;
       fprintf(foo," ") ;
-      #if defined(LINEAR_VALUE_IS_MP)
-      mpz_out_str(foo,10,newparm->deno) ;
-      #else
-      fprintf(foo,FORMAT,newparm->deno) ;
-      #endif
+      osl_int_print(foo, PIPLIB_INT_PRECISION, newparm->deno) ;
       fprintf(foo,"))\n") ;
     }
     while ((newparm = newparm->next) != NULL) ;
@@ -289,9 +279,8 @@ void pip_list_print(FILE * foo, PipList * list, int indent)
  * 20 juillet 2001 : Premiere version, Ced. 
  * 18 octobre 2001 : eclatement. 
  */
-void pip_quast_print(FILE * foo, PipQuast * solution, int indent)
-{ int i ;
-  PipVector * vector ;
+void pip_quast_print(FILE * foo, PipQuast * solution, int indent) {
+  int i ;
   int new_indent = indent >= 0 ? indent+1 : indent;
   
   if (solution != NULL)
@@ -334,6 +323,7 @@ void * pip_options_print(FILE * foo, PipOptions * options)
   fprintf(foo,"Urs_parms   =%d\n",options->Urs_parms);
   fprintf(foo,"Urs_unknowns=%d\n",options->Urs_unknowns);
   fprintf(foo,"\n") ;
+  return foo;
 }
 
 
@@ -348,15 +338,13 @@ void * pip_options_print(FILE * foo, PipOptions * options)
  * Premiere version : Ced. 29 juillet 2001. 
  */
 void pip_matrix_free(PipMatrix * matrix)
-{ 
-  #if defined(LINEAR_VALUE_IS_MP)
-  int i, j ;
-  Entier * p ;
+{
+  int i;
+  osl_int_t* p;
 
   p = matrix->p_Init ;
   for (i=0;i<matrix->p_Init_size;i++) 
-  mpz_clear(*p++) ;
-  #endif
+  osl_int_clear(PIPLIB_INT_PRECISION, p++) ;
 
   if (matrix != NULL)
   { free(matrix->p_Init) ;
@@ -377,13 +365,11 @@ void pip_vector_free(PipVector * vector)
 { int i ;
   
   if (vector != NULL)
-  { 
-    #if defined(LINEAR_VALUE_IS_MP)
+  {
     for (i=0;i<vector->nb_elements;i++)
-    { mpz_clear(vector->the_vector[i]);
-      mpz_clear(vector->the_deno[i]);
+    { osl_int_clear(PIPLIB_INT_PRECISION, &vector->the_vector[i]);
+      osl_int_clear(PIPLIB_INT_PRECISION, &vector->the_deno[i]);
     }
-    #endif
   
     free(vector->the_vector) ;
     free(vector->the_deno) ;
@@ -403,9 +389,7 @@ void pip_newparm_free(PipNewparm * newparm)
 
   while (newparm != NULL)
   { next = newparm->next ;
-    #if defined(LINEAR_VALUE_IS_MP)
-    mpz_clear(newparm->deno);
-    #endif
+    osl_int_clear(PIPLIB_INT_PRECISION, &newparm->deno);
     pip_vector_free(newparm->vector) ;
     free(newparm) ;
     newparm = next ;
@@ -516,8 +500,8 @@ PipOptions * pip_options_init(void)
  */
 PipMatrix * pip_matrix_alloc(unsigned NbRows, unsigned NbColumns)
 { PipMatrix * matrix ;
-  Entier ** p, * q ;
-  int i, j ;
+  osl_int_t ** p, * q ;
+  unsigned int i, j ;
 
   matrix = (PipMatrix *)malloc(sizeof(PipMatrix)) ;
   if (matrix == NULL) 	
@@ -537,12 +521,12 @@ PipMatrix * pip_matrix_alloc(unsigned NbRows, unsigned NbColumns)
       matrix->p_Init = NULL ;
     }
     else 
-    { p = (Entier **)malloc(NbRows*sizeof(Entier *)) ;
+    { p = (osl_int_t **)malloc(NbRows*sizeof(osl_int_t *)) ;
       if (p == NULL) 
       { fprintf(stderr, "Memory Overflow.\n") ;
         exit(1) ;
       }
-      q = (Entier *)malloc(NbRows * NbColumns * sizeof(Entier)) ;
+      q = (osl_int_t *)malloc(NbRows * NbColumns * sizeof(osl_int_t)) ;
       if (q == NULL) 
       { fprintf(stderr, "Memory Overflow.\n") ;
         exit(1) ;
@@ -551,12 +535,7 @@ PipMatrix * pip_matrix_alloc(unsigned NbRows, unsigned NbColumns)
       matrix->p_Init = q ;
       for (i=0;i<NbRows;i++) 
       { *p++ = q ;
-	for (j=0;j<NbColumns;j++)   
-        #if defined(LINEAR_VALUE_IS_MP)
-	mpz_init_set_si(*(q+j),0) ;
-	#else
-	*(q+j) = 0 ;
-	#endif
+	for (j=0;j<NbColumns;j++) osl_int_init_set_si(PIPLIB_INT_PRECISION, (q+j),0) ;
 	q += NbColumns ;
       }
     }
@@ -575,20 +554,15 @@ PipMatrix * pip_matrix_alloc(unsigned NbRows, unsigned NbColumns)
  *   eventuellement d'un commentaire sur une meme ligne,
  * - des lignes de la matrice, chaque ligne devant etre sur sa propre ligne de
  *   texte et eventuellement suivies d'un commentaire.
- * Premiere version : Ced. 18 octobre 2001. 
- * 24 octobre 2002 : premiere version MP, attention, uniquement capable de
- *                   lire des long long pour l'instant. On utilise pas
- *                   mpz_inp_str car on lit depuis des char * et non des FILE.
- */
+ * Premiere version : Ced. 18 octobre 2001. */
 PipMatrix * pip_matrix_read(FILE * foo)
 { unsigned NbRows, NbColumns ;
-  int i, j, n ;
-  #if defined(LINEAR_VALUE_IS_MP)
-  long long val ;
-  #endif
-  char *c, s[1024], str[1024] ;
+  unsigned int i, j;
+  int n;
+  char *c, s[1024], str[1024];
+  char * str_ptr;
   PipMatrix * matrix ;
-  Entier * p ;
+  osl_int_t* p ;
 
   while (fgets(s,1024,foo) == 0) ;
   while ((*s=='#' || *s=='\n') || (sscanf(s," %u %u",&NbRows,&NbColumns)<2))
@@ -619,12 +593,9 @@ PipMatrix * pip_matrix_read(FILE * foo)
       { fprintf(stderr, "Not enough rows.\n") ;
         exit(1) ;
       }
-      #if defined(LINEAR_VALUE_IS_MP)
-      sscanf(str,"%lld",&val) ;
-      mpz_set_si(*p++,val) ;
-      #else
-      sscanf(str,FORMAT,p++) ;
-      #endif
+      str_ptr = str;
+      osl_int_sread(&str_ptr, PIPLIB_INT_PRECISION, p++);
+	  str_ptr = NULL;
       c += n ;
     }
   }
@@ -636,28 +607,45 @@ PipMatrix * pip_matrix_read(FILE * foo)
 static int pip_initialized = 0;
 
 void pip_init() {
+  if (PIPLIB_INT_PRECISION == -1)
+  {
+    #ifdef OSL_GMP_IS_HERE
+      pip_init_mp();
+    #else
+      pip_init_dp();
+    #endif
+  }
+
   /* Avoid initializing (and leaking) several times */
   if (!pip_initialized) {
-    #if defined(LINEAR_VALUE_IS_MP)
-    mpz_init_set_si(UN, 1);
-    mpz_init_set_si(ZERO, 0);
-    #else
-    UN   = VAL_UN ;
-    ZERO = VAL_ZERO ;
-    #endif
+    osl_int_init_set_si(PIPLIB_INT_PRECISION, &UN, 1);
+    osl_int_init_set_si(PIPLIB_INT_PRECISION, &ZERO, 0);
     sol_init() ;
     tab_init() ;
     pip_initialized = 1;
   }
 }
 
+void pip_init_sp() {
+  PIPLIB_INT_PRECISION = OSL_PRECISION_SP;
+  pip_init();
+}
+
+void pip_init_dp() {
+  PIPLIB_INT_PRECISION = OSL_PRECISION_DP;
+  pip_init();
+}
+
+void pip_init_mp() {
+  PIPLIB_INT_PRECISION = OSL_PRECISION_MP;
+  pip_init();
+}
+
 void pip_close() {
   tab_close();
   sol_close();
-# if defined(LINEAR_VALUE_IS_MP)
-  mpz_clear(UN);
-  mpz_clear(ZERO);
-# endif
+  osl_int_clear(PIPLIB_INT_PRECISION, &UN);
+  osl_int_clear(PIPLIB_INT_PRECISION, &ZERO);
   pip_initialized = 0;
 }
  
@@ -673,7 +661,7 @@ void pip_close() {
 static void pip_quast_equalities_dual(PipQuast *solution, PipMatrix *inequnk)
 {
     PipList **list_p, *list;
-    int i;
+    unsigned int i;
 
     if (!solution)
 	return;
@@ -689,8 +677,8 @@ static void pip_quast_equalities_dual(PipQuast *solution, PipMatrix *inequnk)
 	return;
     list_p = &solution->next_then->list;
     for (i = 0; i < inequnk->NbRows; ++i) {
-	if (entier_zero_p(inequnk->p[i][0])) {
-	    if (entier_notzero_p((*list_p)->vector->the_vector[0])) {
+	if (osl_int_zero(PIPLIB_INT_PRECISION, inequnk->p[i][0])) {
+	    if (! osl_int_zero(PIPLIB_INT_PRECISION, (*list_p)->vector->the_vector[0])) {
 		list_p = &(*list_p)->next;
 		list = *list_p;
 		*list_p = list->next;
@@ -701,7 +689,7 @@ static void pip_quast_equalities_dual(PipQuast *solution, PipMatrix *inequnk)
 		*list_p = list->next;
 		list->next = NULL;
 		pip_list_free(list);
-		entier_oppose((*list_p)->vector->the_vector[0],
+		osl_int_oppose(PIPLIB_INT_PRECISION, &(*list_p)->vector->the_vector[0],
 			      (*list_p)->vector->the_vector[0]);
 		list_p = &(*list_p)->next;
 	    }
@@ -745,10 +733,12 @@ PipMatrix * inequnk, * ineqpar ;
 int Bg ;
 PipOptions * options ;
 { Tableau * ineq, * context, * ctxt ;
-  int i, Np, Nn, Nl, Nm, p, q, xq, non_vide, Shift = 0, Urs_parms = 0;
-  char * g ;
-  struct high_water_mark hq ;
-  Entier D ;
+  unsigned int i;
+  int Np, Nn;
+  unsigned int Nl;
+  int Nm;
+  int p, /*q,*/ xq, non_vide, Shift = 0, Urs_parms = 0;
+  struct high_water_mark hq;
   PipQuast * solution ;
   int	sol_flags = 0;
 
@@ -771,11 +761,7 @@ PipOptions * options ;
      if (!dump)
 	verbose = 0;
   }
-  #if defined(LINEAR_VALUE_IS_MP)
   limit = 0LL ;
-  #else
-  limit = ZERO ;
-  #endif
 
   /* Si inequnk est NULL, la solution est automatiquement void (NULL). */
   if (inequnk != NULL)
@@ -793,13 +779,8 @@ PipOptions * options ;
      */
     Nl = inequnk->NbRows ;
     for (i=0;i<inequnk->NbRows;i++)
-    #if defined(LINEAR_VALUE_IS_MP)
-    if (mpz_sgn(**(inequnk->p + i)) == 0)
-    #else
-    if (**(inequnk->p + i) == 0)
-    #endif
-    Nl ++ ;
-      
+      if (osl_int_zero(PIPLIB_INT_PRECISION, **(inequnk->p + i))) Nl++;
+
     /* On prend les 'marques' de debut de traitement. */
     cross_product = 0 ;
     hq = tab_hwm() ;
@@ -838,12 +819,7 @@ PipOptions * options ;
        */
       Nm = ineqpar->NbRows ;
       for (i=0;i<ineqpar->NbRows;i++)
-      #if defined(LINEAR_VALUE_IS_MP)
-      if (mpz_sgn(**(ineqpar->p + i)) == 0)
-      #else
-      if (**(ineqpar->p + i) == 0)
-      #endif
-      Nm ++ ;
+        if (osl_int_zero(PIPLIB_INT_PRECISION, **(ineqpar->p + i))) Nm++;
       
       context = tab_Matrix2Tableau(ineqpar, Nm, Np-Urs_parms, -1,
 				   Shift, Bg-Nn-1, Urs_parms);
@@ -892,7 +868,7 @@ PipOptions * options ;
 
       if (options->Simplify)
       sol_simplify(xq) ;
-      q = sol_hwm() ;
+      //q = sol_hwm() ;
       /* On traduit la solution du format de solution de Pip vers un arbre
        * de structures de type PipQuast.
        */

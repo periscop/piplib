@@ -27,31 +27,25 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include <osl/macros.h>
+#include <osl/int.h>
+
 #include "pip.h"
 
-#define max(x,y) ((x) > (y)? (x) : (y))
 
 extern long int cross_product, limit;
 extern int verbose;
-extern FILE *dump;
+extern FILE* dump;
 extern int profondeur;
 extern int compa_count;
 
-#if !defined(LINEAR_VALUE_IS_MP)
-int llog(Entier x)
-{int n = 0;
-/* x must be positive, you dummy */
- if(x<0) x=-x;
- while(x) x >>= 1, n++;
- return(n);
-}
-#endif
 
-int chercher(Tableau *p, int masque, int n)
-{int i;
- for(i = 0; i<n; i++)
-     if(p->row[i].flags & masque) break;
- return(i);
+int chercher(Tableau* p, int masque, int n)
+{
+  int i;
+  for (i = 0; i < n; i++)
+    if (p->row[i].flags & masque) break;
+  return i;
 }
 
 /* il est convenu que traiter ne doit modifier ni le tableau, ni le contexte;
@@ -60,49 +54,37 @@ int chercher(Tableau *p, int masque, int n)
    le contexte peut grandir en cas de coupure (+2 en hauteur et +1 en largeur)
    (seulement si nparm !=0) et en cas de partage (+1 en hauteur)(nparm !=0).
    On estime le nombre de coupures a llog(D) et le nombre de partages a
-   ni.
-*/
-
-Tableau *expanser(Tableau *tp, int virt, int reel, int ncol, 
-                               int off, int dh, int dw)
+   ni. */
+Tableau* expanser(
+  Tableau* tp, int virt, int reel, int ncol, int off, int dh, int dw
+)
 {
- int i, j, ff;
- char *q; Entier *pq;
- Entier *pp, *qq;
- Tableau *rp;
- if(tp == NULL) return(NULL);
- rp = tab_alloc(reel+dh, ncol+dw, virt);
+  int i, j, ff;
+  osl_int_t* pq;
+  osl_int_t* pp;
+  osl_int_t* qq;
+  Tableau* rp;
+  if(tp == NULL) return(NULL);
+  rp = tab_alloc(reel+dh, ncol+dw, virt);
 
- #if defined(LINEAR_VALUE_IS_MP)
- mpz_set(rp->determinant, tp->determinant);
- #else
- rp->l_determinant = tp->l_determinant;
- for(i=0; i<tp->l_determinant; i++)
-     rp->determinant[i] = tp->determinant[i];
- #endif
- pq = (Entier *) & (rp->row[virt+reel+dh]);
- for(i = off; i<virt + reel; i++)
-     {ff = Flag(rp, i) = Flag(tp, i-off);
-      #if defined(LINEAR_VALUE_IS_MP)
-      mpz_set(Denom(rp, i), Denom(tp, i-off));
-      #else
-      Denom(rp, i) = Denom(tp, i-off);
-      #endif
-      if(ff & Unit) rp->row[i].objet.unit = tp->row[i-off].objet.unit;
-      else {
-	  rp->row[i].objet.val = pq;
-	  pq +=(ncol + dw);
-	  pp = tp->row[i-off].objet.val;
-	  qq = rp->row[i].objet.val;
-	  for(j = 0; j<ncol; j++)
-             #if defined(LINEAR_VALUE_IS_MP)
-	     mpz_set(*qq++, *pp++);
-             #else
-	     *qq++ = *pp++;
-             #endif
-	  }
+  osl_int_assign(PIPLIB_INT_PRECISION, &rp->determinant, tp->determinant);
+  pq = (osl_int_t *) & (rp->row[virt+reel+dh]);
+  for(i = off; i<virt + reel; i++)
+  {
+    ff = Flag(rp, i) = Flag(tp, i-off);
+    osl_int_assign(PIPLIB_INT_PRECISION, &Denom(rp, i), Denom(tp, i-off));
+    if (ff & Unit) rp->row[i].objet.unit = tp->row[i-off].objet.unit;
+    else {
+      rp->row[i].objet.val = pq;
+      pq +=(ncol + dw);
+      pp = tp->row[i-off].objet.val;
+      qq = rp->row[i].objet.val;
+      for (j = 0; j<ncol; j++)
+        osl_int_assign(PIPLIB_INT_PRECISION, qq++, *pp++);
       }
- return(rp);
+  }
+
+  return(rp);
 }
 
 /* Check for "obvious" signs of the parametric constant terms
@@ -113,81 +95,71 @@ Tableau *expanser(Tableau *tp, int virt, int reel, int ncol,
  * If any of the negative signs is due to the "big parameter",
  * then we want to use this constraint first.
  * We therefore check for signs determined by the coefficient
- * of the big parameter first.
- */
+ * of the big parameter first. */
 int exam_coef(Tableau *tp, int nvar, int ncol, int bigparm)
-{int i, j ;
- int ff, fff;
- #if defined(LINEAR_VALUE_IS_MP)
- int x;
- #else
- Entier x;
- #endif
- Entier *p;
- 
- if (bigparm >= 0)
+{
+  int i, j ;
+  int ff, fff;
+  osl_int_t* p;
+
+  if (bigparm >= 0)
     for (i = 0; i<tp->height; i++) {
-	if (Flag(tp, i) != Unknown)
-	    continue;
-	x = entier_sgn(Index(tp,i, bigparm));
-	if (x < 0) {
-	    Flag(tp, i) = Minus;
-	    return i;
-	} else if (x > 0)     
-	    Flag(tp, i) = Plus;
+      if (Flag(tp, i) != Unknown) continue;
+
+      if (osl_int_neg(PIPLIB_INT_PRECISION, Index(tp,i, bigparm))) {
+        Flag(tp, i) = Minus;
+      }
+      else if (osl_int_pos(PIPLIB_INT_PRECISION, Index(tp,i, bigparm))) {
+        Flag(tp, i) = Plus;
+      }
     }
 
- for(i = 0; i<tp->height; i++)
-     {ff = Flag(tp,i);
-      if(ff == 0) break;
-      if(ff == Unknown) {
-	   ff = Zero;
-	   p = &(tp->row[i].objet.val[nvar+1]);
-	   for(j = nvar+1; j<ncol; j++) {
-                #if defined(LINEAR_VALUE_IS_MP)
-	        x = mpz_sgn(*p); p++ ;
-	        #else
-	        x = *p++;
-                #endif
-		if(x<0) fff = Minus;
-		else if (x>0) fff = Plus;
-		else fff = Zero;
-		if(fff != Zero && fff != ff)
-		    if(ff == Zero) ff = fff;
-		    else {ff = Unknown;
-			  break;
-			 }
-	       }
-/* bug de'tecte' par [paf], 16/2/93 !
-   Si tous les coefficients des parame`tres sont ne'gatifs
-   et si le terme constant est nul, le signe est inconnu!!
-   On traite donc spe'cialement le terme constant. */
-           #if defined(LINEAR_VALUE_IS_MP)
-	   x = mpz_sgn(Index(tp, i, nvar));
-	   #else
-	   x = Index(tp, i, nvar);
-           #endif
-	   if(x<0) fff = Minus;
-	   else if(x>0) fff = Plus;
-	   else fff = Zero;
-/* ici on a le signe du terme constant */
-	   switch(ff){
-/* le signe est inconnu si les coefficients sont positifs et
-   le terme constant ne'gatif */
-	   case Plus: if(fff == Minus) ff = Unknown; break;
-/* si les coefficients sont tous nuls, le signe est celui
-   du terme constant */
-	   case Zero: ff = fff; break;
-/* le signe est inconnu si les coefficients sont ne'gatifs,
-   sauf si le terme constant est egalement negatif. */
-	   case Minus: if(fff != Minus) ff = Unknown; break;
-/* enfin, il n'y a rien a` dire si le signe des coefficients est inconnu */
-	   }
-	   Flag(tp, i) = ff;
-	   if(ff == Minus) return(i);
-	  }
+  for(i = 0; i<tp->height; i++) {
+    ff = Flag(tp,i);
+    if(ff == 0) break;
+    if(ff == Unknown) {
+      ff = Zero;
+      p = &(tp->row[i].objet.val[nvar+1]);
+      for(j = nvar+1; j<ncol; j++) {
+
+        if (osl_int_pos(PIPLIB_INT_PRECISION, *p)) fff = Plus;
+        else if (osl_int_neg(PIPLIB_INT_PRECISION, *p)) fff = Minus;
+        else fff = Zero;
+
+        ++p;
+
+        if (fff != Zero && fff != ff) {
+          if(ff == Zero) ff = fff;
+          else { ff = Unknown; break; }
+        }
       }
- return(i);
+      /* bug de'tecte' par [paf], 16/2/93 !
+         Si tous les coefficients des parame`tres sont ne'gatifs
+         et si le terme constant est nul, le signe est inconnu!!
+         On traite donc spe'cialement le terme constant. */
+      if (osl_int_pos(PIPLIB_INT_PRECISION, Index(tp, i, nvar))) fff = Plus;
+      else if (osl_int_neg(PIPLIB_INT_PRECISION, Index(tp, i, nvar))) fff = Minus;
+      else fff = Zero;
+
+      /* ici on a le signe du terme constant */
+      switch(ff) {
+        /* le signe est inconnu si les coefficients sont positifs et
+           le terme constant ne'gatif */
+        case Plus: if(fff == Minus) ff = Unknown; break;
+        /* si les coefficients sont tous nuls, le signe est celui
+           du terme constant */
+        case Zero: ff = fff; break;
+        /* le signe est inconnu si les coefficients sont ne'gatifs,
+           sauf si le terme constant est egalement negatif. */
+        case Minus: if(fff != Minus) ff = Unknown; break;
+        /* enfin, il n'y a rien a` dire si le signe des coefficients est inconnu */
+      }
+      Flag(tp, i) = ff;
+      if(ff == Minus) return i;
+    }
+  }
+
+  return i;
 }
 
 void compa_test(Tableau *tp, Tableau *context,
@@ -196,7 +168,6 @@ void compa_test(Tableau *tp, Tableau *context,
  int i, j;
  int ff;
  int cPlus, cMinus, isCritic;
- int verbold;
  Tableau *tPlus, *tMinus;
  int p;
  struct high_water_mark q;
@@ -213,11 +184,7 @@ void compa_test(Tableau *tp, Tableau *context,
       if(ff & (Critic | Unknown))
 	  {isCritic = Pip_True;
 	   for(j = 0; j<nvar; j++)
-                 #if defined(LINEAR_VALUE_IS_MP)
-		 if(mpz_sgn(Index(tp, i, j)) > 0)
-                 #else
-	         if(Index(tp, i, j) > 0)
-                 #endif
+		 if(osl_int_pos(PIPLIB_INT_PRECISION, Index(tp, i, j)))
 		 {isCritic = Pip_False;
 		  break;
 		 }
@@ -225,12 +192,12 @@ void compa_test(Tableau *tp, Tableau *context,
 	   tPlus = expanser(context, nparm, nc, nparm+1, nparm, 1, 0);
 	   Flag(tPlus, nparm+nc) = Unknown;
 	   for (j = 0; j < nparm; j++)
-	       entier_assign(Index(tPlus, nparm+nc, j), Index(tp, i, j+nvar+1));
-	   entier_assign(Index(tPlus, nparm+nc, nparm), Index(tp, i, nvar));
+	       osl_int_assign(PIPLIB_INT_PRECISION, &Index(tPlus, nparm+nc, j), Index(tp, i, j+nvar+1));
+	   osl_int_assign(PIPLIB_INT_PRECISION, &Index(tPlus, nparm+nc, nparm), Index(tp, i, nvar));
 	   if (!isCritic)
-	       entier_decrement(Index(tPlus, nparm+nc, nparm),
+	       osl_int_decrement(PIPLIB_INT_PRECISION, &Index(tPlus, nparm+nc, nparm),
 				    Index(tPlus, nparm+nc, nparm));
-	   entier_assign(Denom(tPlus, nparm+nc), UN);
+	   osl_int_assign(PIPLIB_INT_PRECISION, &Denom(tPlus, nparm+nc), UN);
 	   
 	   p = sol_hwm();
 	   traiter(tPlus, NULL, nparm, 0, nc+1, 0, -1, TRAITER_INT);
@@ -245,11 +212,11 @@ void compa_test(Tableau *tp, Tableau *context,
 	   tMinus = expanser(context, nparm, nc, nparm+1, nparm, 1, 0);
 	   Flag(tMinus, nparm+nc) = Unknown;
 	   for (j = 0; j < nparm; j++)
-	       entier_oppose(Index(tMinus, nparm+nc, j), Index(tp, i, j+nvar+1));
-	   entier_oppose(Index(tMinus, nparm+nc, nparm), Index(tp, i, nvar));
-	   entier_decrement(Index(tMinus, nparm+nc, nparm),
+	       osl_int_oppose(PIPLIB_INT_PRECISION, &Index(tMinus, nparm+nc, j), Index(tp, i, j+nvar+1));
+	   osl_int_oppose(PIPLIB_INT_PRECISION, &Index(tMinus, nparm+nc, nparm), Index(tp, i, nvar));
+	   osl_int_decrement(PIPLIB_INT_PRECISION, &Index(tMinus, nparm+nc, nparm),
 				Index(tMinus, nparm+nc, nparm));
-	   entier_assign(Denom(tMinus, nparm+nc), UN);
+	   osl_int_assign(PIPLIB_INT_PRECISION, &Denom(tMinus, nparm+nc), UN);
 	   traiter(tMinus, NULL, nparm, 0, nc+1, 0, -1, TRAITER_INT);
 	   cMinus = is_not_Nil(p);
 	   if(verbose>0){
@@ -276,7 +243,7 @@ void compa_test(Tableau *tp, Tableau *context,
  return;
 }
 
-Entier *valeur(Tableau *tp, int i, int j)
+osl_int_t *valeur(Tableau *tp, int i, int j)
 {
  if(Flag(tp, i) & Unit)
      return(tp->row[i].objet.unit == j ? &Denom(tp,i) : &ZERO);
@@ -296,7 +263,7 @@ void solution(Tableau *tp, int nvar, int nparm)
      }
 }
 
-static void solution_dual(Tableau *tp, int nvar, int nparm, int *pos)
+static void solution_dual(Tableau *tp, int nvar, int *pos)
 {
     int i;
 
@@ -312,80 +279,58 @@ static void solution_dual(Tableau *tp, int nvar, int nparm, int *pos)
 
 int choisir_piv(Tableau *tp, int pivi, int nvar, int nligne)
 {
- int j, k;
- Entier pivot, foo, x, y;
- int sgn_x, pivj = -1;
+  int j, k;
+  osl_int_t pivot, foo, x, y;
+  int pivj = -1;
 
- #if defined(LINEAR_VALUE_IS_MP)
- mpz_init(pivot); mpz_init(foo); mpz_init(x); mpz_init(y);
- #endif
- 
- for(j = 0; j<nvar; j++) {
-    #if defined(LINEAR_VALUE_IS_MP)
-    mpz_set(foo, Index(tp, pivi, j));
-    if(mpz_sgn(foo) <= 0) continue;
-    if(pivj < 0)
-	{pivj = j;
-         mpz_set(pivot, foo);
-	 continue;
-	}
-    for(k = 0; k<nligne; k++)
-        {mpz_mul(x, pivot, *valeur(tp, k, j)); 
-         mpz_mul(y, *valeur(tp, k, pivj), foo);
-         mpz_sub(x, x, y);
-         cross_product++;
-         sgn_x = mpz_sgn(x);
-         if(sgn_x) break;
-	}
-    if(sgn_x < 0)
-        {pivj = j;
-         mpz_set(pivot, foo);
-        }
-    #else
-    if((foo = Index(tp, pivi, j)) <= 0) continue;
-    if(pivj < 0)
-	{pivj = j;
-	 pivot = foo;
-	 continue;
-	}
-    for(k = 0; k<nligne; k++)
-	{x = pivot * (*valeur(tp, k, j)) - (*valeur(tp, k, pivj)) * foo;
-	 cross_product++;
-	 if(x) break;
-	}
-    if(x < 0)
-	{pivj = j;
-	 pivot = foo;
-	}
-    #endif
- }
- 
- #if defined(LINEAR_VALUE_IS_MP)
- mpz_clear(pivot); mpz_clear(foo); mpz_clear(x); mpz_clear(y);
- #endif
+  osl_int_init(PIPLIB_INT_PRECISION, &pivot);
+  osl_int_init(PIPLIB_INT_PRECISION, &foo);
+  osl_int_init(PIPLIB_INT_PRECISION, &x);
+  osl_int_init(PIPLIB_INT_PRECISION, &y);
 
- return(pivj);
+  for(j = 0; j<nvar; j++) {
+    osl_int_assign(PIPLIB_INT_PRECISION, &foo, Index(tp, pivi, j));
+    if(!osl_int_pos(PIPLIB_INT_PRECISION, foo)) continue;
+    if(pivj < 0) {
+      pivj = j;
+      osl_int_assign(PIPLIB_INT_PRECISION, &pivot, foo);
+      continue;
+    }
+    for(k = 0; k<nligne; k++) {
+      osl_int_mul(PIPLIB_INT_PRECISION, &x, pivot, *valeur(tp, k, j)); 
+      osl_int_mul(PIPLIB_INT_PRECISION, &y, *valeur(tp, k, pivj), foo);
+      osl_int_sub(PIPLIB_INT_PRECISION, &x, x, y);
+      cross_product++;
+
+       if (! osl_int_zero(PIPLIB_INT_PRECISION, x)) break;
+    }
+    if(osl_int_neg(PIPLIB_INT_PRECISION, x)) {
+      pivj = j;
+      osl_int_assign(PIPLIB_INT_PRECISION, &pivot, foo);
+    }
+  }
+
+  osl_int_clear(PIPLIB_INT_PRECISION, &pivot);
+  osl_int_clear(PIPLIB_INT_PRECISION, &foo);
+  osl_int_clear(PIPLIB_INT_PRECISION, &x);
+  osl_int_clear(PIPLIB_INT_PRECISION, &y);
+
+  return pivj;
 }
 
 
-int pivoter(Tableau *tp, int pivi, int nvar, int nparm, int ni)
-
-{int pivj;
+int pivoter(Tableau* tp, int pivi, int nvar, int nparm, int ni)
+{
+ int pivj;
  int ncol = nvar + nparm + 1;
  int nligne = nvar + ni;
  int i, j, k;
- Entier x, y, d, gcd, u, dpiv;
+ osl_int_t x, y, d, gcd, u, dpiv;
  int ff, fff;
- Entier pivot, foo, z;
- Entier ppivot, dppiv;
- Entier new[MAXCOL], *p, *q;
- Entier lpiv;
- int sgn_x;
- #if !defined(LINEAR_VALUE_IS_MP)
- char format_format[32];
-
- sprintf(format_format, "\nPivot %s/%s\n", FORMAT, FORMAT);
- #endif
+ osl_int_t pivot, foo, z;
+ osl_int_t ppivot, dppiv;
+ osl_int_t new[MAXCOL], *p, *q;
+ osl_int_t lpiv;
 
  if(ncol >= MAXCOL) {
    fprintf(stdout, "Too much variables\n");
@@ -403,169 +348,95 @@ int pivoter(Tableau *tp, int pivi, int nvar, int nparm, int ni)
    exit(1);
  }
 
- #if defined(LINEAR_VALUE_IS_MP)
- mpz_init(x); mpz_init(y); mpz_init(d); 
- mpz_init(gcd); mpz_init(u); mpz_init(dpiv);
- mpz_init(lpiv); mpz_init(pivot); mpz_init(foo);
- mpz_init(z); mpz_init(ppivot); mpz_init(dppiv);
+ osl_int_init(PIPLIB_INT_PRECISION, &x);
+ osl_int_init(PIPLIB_INT_PRECISION, &y);
+ osl_int_init(PIPLIB_INT_PRECISION, &d); 
+ osl_int_init(PIPLIB_INT_PRECISION, &gcd);
+ osl_int_init(PIPLIB_INT_PRECISION, &u);
+ osl_int_init(PIPLIB_INT_PRECISION, &dpiv);
+ osl_int_init(PIPLIB_INT_PRECISION, &lpiv);
+ osl_int_init(PIPLIB_INT_PRECISION, &pivot);
+ osl_int_init(PIPLIB_INT_PRECISION, &foo);
+ osl_int_init(PIPLIB_INT_PRECISION, &z);
+ osl_int_init(PIPLIB_INT_PRECISION, &ppivot);
+ osl_int_init(PIPLIB_INT_PRECISION, &dppiv);
 
  for(i=0; i<ncol; i++)
-   mpz_init(new[i]);
+   osl_int_init(PIPLIB_INT_PRECISION, &new[i]);
 
- mpz_set(pivot, Index(tp, pivi, pivj));
- mpz_set(dpiv, Denom(tp, pivi));
- mpz_gcd(d, pivot, dpiv);
- mpz_divexact(ppivot, pivot, d);
- mpz_divexact(dppiv, dpiv, d);
- #else
- pivot = Index(tp, pivi, pivj);
- dpiv = Denom(tp, pivi);
- d = pgcd(pivot, dpiv);
- ppivot = pivot/d;
- dppiv = dpiv/d;
- #endif
+ osl_int_assign(PIPLIB_INT_PRECISION, &pivot, Index(tp, pivi, pivj));
+ osl_int_assign(PIPLIB_INT_PRECISION, &dpiv, Denom(tp, pivi));
+ osl_int_gcd(PIPLIB_INT_PRECISION, &d, pivot, dpiv);
+ osl_int_div_exact(PIPLIB_INT_PRECISION, &ppivot, pivot, d);
+ osl_int_div_exact(PIPLIB_INT_PRECISION, &dppiv, dpiv, d);
  
  if(verbose>1){
-   #if defined(LINEAR_VALUE_IS_MP)
    fprintf(dump, "Pivot ");
-   mpz_out_str(dump, 10, ppivot);
+   osl_int_print(dump, PIPLIB_INT_PRECISION, ppivot);
    putc('/', dump);
-   mpz_out_str(dump, 10, dppiv);
+   osl_int_print(dump, PIPLIB_INT_PRECISION, dppiv);
    putc('\n', dump);
-   #else
-   fprintf(dump, format_format, ppivot, dppiv);
-   #endif
    fprintf(dump, "%d x %d\n", pivi, pivj);
  }
 
- #if defined(LINEAR_VALUE_IS_MP)
- mpz_fdiv_qr(x, y, tp->determinant, dppiv); 
- #else
- for(i=0; i< tp->l_determinant; i++){
-     d=pgcd(tp->determinant[i], dppiv);
-     tp->determinant[i] /= d;
-     dppiv /= d;
-     }
- #endif
+ osl_int_floor_div_q_r(PIPLIB_INT_PRECISION, &x, &y, tp->determinant, dppiv);
 
- #if defined(LINEAR_VALUE_IS_MP)
- if(mpz_sgn(y) != 0){ 
- #else
- if(dppiv != 1) {
- #endif
+ if (!osl_int_zero(PIPLIB_INT_PRECISION, y)) {
    fprintf(stderr, "Integer overflow\n");
    if(verbose>0) fflush(dump);
    exit(1);
  }
  
- #if defined(LINEAR_VALUE_IS_MP)
- mpz_mul(tp->determinant, x, ppivot);
- #else
- for(i=0; i<tp->l_determinant; i++)
-     if(llog(tp->determinant[i]) + llog(ppivot) < 8*sizeof(Entier)){
-	 tp->determinant[i] *= ppivot;
-	 break;
-	 }
- if(i >= tp->l_determinant){
-     tp->l_determinant++;
-     if(tp->l_determinant >= MAX_DETERMINANT){
-	 fprintf(stderr, "Integer overflow : %d\n", tp->l_determinant);
-	 exit(1);
-	 }
-     tp->determinant[i] = ppivot;
-     }
- #endif
+ osl_int_mul(PIPLIB_INT_PRECISION, &tp->determinant, x, ppivot);
 
  if(verbose>1){
    fprintf(dump, "determinant ");
-   #if defined(LINEAR_VALUE_IS_MP)
-   mpz_out_str(dump, 10, tp->determinant);
-   #else
-   for(i=0; i<tp->l_determinant; i++)
-	fprintf(dump, FORMAT, tp->determinant[i]);
-   #endif
+   osl_int_print(dump, PIPLIB_INT_PRECISION, tp->determinant);
    fprintf(dump, "\n");
  }
 
  
  for(j = 0; j<ncol; j++)
-   #if defined(LINEAR_VALUE_IS_MP)
    if(j==pivj)
-     mpz_set(new[j], dpiv);
+     osl_int_assign(PIPLIB_INT_PRECISION, &new[j], dpiv);
    else 
-     mpz_neg(new[j], Index(tp, pivi, j));
-   #else
-   new[j] = (j == pivj ? dpiv : -Index(tp, pivi, j));
-   #endif
+     osl_int_oppose(PIPLIB_INT_PRECISION, &new[j], Index(tp, pivi, j));
 
  for(k = 0; k<nligne; k++){
    if(Flag(tp,k) & Unit)continue;
    if(k == pivi)continue;
-   #if defined(LINEAR_VALUE_IS_MP)
-   mpz_set(foo, Index(tp, k, pivj));
-   mpz_gcd(d, pivot, foo);
-   mpz_divexact(lpiv, pivot, d);
-   mpz_divexact(foo, foo, d);
-   mpz_set(d, Denom(tp,k));
-   mpz_mul(gcd, lpiv, d);
-   mpz_set(Denom(tp, k), gcd);
-   #else
-   foo = Index(tp, k, pivj);
-   d = pgcd(pivot, foo);
-   lpiv = pivot/d;
-   foo /= d;
-   d = Denom(tp,k);
-   gcd = lpiv * d;
-   Denom(tp, k) = gcd;
-   #endif
+   osl_int_assign(PIPLIB_INT_PRECISION, &foo, Index(tp, k, pivj));
+   osl_int_gcd(PIPLIB_INT_PRECISION, &d, pivot, foo);
+   osl_int_div_exact(PIPLIB_INT_PRECISION, &lpiv, pivot, d);
+   osl_int_div_exact(PIPLIB_INT_PRECISION, &foo, foo, d);
+   osl_int_assign(PIPLIB_INT_PRECISION, &d, Denom(tp,k));
+   osl_int_mul(PIPLIB_INT_PRECISION, &gcd, lpiv, d);
+   osl_int_assign(PIPLIB_INT_PRECISION, &Denom(tp, k), gcd);
    p = tp->row[k].objet.val;
    q = tp->row[pivi].objet.val;
    for(j = 0; j<ncol; j++){
      if(j == pivj)
-     #if defined(LINEAR_VALUE_IS_MP)
-       mpz_mul(z, dpiv, foo);
-     #else
-       z = dpiv * foo;
-     #endif
+       osl_int_mul(PIPLIB_INT_PRECISION, &z, dpiv, foo);
      else {
-     #if defined(LINEAR_VALUE_IS_MP)
-       mpz_mul(z, *p, lpiv);
-       mpz_mul(y, *q, foo);
-       mpz_sub(z, z, y);
-     #else
-       z = (*p) * lpiv - (*q) * foo;
-     #endif
+       osl_int_mul(PIPLIB_INT_PRECISION, &z, *p, lpiv);
+       osl_int_mul(PIPLIB_INT_PRECISION, &y, *q, foo);
+       osl_int_sub(PIPLIB_INT_PRECISION, &z, z, y);
      }
      q++;
      cross_product++;
-     #if defined(LINEAR_VALUE_IS_MP)
-     mpz_set(*p, z);
+     osl_int_assign(PIPLIB_INT_PRECISION, p, z);
      p++;
-     if(mpz_cmp_ui(gcd, 1) != 0)
-       mpz_gcd(gcd, gcd, z);
-     #else
-     *p++ = z;
-     if(gcd != 1)
-       gcd = pgcd(gcd, z);
-     #endif
+     if (! osl_int_one(PIPLIB_INT_PRECISION, gcd))
+       osl_int_gcd(PIPLIB_INT_PRECISION, &gcd, gcd, z);
    }
-   #if defined(LINEAR_VALUE_IS_MP)
-   if(mpz_cmp_ui(gcd, 1) != 0){
+   if (! osl_int_one(PIPLIB_INT_PRECISION, gcd)) {
      p = tp->row[k].objet.val;
      for(j = 0; j<ncol; j++){
-       mpz_divexact(*p, *p, gcd);
+       osl_int_div_exact(PIPLIB_INT_PRECISION, p, *p, gcd);
        p++;
      }
    }
-   mpz_divexact(Denom(tp,k), Denom(tp,k), gcd);
-   #else
-   if(gcd != 1) {
-    p = tp->row[k].objet.val;
-    for(j = 0; j<ncol; j++)
-      *p++ /= gcd;
-      Denom(tp,k) = Denom(tp,k)/gcd;
-   }
-   #endif
+   osl_int_div_exact(PIPLIB_INT_PRECISION, &Denom(tp,k), Denom(tp,k), gcd);
  }
  p = tp->row[pivi].objet.val;
  for(k = 0; k<nligne; k++)
@@ -573,37 +444,25 @@ int pivoter(Tableau *tp, int pivi, int nvar, int nparm, int ni)
  Flag(tp, k) = Plus;
  tp->row[k].objet.val = p;
  for(j = 0; j<ncol; j++)
-   #if defined(LINEAR_VALUE_IS_MP)
-   mpz_set(*p++, new[j]);
-   #else
-   *p++ = new[j];
-   #endif
+   osl_int_assign(PIPLIB_INT_PRECISION, p++, new[j]);
 
- #if defined(LINEAR_VALUE_IS_MP)
- mpz_set(Denom(tp, k), pivot);
+ osl_int_assign(PIPLIB_INT_PRECISION, &Denom(tp, k), pivot);
  Flag(tp, pivi) = Unit | Zero;
- mpz_set(Denom(tp, pivi), UN);
- #else
- Denom(tp, k) = pivot; 
- Flag(tp, pivi) = Unit | Zero;
- Denom(tp, pivi) = UN;
- #endif
+ osl_int_assign(PIPLIB_INT_PRECISION, &Denom(tp, pivi), UN);
  tp->row[pivi].objet.unit = pivj;
 
  for(k = 0; k<nligne; k++){
    ff = Flag(tp, k);
    if(ff & Unit) continue;
-   #if defined(LINEAR_VALUE_IS_MP)
-   sgn_x = mpz_sgn(Index(tp, k, pivj));
-   #else
-   sgn_x = Index(tp, k, pivj);
-   #endif
-   if(sgn_x < 0) fff = Minus;
-   else if(sgn_x == 0) fff = Zero;
-   else fff = Plus;
-   if(fff != Zero && fff != ff)
+
+   if (osl_int_pos(PIPLIB_INT_PRECISION, Index(tp, k, pivj))) fff = Plus;
+   else if (osl_int_neg(PIPLIB_INT_PRECISION, Index(tp, k, pivj))) fff = Minus;
+   else fff = Zero;
+
+   if (fff != Zero && fff != ff) {
      if(ff == Zero) ff = (fff == Minus ? Unknown : fff);
      else ff = Unknown;
+   }
    Flag(tp, k) = ff;
  }
 
@@ -612,17 +471,23 @@ int pivoter(Tableau *tp, int pivi, int nvar, int nparm, int ni)
    tab_display(tp, dump);
  }
 
- #if defined(LINEAR_VALUE_IS_MP)
- mpz_clear(x); mpz_clear(y); mpz_clear(d); mpz_clear(gcd);
- mpz_clear(u); mpz_clear(dpiv); mpz_clear(lpiv);
- mpz_clear(pivot); mpz_clear(foo); mpz_clear(z);
- mpz_clear(ppivot); mpz_clear(dppiv);
+osl_int_clear(PIPLIB_INT_PRECISION, &x);
+osl_int_clear(PIPLIB_INT_PRECISION, &y);
+osl_int_clear(PIPLIB_INT_PRECISION, &d);
+osl_int_clear(PIPLIB_INT_PRECISION, &gcd);
+osl_int_clear(PIPLIB_INT_PRECISION, &u);
+osl_int_clear(PIPLIB_INT_PRECISION, &dpiv);
+osl_int_clear(PIPLIB_INT_PRECISION, &lpiv);
+osl_int_clear(PIPLIB_INT_PRECISION, &pivot);
+osl_int_clear(PIPLIB_INT_PRECISION, &foo);
+osl_int_clear(PIPLIB_INT_PRECISION, &z);
+osl_int_clear(PIPLIB_INT_PRECISION, &ppivot);
+osl_int_clear(PIPLIB_INT_PRECISION, &dppiv);
 
  for(i=0; i<ncol; i++)
-   mpz_clear(new[i]);
- #endif
+  osl_int_clear(PIPLIB_INT_PRECISION, &new[i]);
 
- return(0);
+ return 0;
 }
 
 /*
@@ -630,7 +495,7 @@ int pivoter(Tableau *tp, int pivi, int nvar, int nparm, int ni)
  * and (if TRAITER_DUAL is set) return the new position of the
  * original constraints.
  */
-static int *tab_sort_rows(Tableau *tp, int nvar, int nligne, int flags)
+static int* tab_sort_rows(Tableau* tp, int nvar, int nligne, int flags)
 {
     int i, j;
     int pivi;
@@ -651,13 +516,13 @@ static int *tab_sort_rows(Tableau *tp, int nvar, int nligne, int flags)
 	if (Flag(tp,i) & Unit)
 	    continue;
 	s = 0;
-	d = ENTIER_TO_DOUBLE(Denom(tp, i));
+	d = osl_int_get_si(PIPLIB_INT_PRECISION, Denom(tp, i));
 	for (j = 0; j < nvar; j++) {
-	    t = ENTIER_TO_DOUBLE(Index(tp,i,j))/d;
-	    s = max(s, abs(t));
+	    t = osl_int_get_si(PIPLIB_INT_PRECISION, Index(tp,i,j))/d;
+	    s = OSL_max(s, abs(t));
 	}
 	tp->row[i].size = s;
-	smax = max(s, smax);
+	smax = OSL_max(s, smax);
 	if (flags & TRAITER_DUAL)
 	    ineq[i] = i-nvar;
     }
@@ -696,31 +561,21 @@ static int *tab_sort_rows(Tableau *tp, int nvar, int nligne, int flags)
     return pos;
 }
 
-/* dans cette version, "traiter" modifie ineq; par contre
-   le contexte est immediatement recopie' */
-
-void traiter(Tableau *tp, Tableau *ctxt, int nvar, int nparm, int ni, int nc,
-	     int bigparm, int flags)
+/* dans cette version, "traiter" modifie ineq;
+   par contre le contexte est immediatement recopie' */
+void traiter(
+  Tableau* tp, Tableau *ctxt, int nvar, int nparm, int ni, int nc,
+  int bigparm, int flags
+)
 {
  int j;
  int pivi, nligne, ncol;
  struct high_water_mark x;
  Tableau *context;
  int dch, dcw;
- int i;
  int *pos;
 
- #if !defined(LINEAR_VALUE_IS_MP)
- Entier D = UN;
- #endif
-
- #if defined(LINEAR_VALUE_IS_MP)
- dcw = mpz_sizeinbase(tp->determinant, 2);
- #else
- dcw = 0;
- for(i=0; i<tp->l_determinant; i++)
-   dcw += llog(tp->determinant[i]);
- #endif
+ dcw = osl_int_size_in_base_2(PIPLIB_INT_PRECISION, tp->determinant);
  dch = 2 * dcw + 1;
  x = tab_hwm();
  nligne = nvar+ni;
@@ -768,16 +623,10 @@ void traiter(Tableau *tp, Tableau *ctxt, int nvar, int nparm, int ni, int nc,
    /* Here, the problem tree splits        */
    if(pivi < nligne) {
      Tableau * ntp;
-     Entier com_dem;
+     osl_int_t com_dem;
      struct high_water_mark q;
      if(nc >= context->height) {
-       #if defined(LINEAR_VALUE_IS_MP)
-       dcw = mpz_sizeinbase(context->determinant,2);
-       #else
-       dcw = 0;
-       for(i=0; i<tp->l_determinant; i++)
-       dcw += llog(tp->determinant[i]);
-       #endif
+       dcw = osl_int_size_in_base_2(PIPLIB_INT_PRECISION, context->determinant);
        dch = 2 * dcw + 1;
        context = expanser(context, 0, nc, nparm+1, 0, dch, dcw);
      }
@@ -787,56 +636,43 @@ void traiter(Tableau *tp, Tableau *ctxt, int nvar, int nparm, int ni, int nc,
      }
      q = tab_hwm();
      if(verbose>1)
-       fprintf(stdout,"profondeur %d %lx\n", profondeur, q.top);
+       fprintf(stdout,"profondeur %d %p\n", profondeur, q.top);
      ntp = expanser(tp, nvar, ni, ncol, 0, 0, 0);
      fflush(stdout);
      sol_if();
      sol_forme(nparm+1);
-     entier_init_zero(com_dem);
+     osl_int_init_set_si(PIPLIB_INT_PRECISION, &com_dem, 0);
      for (j = 0; j < nparm; j++)
-       entier_gcd(com_dem, com_dem, Index(tp, pivi, j + nvar +1));
+       osl_int_gcd(PIPLIB_INT_PRECISION, &com_dem, com_dem, Index(tp, pivi, j + nvar +1));
      if (!(flags & TRAITER_INT))
-	 entier_gcd(com_dem, com_dem, Index(tp, pivi, nvar));
+	 osl_int_gcd(PIPLIB_INT_PRECISION, &com_dem, com_dem, Index(tp, pivi, nvar));
      for (j = 0; j < nparm; j++) {
-       entier_divexact(Index(context, nc, j), Index(tp, pivi, j + nvar + 1), com_dem);
+       osl_int_div_exact(PIPLIB_INT_PRECISION, &Index(context, nc, j), Index(tp, pivi, j + nvar + 1), com_dem);
        sol_val(Index(context, nc, j), UN);
      }
      if (!(flags & TRAITER_INT))
-	 entier_divexact(Index(context, nc, nparm), Index(tp, pivi, nvar), com_dem);
+	 osl_int_div_exact(PIPLIB_INT_PRECISION, &Index(context, nc, nparm), Index(tp, pivi, nvar), com_dem);
      else
-	 entier_pdivision(Index(context, nc, nparm), Index(tp, pivi, nvar), com_dem);
+	 osl_int_floor_div_q(PIPLIB_INT_PRECISION, &Index(context, nc, nparm), Index(tp, pivi, nvar), com_dem);
      sol_val(Index(context, nc, nparm), UN);
-     entier_clear(com_dem);
+     osl_int_clear(PIPLIB_INT_PRECISION, &com_dem);
      Flag(context, nc) = Unknown;
-     entier_set_si(Denom(context, nc), 1);
+     osl_int_set_si(PIPLIB_INT_PRECISION, &Denom(context, nc), 1);
      Flag(ntp, pivi) = Plus;
      profondeur++;
      fflush(stdout);
      if(verbose > 0) fflush(dump);
-     #if defined(LINEAR_VALUE_IS_MP)
      traiter(ntp, context, nvar, nparm, ni, nc+1, bigparm, flags);
      profondeur--;
      tab_reset(q);
      if(verbose>1)
-       fprintf(stdout, "descente %d %lx\n", profondeur, tab_hwm().top);
+       fprintf(stdout, "descente %d %p\n", profondeur, tab_hwm().top);
      for(j = 0; j<nparm; j++)
-       mpz_neg(Index(context, nc, j), Index(context, nc, j));
-     mpz_add_ui(Index(context, nc, nparm), Index(context, nc, nparm), 1);
-     mpz_neg(Index(context, nc, nparm), Index(context, nc, nparm));
+       osl_int_oppose(PIPLIB_INT_PRECISION, &Index(context, nc, j), Index(context, nc, j));
+     osl_int_increment(PIPLIB_INT_PRECISION, &Index(context, nc, nparm), Index(context, nc, nparm));
+     osl_int_oppose(PIPLIB_INT_PRECISION, &Index(context, nc, nparm), Index(context, nc, nparm));
      Flag(tp, pivi) = Minus;
-     mpz_set(Denom(context, nc), UN);
-     #else
-     traiter(ntp, context, nvar, nparm, ni, nc+1, bigparm, flags);
-     profondeur--;
-     tab_reset(q);
-     if(verbose>1)
-       fprintf(stderr, "descente %d %lx\n", profondeur, tab_hwm().top);
-     for(j = 0; j<nparm; j++)
-       Index(context, nc, j) = - Index(context, nc, j);
-     Index(context, nc, nparm) = - Index(context, nc, nparm) -1;
-     Flag(tp, pivi) = Minus;
-     Denom(context, nc) = UN;
-     #endif
+     osl_int_assign(PIPLIB_INT_PRECISION, &Denom(context, nc), UN);
      nc++;
      goto pirouette;
    }
@@ -844,7 +680,7 @@ void traiter(Tableau *tp, Tableau *ctxt, int nvar, int nparm, int ni, int nc,
    if (!(flags & TRAITER_INT)) {
      solution(tp, nvar, nparm);
      if (flags & TRAITER_DUAL)
-	solution_dual(tp, nvar, nparm, pos);
+	solution_dual(tp, nvar, /*nparm,*/ pos);
      break;
    }
 /* Yes we do! */

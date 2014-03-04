@@ -14,7 +14,7 @@
  * This software is distributed in the hope that it will be useful, but       *
  * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY *
  * or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License   *
- * for more details.							      *
+ * for more details.                                                          *
  *                                                                            *
  * You should have received a copy of the GNU Lesser General Public License   *
  * along with this library; if not, write to the Free Software Foundation,    *
@@ -26,10 +26,16 @@
 
 #ifndef SOL_H
 #define SOL_H
+
+#include <stdio.h>
+
+#include <osl/int.h>
+
+
 #if defined(__cplusplus)
 extern "C" 
   {
-#endif 
+#endif
 
 void sol_init(void);
 int sol_hwm(void);
@@ -40,12 +46,13 @@ void sol_list(int);
 void sol_form(int);
 void sol_new(int);
 void sol_div(void);
-void sol_val(Entier, Entier);
-int sol_edit(FILE *, int);
+void sol_val(osl_int_t, osl_int_t);
+int sol_edit(FILE*, int);
 int is_not_Nil(int);
 void sol_simplify(int);
 
 #if defined(__cplusplus)
   }
-#endif 
-#endif /* define _H */
+#endif
+
+#endif /* SOL_H */

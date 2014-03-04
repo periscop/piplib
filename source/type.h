@@ -26,24 +26,27 @@
 
 #ifndef TYPE_H
 #define TYPE_H
+
+#include <osl/int.h>
+
+
 #if defined(__cplusplus)
 extern "C" 
   {
-#endif 
+#endif
 
 /* Modified by Serge Torres to handle very big problems (since 1.3.4 we can put
  * any value we want: sol_space is allocated dynamically), but it is left by
  * default to 4096 because of time/space reasons for most people.
- * #define SOL_SIZE 67108864
- */
+ * #define SOL_SIZE 67108864 */
 #define SOL_SIZE 4096
 
-extern Entier UN;
-extern Entier ZERO;
+extern osl_int_t UN;
+extern osl_int_t ZERO;
+extern int PIPLIB_INT_PRECISION;
 
 #define Pip_True 1
 #define Pip_False 0
-
 
 #ifdef TC
 #define DEBUG 8
@@ -56,5 +59,6 @@ extern Entier ZERO;
 
 #if defined(__cplusplus)
   }
-#endif 
-#endif /* define _H */
+#endif
+
+#endif /* TYPE_H */
