@@ -91,19 +91,19 @@ int main(int argc, char *argv[])
  int p, q, xq;
  long temps;
  char *date;
- Entier x ;
- #if defined(LINEAR_VALUE_IS_MP)
+ piplib_int_t x ;
+ #if defined(PIPLIB_INT_GMP)
  mpz_init(x);
  #else
- Entier i;
+ piplib_int_t i;
  #endif
  
- #if defined(LINEAR_VALUE_IS_MP)
+ #if defined(PIPLIB_INT_GMP)
  mpz_init_set_si(UN, 1);
  mpz_init_set_si(ZERO, 0);
  #else
- UN   = VAL_UN ;
- ZERO = VAL_ZERO ;
+ UN   = 1 ;
+ ZERO = 0 ;
  #endif
  
  in = stdin; out = stdout;
@@ -164,7 +164,7 @@ int main(int argc, char *argv[])
      {if(c != '(') continue;
       fprintf(out, "(");
       balance(in, out);
-      #if defined(LINEAR_VALUE_IS_MP)
+      #if defined(PIPLIB_INT_GMP)
       if(dscanf(in, x) < 0){escape(in, out, 1); continue;}
       else
         nvar = mpz_get_si(x);
@@ -235,11 +235,11 @@ int main(int argc, char *argv[])
        traiter(ineq, context, nvar, nparm, ni, nc, bigparm, nq ? TRAITER_INT : 0);
 	if (verbose > 0) {
 	    fprintf(dump, "det: ");
-#if defined(LINEAR_VALUE_IS_MP)
+#if defined(PIPLIB_INT_GMP)
 	    mpz_out_str(dump, 10, ineq->determinant);
 #else
 	    for (i=0; i<ineq->l_determinant; i++) {
-		fprintf(dump, FORMAT, ineq->determinant[i]);
+		fprintf(dump, piplib_int_format, ineq->determinant[i]);
 		fprintf(dump, " ");
 	    }
 #endif
@@ -268,7 +268,7 @@ int main(int argc, char *argv[])
  comptage, chrono.tms_utime, chrono.tms_stime);
 #endif
 
-#if defined(LINEAR_VALUE_IS_MP)
+#if defined(PIPLIB_INT_GMP)
  mpz_clear(x);
 #endif
  pip_close();

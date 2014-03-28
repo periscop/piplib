@@ -37,8 +37,8 @@
 #include "pip.h"
 #define min(x,y) ((x) < (y)? (x) : (y))
 
-Entier UN;
-Entier ZERO;
+piplib_int_t UN;
+piplib_int_t ZERO;
 
 long int cross_product, limit;
 int allocation, comptage;
@@ -114,10 +114,10 @@ FILE *pip_create_dump_file()
 }
 
 
-#if defined(LINEAR_VALUE_IS_MP)
-int dscanf(FILE *foo, Entier  val)
+#if defined(PIPLIB_INT_GMP)
+int dscanf(FILE *foo, piplib_int_t  val)
 #else
-int dscanf(FILE *foo, Entier *val)
+int dscanf(FILE *foo, piplib_int_t *val)
 #endif
 {
  char * p;
@@ -139,10 +139,10 @@ int dscanf(FILE *foo, Entier *val)
        && inbuff[inptr] != '\n'
        && inbuff[inptr] != '\t') break;
   }
- #if defined(LINEAR_VALUE_IS_MP)
- if(gmp_sscanf(inbuff+inptr, GMP_INPUT_FORMAT, val) != 1)
+ #if defined(PIPLIB_INT_GMP)
+ if(gmp_sscanf(inbuff+inptr, "%lZd", val) != 1)
  #else
- if(sscanf(inbuff+inptr, FORMAT, val) != 1)
+ if(sscanf(inbuff+inptr, piplib_int_format, val) != 1)
  #endif
  return -1;
  
@@ -163,7 +163,7 @@ int dscanf(FILE *foo, Entier *val)
  * Premiere version : Ced. 29 juillet 2001. 
  */
 void pip_matrix_print(FILE * foo, PipMatrix * Mat)
-{ Entier * p;
+{ piplib_int_t * p;
   int i, j ;
   unsigned NbRows, NbColumns ;
 
@@ -171,12 +171,12 @@ void pip_matrix_print(FILE * foo, PipMatrix * Mat)
   for (i=0;i<NbRows;i++) 
   { p=*(Mat->p+i) ;
     for (j=0;j<NbColumns;j++)
-    #if defined(LINEAR_VALUE_IS_MP)
+    #if defined(PIPLIB_INT_GMP)
     { fprintf(foo," ") ;
       mpz_out_str(foo,10,*p++) ;
     }
     #else
-    fprintf(foo," "FORMAT, *p++) ;
+    fprintf(foo," "piplib_int_format, *p++) ;
     #endif
     fprintf(foo, "\n") ;
   }
@@ -195,18 +195,18 @@ void pip_vector_print(FILE * foo, PipVector * vector)
   { fprintf(foo,"#[") ;
     for (i=0;i<vector->nb_elements;i++)
     { fprintf(foo," ") ;
-      #if defined(LINEAR_VALUE_IS_MP)
+      #if defined(PIPLIB_INT_GMP)
       mpz_out_str(foo,10,vector->the_vector[i]) ;
       if (mpz_cmp(vector->the_deno[i],UN) != 0)
       #else
-      fprintf(foo,FORMAT,vector->the_vector[i]) ;
+      fprintf(foo,piplib_int_format,vector->the_vector[i]) ;
       if (vector->the_deno[i] != UN)
       #endif
       { fprintf(foo,"/") ;
-        #if defined(LINEAR_VALUE_IS_MP)
+        #if defined(PIPLIB_INT_GMP)
         mpz_out_str(foo,10,vector->the_deno[i]) ;
         #else
-        fprintf(foo,FORMAT,vector->the_deno[i]) ;
+        fprintf(foo,piplib_int_format,vector->the_deno[i]) ;
         #endif
       }
     }
@@ -234,10 +234,10 @@ void pip_newparm_print(FILE * foo, PipNewparm * newparm, int indent)
       fprintf(foo," (div ") ;
       pip_vector_print(foo,newparm->vector) ;
       fprintf(foo," ") ;
-      #if defined(LINEAR_VALUE_IS_MP)
+      #if defined(PIPLIB_INT_GMP)
       mpz_out_str(foo,10,newparm->deno) ;
       #else
-      fprintf(foo,FORMAT,newparm->deno) ;
+      fprintf(foo,piplib_int_format,newparm->deno) ;
       #endif
       fprintf(foo,"))\n") ;
     }
@@ -349,9 +349,9 @@ void * pip_options_print(FILE * foo, PipOptions * options)
  */
 void pip_matrix_free(PipMatrix * matrix)
 { 
-  #if defined(LINEAR_VALUE_IS_MP)
+  #if defined(PIPLIB_INT_GMP)
   int i, j ;
-  Entier * p ;
+  piplib_int_t * p ;
 
   p = matrix->p_Init ;
   for (i=0;i<matrix->p_Init_size;i++) 
@@ -378,7 +378,7 @@ void pip_vector_free(PipVector * vector)
   
   if (vector != NULL)
   { 
-    #if defined(LINEAR_VALUE_IS_MP)
+    #if defined(PIPLIB_INT_GMP)
     for (i=0;i<vector->nb_elements;i++)
     { mpz_clear(vector->the_vector[i]);
       mpz_clear(vector->the_deno[i]);
@@ -403,7 +403,7 @@ void pip_newparm_free(PipNewparm * newparm)
 
   while (newparm != NULL)
   { next = newparm->next ;
-    #if defined(LINEAR_VALUE_IS_MP)
+    #if defined(PIPLIB_INT_GMP)
     mpz_clear(newparm->deno);
     #endif
     pip_vector_free(newparm->vector) ;
@@ -516,7 +516,7 @@ PipOptions * pip_options_init(void)
  */
 PipMatrix * pip_matrix_alloc(unsigned NbRows, unsigned NbColumns)
 { PipMatrix * matrix ;
-  Entier ** p, * q ;
+  piplib_int_t ** p, * q ;
   int i, j ;
 
   matrix = (PipMatrix *)malloc(sizeof(PipMatrix)) ;
@@ -537,12 +537,12 @@ PipMatrix * pip_matrix_alloc(unsigned NbRows, unsigned NbColumns)
       matrix->p_Init = NULL ;
     }
     else 
-    { p = (Entier **)malloc(NbRows*sizeof(Entier *)) ;
+    { p = (piplib_int_t **)malloc(NbRows*sizeof(piplib_int_t *)) ;
       if (p == NULL) 
       { fprintf(stderr, "Memory Overflow.\n") ;
         exit(1) ;
       }
-      q = (Entier *)malloc(NbRows * NbColumns * sizeof(Entier)) ;
+      q = (piplib_int_t *)malloc(NbRows * NbColumns * sizeof(piplib_int_t)) ;
       if (q == NULL) 
       { fprintf(stderr, "Memory Overflow.\n") ;
         exit(1) ;
@@ -552,7 +552,7 @@ PipMatrix * pip_matrix_alloc(unsigned NbRows, unsigned NbColumns)
       for (i=0;i<NbRows;i++) 
       { *p++ = q ;
 	for (j=0;j<NbColumns;j++)   
-        #if defined(LINEAR_VALUE_IS_MP)
+        #if defined(PIPLIB_INT_GMP)
 	mpz_init_set_si(*(q+j),0) ;
 	#else
 	*(q+j) = 0 ;
@@ -583,12 +583,12 @@ PipMatrix * pip_matrix_alloc(unsigned NbRows, unsigned NbColumns)
 PipMatrix * pip_matrix_read(FILE * foo)
 { unsigned NbRows, NbColumns ;
   int i, j, n ;
-  #if defined(LINEAR_VALUE_IS_MP)
+  #if defined(PIPLIB_INT_GMP)
   long long val ;
   #endif
   char *c, s[1024], str[1024] ;
   PipMatrix * matrix ;
-  Entier * p ;
+  piplib_int_t * p ;
 
   while (fgets(s,1024,foo) == 0) ;
   while ((*s=='#' || *s=='\n') || (sscanf(s," %u %u",&NbRows,&NbColumns)<2))
@@ -619,11 +619,11 @@ PipMatrix * pip_matrix_read(FILE * foo)
       { fprintf(stderr, "Not enough rows.\n") ;
         exit(1) ;
       }
-      #if defined(LINEAR_VALUE_IS_MP)
+      #if defined(PIPLIB_INT_GMP)
       sscanf(str,"%lld",&val) ;
       mpz_set_si(*p++,val) ;
       #else
-      sscanf(str,FORMAT,p++) ;
+      sscanf(str,piplib_int_format,p++) ;
       #endif
       c += n ;
     }
@@ -638,12 +638,12 @@ static int pip_initialized = 0;
 void pip_init() {
   /* Avoid initializing (and leaking) several times */
   if (!pip_initialized) {
-    #if defined(LINEAR_VALUE_IS_MP)
+    #if defined(PIPLIB_INT_GMP)
     mpz_init_set_si(UN, 1);
     mpz_init_set_si(ZERO, 0);
     #else
-    UN   = VAL_UN ;
-    ZERO = VAL_ZERO ;
+    UN   = 1 ;
+    ZERO = 0 ;
     #endif
     sol_init() ;
     tab_init() ;
@@ -654,7 +654,7 @@ void pip_init() {
 void pip_close() {
   tab_close();
   sol_close();
-# if defined(LINEAR_VALUE_IS_MP)
+# if defined(PIPLIB_INT_GMP)
   mpz_clear(UN);
   mpz_clear(ZERO);
 # endif
@@ -689,8 +689,8 @@ static void pip_quast_equalities_dual(PipQuast *solution, PipMatrix *inequnk)
 	return;
     list_p = &solution->next_then->list;
     for (i = 0; i < inequnk->NbRows; ++i) {
-	if (entier_zero_p(inequnk->p[i][0])) {
-	    if (entier_notzero_p((*list_p)->vector->the_vector[0])) {
+	if (piplib_int_zero(inequnk->p[i][0])) {
+	    if (piplib_int_zero((*list_p)->vector->the_vector[0]) == 0) {
 		list_p = &(*list_p)->next;
 		list = *list_p;
 		*list_p = list->next;
@@ -701,7 +701,7 @@ static void pip_quast_equalities_dual(PipQuast *solution, PipMatrix *inequnk)
 		*list_p = list->next;
 		list->next = NULL;
 		pip_list_free(list);
-		entier_oppose((*list_p)->vector->the_vector[0],
+		piplib_int_oppose((*list_p)->vector->the_vector[0],
 			      (*list_p)->vector->the_vector[0]);
 		list_p = &(*list_p)->next;
 	    }
@@ -748,7 +748,7 @@ PipOptions * options ;
   int i, Np, Nn, Nl, Nm, p, q, xq, non_vide, Shift = 0, Urs_parms = 0;
   char * g ;
   struct high_water_mark hq ;
-  Entier D ;
+  piplib_int_t D ;
   PipQuast * solution ;
   int	sol_flags = 0;
 
@@ -771,7 +771,7 @@ PipOptions * options ;
      if (!dump)
 	verbose = 0;
   }
-  #if defined(LINEAR_VALUE_IS_MP)
+  #if defined(PIPLIB_INT_GMP)
   limit = 0LL ;
   #else
   limit = ZERO ;
@@ -793,7 +793,7 @@ PipOptions * options ;
      */
     Nl = inequnk->NbRows ;
     for (i=0;i<inequnk->NbRows;i++)
-    #if defined(LINEAR_VALUE_IS_MP)
+    #if defined(PIPLIB_INT_GMP)
     if (mpz_sgn(**(inequnk->p + i)) == 0)
     #else
     if (**(inequnk->p + i) == 0)
@@ -838,7 +838,7 @@ PipOptions * options ;
        */
       Nm = ineqpar->NbRows ;
       for (i=0;i<ineqpar->NbRows;i++)
-      #if defined(LINEAR_VALUE_IS_MP)
+      #if defined(PIPLIB_INT_GMP)
       if (mpz_sgn(**(ineqpar->p + i)) == 0)
       #else
       if (**(ineqpar->p + i) == 0)

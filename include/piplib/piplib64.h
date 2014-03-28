@@ -28,5 +28,5 @@
  * utilisateurs de la PipLib. Premiere version du 29 juillet 2001.
  */ 
 
-# define LINEAR_VALUE_IS_LONGLONG
+# define PIPLIB_INT_DP
 # include <piplib/piplib.h>

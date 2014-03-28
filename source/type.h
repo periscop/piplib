@@ -38,8 +38,8 @@ extern "C"
  */
 #define SOL_SIZE 4096
 
-extern Entier UN;
-extern Entier ZERO;
+extern piplib_int_t UN;
+extern piplib_int_t ZERO;
 
 #define Pip_True 1
 #define Pip_False 0

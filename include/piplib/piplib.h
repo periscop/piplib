@@ -24,102 +24,144 @@
  *                                                                            *
  ******************************************************************************/
 
-#include <stdio.h>
-
 /* Premiere version du 18 septembre 2002. */
 
-#if !defined(LINEAR_VALUE_IS_LONGLONG) && !defined(LINEAR_VALUE_IS_INT)
-#if !defined(LINEAR_VALUE_IS_MP)
-# error Please define LINEAR_VALUE_IS_* or #include polylib32.h or polylib64.h
-#endif
-#endif
-
-#if defined(LINEAR_VALUE_IS_LONGLONG)
-
-# define Entier   long long
-# define FORMAT   "%lld"
-# define VAL_UN   1LL
-# define VAL_ZERO 0LL
-
-#define ENTIER_TO_INT(val) ((int)(val))
-#define ENTIER_TO_DOUBLE(val) ((double)(val))
-
-#elif defined(LINEAR_VALUE_IS_INT) 
-
-# define Entier   long int
-# define FORMAT   "%ld"
-# define VAL_UN   1L
-# define VAL_ZERO 0L
-
-#define ENTIER_TO_INT(val) ((int)(val))
-#define ENTIER_TO_DOUBLE(val) ((double)(val))
-
-#elif defined(LINEAR_VALUE_IS_MP) 
-
-# include <gmp.h>
-# define Entier   mpz_t
-# define FORMAT   "%d"
-# define GMP_INPUT_FORMAT   "%lZd"
-
-#define ENTIER_TO_INT(val) ((int)mpz_get_si(val))
-#define ENTIER_TO_DOUBLE(val) (mpz_get_d(val))
-
-#endif
-
-#if defined(LINEAR_VALUE_IS_MP) 
-
-#define entier_addto(ref,val1,val2)    	(mpz_add((ref),(val1),(val2)))
-#define entier_increment(ref,val)	(mpz_add_ui((ref),(val),1))
-#define entier_assign(v1,v2)	    	(mpz_set((v1),(v2)))
-#define entier_clear(val)       	(mpz_clear((val)))
-#define entier_divexact(d,v1,v2)    	(mpz_divexact((d),(v1),(v2)))
-#define entier_gcd(g,v1,v2)	    	(mpz_gcd((g),(v1),(v2)))
-#define entier_init(val)            	(mpz_init((val)))
-#define entier_init_zero(val)		(mpz_init((val)))
-#define entier_init_set(v1,v2)	    	(mpz_init_set((v1),(v2)))
-#define entier_pdivision(ref,val1,val2)	(mpz_fdiv_q((ref),(val1),(val2)))
-#define entier_pmodulus(ref,val1,val2)	(mpz_fdiv_r((ref),(val1),(val2)))
-#define entier_oppose(ref,val)       	(mpz_neg((ref),(val)))
-#define entier_set_si(val,i)    	(mpz_set_si((val),(i)))    
-#define entier_subtract(ref,val1,val2) 	(mpz_sub((ref),(val1),(val2)))
-#define entier_decrement(ref,val)	(mpz_sub_ui((ref),(val),1))
-#define entier_sgn(val)			(mpz_sgn(val))
-#define entier_eq(v1,v2) 	    	(mpz_cmp((v1),(v2)) == 0)
-#define entier_ne(v1,v2) 	    	(mpz_cmp((v1),(v2)) != 0)
-#define entier_one_p(val)		(mpz_cmp_si(val,1) == 0)
-#define entier_llog(val)		(mpz_sizeinbase(val, 2))
-
-#else
-
-#define entier_addto(ref,val1,val2) 	((ref) = (val1)+(val2))
-#define entier_increment(ref,val)	((ref) = (val)+1)
-#define entier_assign(v1,v2)	    	((v1) = (v2))
-#define entier_clear(val)             	do { } while(0)
-#define entier_divexact(d,v1,v2)    	((d) = (v1) / (v2))
-#define entier_gcd(g,v1,v2)	    	((g) = pgcd((v1),(v2)))
-#define entier_init(val)             	do { } while(0)
-#define entier_init_zero(v1)	    	((v1) = 0)
-#define entier_init_set(v1,v2)	    	((v1) = (v2))
-#define entier_pdivision(ref,val1,val2)	((ref) = ((val1)-mod((val1),(val2)))/(val2))
-#define entier_pmodulus(ref,val1,val2)	((ref) = mod((val1),(val2)))
-#define entier_oppose(ref,val)    	((ref) = -(val))
-#define entier_set_si(val,i)        	((val) = (Entier)(i))   
-#define entier_subtract(ref,val1,val2) 	((ref) = (val1)-(val2))
-#define entier_decrement(ref,val)	((ref) = (val)-1)
-#define entier_sgn(val)			(val)
-#define entier_eq(v1,v2) 	    	((v1) == (v2))
-#define entier_ne(v1,v2) 	    	((v1) != (v2))
-#define entier_one_p(val)        	((val) == 1)
-#define entier_llog(val)		(llog(val))
-
-#endif
-
-#define entier_zero_p(val)        	(entier_sgn(val) == 0)
-#define entier_notzero_p(val)        	(entier_sgn(val) != 0)
-#define entier_pos_p(val)        	(entier_sgn(val) > 0)
 
 #ifndef PIPLIB_H
 #define PIPLIB_H
+
+
+#include <stdio.h>
+#include <math.h>
+
+
+// Copy from osl_int
+long long int piplib_llgcd(long long int const, long long int const);
+long long int piplib_llgcd_llabs(long long int const, long long int const);
+size_t piplib_lllog2(long long int);
+long long int piplib_llmod(long long int const, long long int const);
+
+
+#ifdef PIPLIB_INT_GMP
+
+  #include <gmp.h>
+
+  typedef mpz_t piplib_int_t;
+  #define piplib_int_format "%d"
+
+  #define piplib_int_init(i) (mpz_init(i))
+  #define piplib_int_assign(r, i) (mpz_set(r, i))
+  #define piplib_int_set_si(r, i) (mpz_set_si(r, i))
+  #define piplib_int_clear(i) (mpz_clear(i))
+
+  #define piplib_int_get_si(i) ((int)mpz_get_si(i))
+  #define piplib_int_get_d(i) (mpz_get_d(i))
+
+  #define piplib_int_add(r, a, b) (mpz_add(r, a, b))
+  #define piplib_int_sub(r, a, b) (mpz_sub(r, a, b))
+  #define piplib_int_increment(r, i) (mpz_add_ui(r, i, 1))
+  #define piplib_int_decrement(r, i) (mpz_sub_ui(r, i, 1))
+  #define piplib_int_div_exact(q, a, b) (mpz_divexact(q, a, b))
+  #define piplib_int_floor_div_q(q, a, b) (mpz_fdiv_q(q, a, b))
+  //#define piplib_int_floor_div_r(r, a, b) (mpz_fdiv_r(r, a, b))
+  #define piplib_int_mod(mod, a, b) (mpz_mod(mod, a, b))
+  #define piplib_int_gcd(gcd, a, b) (mpz_gcd(gcd, a, b))
+  #define piplib_int_oppose(r, i) (mpz_neg(r, i))
+  #define piplib_int_size_in_base_2(i) (mpz_sizeinbase(i, 2))
+
+  #define piplib_int_eq(a, b) (mpz_cmp(a, b) == 0)
+  #define piplib_int_ne(a, b) (mpz_cmp(a, b) != 0)
+  #define piplib_int_zero(i) (mpz_sgn(i) == 0)
+  #define piplib_int_one(i) (mpz_cmp_si(i, 1) == 0)
+  #define piplib_int_pos(i) (mpz_sgn(i) > 0)
+  #define piplib_int_neg(i) (mpz_sgn(i) < 0)
+
+#elif PIPLIB_INT_OSL
+
+  #include <osl/int.h>
+
+  typedef osl_int_t piplib_int_t;
+  #define piplib_int_format "%d"
+
+  #define piplib_int_init(i) (osl_int_init(PIPLIB_INT_OSL_PRECISION, i))
+  #define piplib_int_assign(r, i) (osl_int_assign(PIPLIB_INT_OSL_PRECISION, r, i))
+  #define piplib_int_set_si(r, i) (osl_int_set_si(PIPLIB_INT_OSL_PRECISION, r, i))
+  #define piplib_int_clear(i) (osl_int_clear(PIPLIB_INT_OSL_PRECISION, i))
+
+  #define piplib_int_get_si(i) (osl_int_get_si(PIPLIB_INT_OSL_PRECISION, i))
+  #define piplib_int_get_d(i) (osl_int_get_d(PIPLIB_INT_OSL_PRECISION, i))
+
+  #define piplib_int_add(r, a, b) (osl_int_add(PIPLIB_INT_OSL_PRECISION, r, a, b))
+  #define piplib_int_sub(r, a, b) (osl_int_sub(PIPLIB_INT_OSL_PRECISION, r, a, b))
+  #define piplib_int_increment(r, i) (osl_int_increment(PIPLIB_INT_OSL_PRECISION, r, i))
+  #define piplib_int_decrement(r, i) (osl_int_decrement(PIPLIB_INT_OSL_PRECISION, r, i))
+  #define piplib_int_div_exact(q, a, b) (osl_int_div_exact(PIPLIB_INT_OSL_PRECISION, q, a, b))
+  #define piplib_int_floor_div_q(q, a, b) (osl_int_floor_div_q(PIPLIB_INT_OSL_PRECISION, q, a, b))
+  //#define piplib_int_floor_div_r(r, a, b) (osl_int_floor_div_r(PIPLIB_INT_OSL_PRECISION, r, a, b))
+  #define piplib_int_mod(mod, a, b) (osl_int_mod(PIPLIB_INT_OSL_PRECISION, mod, a, b))
+  #define piplib_int_gcd(gcd, a, b) (osl_int_gcd(PIPLIB_INT_OSL_PRECISION, gcd, a, b))
+  #define piplib_int_oppose(r, i) (osl_int_oppose(PIPLIB_INT_OSL_PRECISION, r, i))
+  #define piplib_int_size_in_base_2(i) (osl_int_size_in_base_2(PIPLIB_INT_OSL_PRECISION, i))
+
+  #define piplib_int_eq(a, b) (osl_int_eq(PIPLIB_INT_OSL_PRECISION, a, b))
+  #define piplib_int_ne(a, b) (osl_int_ne(PIPLIB_INT_OSL_PRECISION, a, b))
+  #define piplib_int_zero(i) (osl_int_zero(PIPLIB_INT_OSL_PRECISION, i))
+  #define piplib_int_one(i) (osl_int_one(PIPLIB_INT_OSL_PRECISION, i))
+  #define piplib_int_pos(i) (osl_int_pos(PIPLIB_INT_OSL_PRECISION, i))
+  #define piplib_int_neg(i) (osl_int_neg(PIPLIB_INT_OSL_PRECISION, i))
+
+#elif PIPLIB_INT_SP
+
+  typedef long int piplib_int_t;
+  #define piplib_int_format "%ld"
+
+#elif PIPLIB_INT_DP
+
+  typedef long long int piplib_int_t;
+  #define piplib_int_format "%lld"
+
+#else
+
+  #error "Define of PIPLIB_INT_SP or PIPLIB_INT_DP or PIPLIB_INT_GMP or \
+          PIPLIB_INT_OSL not found"
+
+#endif
+
+
+#if defined(PIPLIB_INT_SP) || defined(PIPLIB_INT_DP)
+
+  #define piplib_int_init(i) (i = 0)
+  #define piplib_int_assign(r, i) (r = i)
+  #define piplib_int_set_si(r, i) (r = (piplib_int_t)i)
+  #define piplib_int_clear(i) do { } while(0)
+
+  #define piplib_int_get_si(i) ((int)(i))
+  #define piplib_int_get_d(i) ((double)(i))
+
+  #define piplib_int_add(r, a, b) (r = a + b)
+  #define piplib_int_sub(r, a, b) (r = a - b)
+  #define piplib_int_increment(r, i) (r = i + 1)
+  #define piplib_int_decrement(r, i) (r = i - 1)
+  #define piplib_int_div_exact(q, a, b) (q = (a) / (b))
+  //#define piplib_int_floor_div_q(q, a, b) (q = (piplib_int_t)(piplib_ll_floor_div_q(a, b)))
+  #define piplib_int_floor_div_q(q, a, b) (q = (piplib_int_t)((a - piplib_llmod(a, b)) / (b)))
+  //#define piplib_int_floor_div_r(r, a, b) (r = (piplib_int_t)piplib_llmod(a, b))
+  //#define piplib_int_floor_div_r(r, a, b) (r = (piplib_int_t)(piplib_ll_floor_div_r(a, b)))
+  #define piplib_int_mod(mod, a, b) (mod = (piplib_int_t)(piplib_llmod(a, b)))
+  #define piplib_int_gcd(gcd, a, b) (gcd = (piplib_int_t)(piplib_llgcd_llabs(a, b)))
+  #define piplib_int_oppose(r, i) (r = - (i))
+  #define piplib_int_size_in_base_2(i) (piplib_lllog2(i))
+
+  #define piplib_int_eq(a, b) (a == b)
+  #define piplib_int_ne(a, b) (a != b)
+  #define piplib_int_zero(i) (i == 0)
+  #define piplib_int_one(i) (i == 1)
+  #define piplib_int_pos(i) (i > 0)
+  #define piplib_int_neg(i) (i < 0)
+
+#endif
+
+
 #if defined(__cplusplus)
 extern "C" 
   {
@@ -135,8 +177,8 @@ extern "C"
  */
 struct pipmatrix
 { unsigned NbRows, NbColumns ;
-  Entier **p ;
-  Entier *p_Init ;
+  piplib_int_t **p ;
+  piplib_int_t *p_Init ;
   int p_Init_size;	        /* Only for PolyLib compatibility under MP
                                  * version: PolyLib makes sometimes
 				 * overestimates on the size of the matrices,
@@ -158,8 +200,8 @@ typedef struct pipmatrix PipMatrix ;
  */
 struct pipvector
 { int nb_elements ;             /* Nombre d'elements du vecteur. */
-  Entier * the_vector ;         /* Numerateurs du vecteur. */
-  Entier * the_deno ;           /* Denominateurs du vecteur. */
+  piplib_int_t * the_vector ;         /* Numerateurs du vecteur. */
+  piplib_int_t * the_deno ;           /* Denominateurs du vecteur. */
 } ;
 typedef struct pipvector PipVector ;
 
@@ -172,7 +214,7 @@ typedef struct pipvector PipVector ;
 struct pipnewparm
 { int rank ;                    /* Rang du 'newparm'. */
   PipVector * vector ;          /* Le vector decrivant le newparm. */
-  Entier deno ;                 /* Denominateur du 'newparm'. */
+  piplib_int_t deno ;                 /* Denominateur du 'newparm'. */
   struct pipnewparm * next ;    /* Pointeur vers le newparm suivant. */
 } ;
 typedef struct pipnewparm PipNewparm ;
@@ -293,5 +335,6 @@ PipQuast *sol_quast_edit(int *i, PipQuast *father, int Bg, int Urs_p, int flags)
 
 #if defined(__cplusplus)
   }
-#endif 
+#endif
+
 #endif /* define PIPLIB_H */

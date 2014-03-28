@@ -40,7 +40,7 @@ void sol_list(int);
 void sol_form(int);
 void sol_new(int);
 void sol_div(void);
-void sol_val(Entier, Entier);
+void sol_val(piplib_int_t, piplib_int_t);
 int sol_edit(FILE *, int);
 int is_not_Nil(int);
 void sol_simplify(int);

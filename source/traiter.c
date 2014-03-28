@@ -37,8 +37,8 @@ extern FILE *dump;
 extern int profondeur;
 extern int compa_count;
 
-#if !defined(LINEAR_VALUE_IS_MP)
-int llog(Entier x)
+#if !defined(PIPLIB_INT_GMP)
+int llog(piplib_int_t x)
 {int n = 0;
 /* x must be positive, you dummy */
  if(x<0) x=-x;
@@ -67,23 +67,23 @@ Tableau *expanser(Tableau *tp, int virt, int reel, int ncol,
                                int off, int dh, int dw)
 {
  int i, j, ff;
- char *q; Entier *pq;
- Entier *pp, *qq;
+ char *q; piplib_int_t *pq;
+ piplib_int_t *pp, *qq;
  Tableau *rp;
  if(tp == NULL) return(NULL);
  rp = tab_alloc(reel+dh, ncol+dw, virt);
 
- #if defined(LINEAR_VALUE_IS_MP)
+ #if defined(PIPLIB_INT_GMP)
  mpz_set(rp->determinant, tp->determinant);
  #else
  rp->l_determinant = tp->l_determinant;
  for(i=0; i<tp->l_determinant; i++)
      rp->determinant[i] = tp->determinant[i];
  #endif
- pq = (Entier *) & (rp->row[virt+reel+dh]);
+ pq = (piplib_int_t *) & (rp->row[virt+reel+dh]);
  for(i = off; i<virt + reel; i++)
      {ff = Flag(rp, i) = Flag(tp, i-off);
-      #if defined(LINEAR_VALUE_IS_MP)
+      #if defined(PIPLIB_INT_GMP)
       mpz_set(Denom(rp, i), Denom(tp, i-off));
       #else
       Denom(rp, i) = Denom(tp, i-off);
@@ -95,7 +95,7 @@ Tableau *expanser(Tableau *tp, int virt, int reel, int ncol,
 	  pp = tp->row[i-off].objet.val;
 	  qq = rp->row[i].objet.val;
 	  for(j = 0; j<ncol; j++)
-             #if defined(LINEAR_VALUE_IS_MP)
+             #if defined(PIPLIB_INT_GMP)
 	     mpz_set(*qq++, *pp++);
              #else
 	     *qq++ = *pp++;
@@ -118,22 +118,21 @@ Tableau *expanser(Tableau *tp, int virt, int reel, int ncol,
 int exam_coef(Tableau *tp, int nvar, int ncol, int bigparm)
 {int i, j ;
  int ff, fff;
- #if defined(LINEAR_VALUE_IS_MP)
+ #if defined(PIPLIB_INT_GMP)
  int x;
  #else
- Entier x;
+ piplib_int_t x;
  #endif
- Entier *p;
+ piplib_int_t *p;
  
  if (bigparm >= 0)
     for (i = 0; i<tp->height; i++) {
 	if (Flag(tp, i) != Unknown)
 	    continue;
-	x = entier_sgn(Index(tp,i, bigparm));
-	if (x < 0) {
+	if (piplib_int_neg(Index(tp,i, bigparm))) {
 	    Flag(tp, i) = Minus;
 	    return i;
-	} else if (x > 0)     
+	} else if (piplib_int_pos(Index(tp,i, bigparm)))
 	    Flag(tp, i) = Plus;
     }
 
@@ -144,7 +143,7 @@ int exam_coef(Tableau *tp, int nvar, int ncol, int bigparm)
 	   ff = Zero;
 	   p = &(tp->row[i].objet.val[nvar+1]);
 	   for(j = nvar+1; j<ncol; j++) {
-                #if defined(LINEAR_VALUE_IS_MP)
+                #if defined(PIPLIB_INT_GMP)
 	        x = mpz_sgn(*p); p++ ;
 	        #else
 	        x = *p++;
@@ -162,7 +161,7 @@ int exam_coef(Tableau *tp, int nvar, int ncol, int bigparm)
    Si tous les coefficients des parame`tres sont ne'gatifs
    et si le terme constant est nul, le signe est inconnu!!
    On traite donc spe'cialement le terme constant. */
-           #if defined(LINEAR_VALUE_IS_MP)
+           #if defined(PIPLIB_INT_GMP)
 	   x = mpz_sgn(Index(tp, i, nvar));
 	   #else
 	   x = Index(tp, i, nvar);
@@ -213,7 +212,7 @@ void compa_test(Tableau *tp, Tableau *context,
       if(ff & (Critic | Unknown))
 	  {isCritic = Pip_True;
 	   for(j = 0; j<nvar; j++)
-                 #if defined(LINEAR_VALUE_IS_MP)
+                 #if defined(PIPLIB_INT_GMP)
 		 if(mpz_sgn(Index(tp, i, j)) > 0)
                  #else
 	         if(Index(tp, i, j) > 0)
@@ -225,12 +224,12 @@ void compa_test(Tableau *tp, Tableau *context,
 	   tPlus = expanser(context, nparm, nc, nparm+1, nparm, 1, 0);
 	   Flag(tPlus, nparm+nc) = Unknown;
 	   for (j = 0; j < nparm; j++)
-	       entier_assign(Index(tPlus, nparm+nc, j), Index(tp, i, j+nvar+1));
-	   entier_assign(Index(tPlus, nparm+nc, nparm), Index(tp, i, nvar));
+	       piplib_int_assign(Index(tPlus, nparm+nc, j), Index(tp, i, j+nvar+1));
+	   piplib_int_assign(Index(tPlus, nparm+nc, nparm), Index(tp, i, nvar));
 	   if (!isCritic)
-	       entier_decrement(Index(tPlus, nparm+nc, nparm),
+	       piplib_int_decrement(Index(tPlus, nparm+nc, nparm),
 				    Index(tPlus, nparm+nc, nparm));
-	   entier_assign(Denom(tPlus, nparm+nc), UN);
+	   piplib_int_assign(Denom(tPlus, nparm+nc), UN);
 	   
 	   p = sol_hwm();
 	   traiter(tPlus, NULL, nparm, 0, nc+1, 0, -1, TRAITER_INT);
@@ -245,11 +244,11 @@ void compa_test(Tableau *tp, Tableau *context,
 	   tMinus = expanser(context, nparm, nc, nparm+1, nparm, 1, 0);
 	   Flag(tMinus, nparm+nc) = Unknown;
 	   for (j = 0; j < nparm; j++)
-	       entier_oppose(Index(tMinus, nparm+nc, j), Index(tp, i, j+nvar+1));
-	   entier_oppose(Index(tMinus, nparm+nc, nparm), Index(tp, i, nvar));
-	   entier_decrement(Index(tMinus, nparm+nc, nparm),
+	       piplib_int_oppose(Index(tMinus, nparm+nc, j), Index(tp, i, j+nvar+1));
+	   piplib_int_oppose(Index(tMinus, nparm+nc, nparm), Index(tp, i, nvar));
+	   piplib_int_decrement(Index(tMinus, nparm+nc, nparm),
 				Index(tMinus, nparm+nc, nparm));
-	   entier_assign(Denom(tMinus, nparm+nc), UN);
+	   piplib_int_assign(Denom(tMinus, nparm+nc), UN);
 	   traiter(tMinus, NULL, nparm, 0, nc+1, 0, -1, TRAITER_INT);
 	   cMinus = is_not_Nil(p);
 	   if(verbose>0){
@@ -276,7 +275,7 @@ void compa_test(Tableau *tp, Tableau *context,
  return;
 }
 
-Entier *valeur(Tableau *tp, int i, int j)
+piplib_int_t *valeur(Tableau *tp, int i, int j)
 {
  if(Flag(tp, i) & Unit)
      return(tp->row[i].objet.unit == j ? &Denom(tp,i) : &ZERO);
@@ -313,15 +312,15 @@ static void solution_dual(Tableau *tp, int nvar, int nparm, int *pos)
 int choisir_piv(Tableau *tp, int pivi, int nvar, int nligne)
 {
  int j, k;
- Entier pivot, foo, x, y;
+ piplib_int_t pivot, foo, x, y;
  int sgn_x, pivj = -1;
 
- #if defined(LINEAR_VALUE_IS_MP)
+ #if defined(PIPLIB_INT_GMP)
  mpz_init(pivot); mpz_init(foo); mpz_init(x); mpz_init(y);
  #endif
  
  for(j = 0; j<nvar; j++) {
-    #if defined(LINEAR_VALUE_IS_MP)
+    #if defined(PIPLIB_INT_GMP)
     mpz_set(foo, Index(tp, pivi, j));
     if(mpz_sgn(foo) <= 0) continue;
     if(pivj < 0)
@@ -360,7 +359,7 @@ int choisir_piv(Tableau *tp, int pivi, int nvar, int nligne)
     #endif
  }
  
- #if defined(LINEAR_VALUE_IS_MP)
+ #if defined(PIPLIB_INT_GMP)
  mpz_clear(pivot); mpz_clear(foo); mpz_clear(x); mpz_clear(y);
  #endif
 
@@ -374,17 +373,17 @@ int pivoter(Tableau *tp, int pivi, int nvar, int nparm, int ni)
  int ncol = nvar + nparm + 1;
  int nligne = nvar + ni;
  int i, j, k;
- Entier x, y, d, gcd, u, dpiv;
+ piplib_int_t x, y, d, gcd, u, dpiv;
  int ff, fff;
- Entier pivot, foo, z;
- Entier ppivot, dppiv;
- Entier new[MAXCOL], *p, *q;
- Entier lpiv;
+ piplib_int_t pivot, foo, z;
+ piplib_int_t ppivot, dppiv;
+ piplib_int_t new[MAXCOL], *p, *q;
+ piplib_int_t lpiv;
  int sgn_x;
- #if !defined(LINEAR_VALUE_IS_MP)
+ #if !defined(PIPLIB_INT_GMP)
  char format_format[32];
 
- sprintf(format_format, "\nPivot %s/%s\n", FORMAT, FORMAT);
+ sprintf(format_format, "\nPivot %s/%s\n", piplib_int_format, piplib_int_format);
  #endif
 
  if(ncol >= MAXCOL) {
@@ -403,7 +402,7 @@ int pivoter(Tableau *tp, int pivi, int nvar, int nparm, int ni)
    exit(1);
  }
 
- #if defined(LINEAR_VALUE_IS_MP)
+ #if defined(PIPLIB_INT_GMP)
  mpz_init(x); mpz_init(y); mpz_init(d); 
  mpz_init(gcd); mpz_init(u); mpz_init(dpiv);
  mpz_init(lpiv); mpz_init(pivot); mpz_init(foo);
@@ -420,13 +419,13 @@ int pivoter(Tableau *tp, int pivi, int nvar, int nparm, int ni)
  #else
  pivot = Index(tp, pivi, pivj);
  dpiv = Denom(tp, pivi);
- d = pgcd(pivot, dpiv);
+ d = piplib_llgcd_llabs(pivot, dpiv);
  ppivot = pivot/d;
  dppiv = dpiv/d;
  #endif
  
  if(verbose>1){
-   #if defined(LINEAR_VALUE_IS_MP)
+   #if defined(PIPLIB_INT_GMP)
    fprintf(dump, "Pivot ");
    mpz_out_str(dump, 10, ppivot);
    putc('/', dump);
@@ -438,17 +437,17 @@ int pivoter(Tableau *tp, int pivi, int nvar, int nparm, int ni)
    fprintf(dump, "%d x %d\n", pivi, pivj);
  }
 
- #if defined(LINEAR_VALUE_IS_MP)
+ #if defined(PIPLIB_INT_GMP)
  mpz_fdiv_qr(x, y, tp->determinant, dppiv); 
  #else
  for(i=0; i< tp->l_determinant; i++){
-     d=pgcd(tp->determinant[i], dppiv);
+     d=piplib_llgcd_llabs(tp->determinant[i], dppiv);
      tp->determinant[i] /= d;
      dppiv /= d;
      }
  #endif
 
- #if defined(LINEAR_VALUE_IS_MP)
+ #if defined(PIPLIB_INT_GMP)
  if(mpz_sgn(y) != 0){ 
  #else
  if(dppiv != 1) {
@@ -458,11 +457,11 @@ int pivoter(Tableau *tp, int pivi, int nvar, int nparm, int ni)
    exit(1);
  }
  
- #if defined(LINEAR_VALUE_IS_MP)
+ #if defined(PIPLIB_INT_GMP)
  mpz_mul(tp->determinant, x, ppivot);
  #else
  for(i=0; i<tp->l_determinant; i++)
-     if(llog(tp->determinant[i]) + llog(ppivot) < 8*sizeof(Entier)){
+     if(llog(tp->determinant[i]) + llog(ppivot) < 8*sizeof(piplib_int_t)){
 	 tp->determinant[i] *= ppivot;
 	 break;
 	 }
@@ -478,18 +477,18 @@ int pivoter(Tableau *tp, int pivi, int nvar, int nparm, int ni)
 
  if(verbose>1){
    fprintf(dump, "determinant ");
-   #if defined(LINEAR_VALUE_IS_MP)
+   #if defined(PIPLIB_INT_GMP)
    mpz_out_str(dump, 10, tp->determinant);
    #else
    for(i=0; i<tp->l_determinant; i++)
-	fprintf(dump, FORMAT, tp->determinant[i]);
+	fprintf(dump, piplib_int_format, tp->determinant[i]);
    #endif
    fprintf(dump, "\n");
  }
 
  
  for(j = 0; j<ncol; j++)
-   #if defined(LINEAR_VALUE_IS_MP)
+   #if defined(PIPLIB_INT_GMP)
    if(j==pivj)
      mpz_set(new[j], dpiv);
    else 
@@ -501,7 +500,7 @@ int pivoter(Tableau *tp, int pivi, int nvar, int nparm, int ni)
  for(k = 0; k<nligne; k++){
    if(Flag(tp,k) & Unit)continue;
    if(k == pivi)continue;
-   #if defined(LINEAR_VALUE_IS_MP)
+   #if defined(PIPLIB_INT_GMP)
    mpz_set(foo, Index(tp, k, pivj));
    mpz_gcd(d, pivot, foo);
    mpz_divexact(lpiv, pivot, d);
@@ -511,7 +510,7 @@ int pivoter(Tableau *tp, int pivi, int nvar, int nparm, int ni)
    mpz_set(Denom(tp, k), gcd);
    #else
    foo = Index(tp, k, pivj);
-   d = pgcd(pivot, foo);
+   d = piplib_llgcd_llabs(pivot, foo);
    lpiv = pivot/d;
    foo /= d;
    d = Denom(tp,k);
@@ -522,13 +521,13 @@ int pivoter(Tableau *tp, int pivi, int nvar, int nparm, int ni)
    q = tp->row[pivi].objet.val;
    for(j = 0; j<ncol; j++){
      if(j == pivj)
-     #if defined(LINEAR_VALUE_IS_MP)
+     #if defined(PIPLIB_INT_GMP)
        mpz_mul(z, dpiv, foo);
      #else
        z = dpiv * foo;
      #endif
      else {
-     #if defined(LINEAR_VALUE_IS_MP)
+     #if defined(PIPLIB_INT_GMP)
        mpz_mul(z, *p, lpiv);
        mpz_mul(y, *q, foo);
        mpz_sub(z, z, y);
@@ -538,7 +537,7 @@ int pivoter(Tableau *tp, int pivi, int nvar, int nparm, int ni)
      }
      q++;
      cross_product++;
-     #if defined(LINEAR_VALUE_IS_MP)
+     #if defined(PIPLIB_INT_GMP)
      mpz_set(*p, z);
      p++;
      if(mpz_cmp_ui(gcd, 1) != 0)
@@ -546,10 +545,10 @@ int pivoter(Tableau *tp, int pivi, int nvar, int nparm, int ni)
      #else
      *p++ = z;
      if(gcd != 1)
-       gcd = pgcd(gcd, z);
+       gcd = piplib_llgcd_llabs(gcd, z);
      #endif
    }
-   #if defined(LINEAR_VALUE_IS_MP)
+   #if defined(PIPLIB_INT_GMP)
    if(mpz_cmp_ui(gcd, 1) != 0){
      p = tp->row[k].objet.val;
      for(j = 0; j<ncol; j++){
@@ -573,13 +572,13 @@ int pivoter(Tableau *tp, int pivi, int nvar, int nparm, int ni)
  Flag(tp, k) = Plus;
  tp->row[k].objet.val = p;
  for(j = 0; j<ncol; j++)
-   #if defined(LINEAR_VALUE_IS_MP)
+   #if defined(PIPLIB_INT_GMP)
    mpz_set(*p++, new[j]);
    #else
    *p++ = new[j];
    #endif
 
- #if defined(LINEAR_VALUE_IS_MP)
+ #if defined(PIPLIB_INT_GMP)
  mpz_set(Denom(tp, k), pivot);
  Flag(tp, pivi) = Unit | Zero;
  mpz_set(Denom(tp, pivi), UN);
@@ -593,7 +592,7 @@ int pivoter(Tableau *tp, int pivi, int nvar, int nparm, int ni)
  for(k = 0; k<nligne; k++){
    ff = Flag(tp, k);
    if(ff & Unit) continue;
-   #if defined(LINEAR_VALUE_IS_MP)
+   #if defined(PIPLIB_INT_GMP)
    sgn_x = mpz_sgn(Index(tp, k, pivj));
    #else
    sgn_x = Index(tp, k, pivj);
@@ -612,7 +611,7 @@ int pivoter(Tableau *tp, int pivi, int nvar, int nparm, int ni)
    tab_display(tp, dump);
  }
 
- #if defined(LINEAR_VALUE_IS_MP)
+ #if defined(PIPLIB_INT_GMP)
  mpz_clear(x); mpz_clear(y); mpz_clear(d); mpz_clear(gcd);
  mpz_clear(u); mpz_clear(dpiv); mpz_clear(lpiv);
  mpz_clear(pivot); mpz_clear(foo); mpz_clear(z);
@@ -651,9 +650,9 @@ static int *tab_sort_rows(Tableau *tp, int nvar, int nligne, int flags)
 	if (Flag(tp,i) & Unit)
 	    continue;
 	s = 0;
-	d = ENTIER_TO_DOUBLE(Denom(tp, i));
+	d = piplib_int_get_d(Denom(tp, i));
 	for (j = 0; j < nvar; j++) {
-	    t = ENTIER_TO_DOUBLE(Index(tp,i,j))/d;
+	    t = piplib_int_get_d(Index(tp,i,j))/d;
 	    s = max(s, abs(t));
 	}
 	tp->row[i].size = s;
@@ -710,11 +709,11 @@ void traiter(Tableau *tp, Tableau *ctxt, int nvar, int nparm, int ni, int nc,
  int i;
  int *pos;
 
- #if !defined(LINEAR_VALUE_IS_MP)
- Entier D = UN;
+ #if !defined(PIPLIB_INT_GMP)
+ piplib_int_t D = UN;
  #endif
 
- #if defined(LINEAR_VALUE_IS_MP)
+ #if defined(PIPLIB_INT_GMP)
  dcw = mpz_sizeinbase(tp->determinant, 2);
  #else
  dcw = 0;
@@ -768,10 +767,10 @@ void traiter(Tableau *tp, Tableau *ctxt, int nvar, int nparm, int ni, int nc,
    /* Here, the problem tree splits        */
    if(pivi < nligne) {
      Tableau * ntp;
-     Entier com_dem;
+     piplib_int_t com_dem;
      struct high_water_mark q;
      if(nc >= context->height) {
-       #if defined(LINEAR_VALUE_IS_MP)
+       #if defined(PIPLIB_INT_GMP)
        dcw = mpz_sizeinbase(context->determinant,2);
        #else
        dcw = 0;
@@ -792,28 +791,28 @@ void traiter(Tableau *tp, Tableau *ctxt, int nvar, int nparm, int ni, int nc,
      fflush(stdout);
      sol_if();
      sol_forme(nparm+1);
-     entier_init_zero(com_dem);
+     piplib_int_init(com_dem);
      for (j = 0; j < nparm; j++)
-       entier_gcd(com_dem, com_dem, Index(tp, pivi, j + nvar +1));
+       piplib_int_gcd(com_dem, com_dem, Index(tp, pivi, j + nvar +1));
      if (!(flags & TRAITER_INT))
-	 entier_gcd(com_dem, com_dem, Index(tp, pivi, nvar));
+	 piplib_int_gcd(com_dem, com_dem, Index(tp, pivi, nvar));
      for (j = 0; j < nparm; j++) {
-       entier_divexact(Index(context, nc, j), Index(tp, pivi, j + nvar + 1), com_dem);
+       piplib_int_div_exact(Index(context, nc, j), Index(tp, pivi, j + nvar + 1), com_dem);
        sol_val(Index(context, nc, j), UN);
      }
      if (!(flags & TRAITER_INT))
-	 entier_divexact(Index(context, nc, nparm), Index(tp, pivi, nvar), com_dem);
+	 piplib_int_div_exact(Index(context, nc, nparm), Index(tp, pivi, nvar), com_dem);
      else
-	 entier_pdivision(Index(context, nc, nparm), Index(tp, pivi, nvar), com_dem);
+	 piplib_int_floor_div_q(Index(context, nc, nparm), Index(tp, pivi, nvar), com_dem);
      sol_val(Index(context, nc, nparm), UN);
-     entier_clear(com_dem);
+     piplib_int_clear(com_dem);
      Flag(context, nc) = Unknown;
-     entier_set_si(Denom(context, nc), 1);
+     piplib_int_set_si(Denom(context, nc), 1);
      Flag(ntp, pivi) = Plus;
      profondeur++;
      fflush(stdout);
      if(verbose > 0) fflush(dump);
-     #if defined(LINEAR_VALUE_IS_MP)
+     #if defined(PIPLIB_INT_GMP)
      traiter(ntp, context, nvar, nparm, ni, nc+1, bigparm, flags);
      profondeur--;
      tab_reset(q);

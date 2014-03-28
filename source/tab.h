@@ -39,10 +39,10 @@ struct A
 
 struct L
     {int flags;
-     Entier d;
+     piplib_int_t d;
      float size;
      union { int unit;
-	     Entier * val;
+	     piplib_int_t * val;
 	   } objet;
     };
 
@@ -65,16 +65,16 @@ struct high_water_mark {
 #define Denom(p,i)   (p)->row[i].d
 #define MAX_DETERMINANT 4
 
-#if defined(LINEAR_VALUE_IS_MP)
+#if defined(PIPLIB_INT_GMP)
 struct T
     {int height, width, taille;
-     Entier determinant;
+     piplib_int_t determinant;
      struct L row[1];
     };
 #else
 struct T
     {int height, width;
-     Entier determinant[MAX_DETERMINANT];
+     piplib_int_t determinant[MAX_DETERMINANT];
      int l_determinant;
      struct L row[1];
     };

@@ -36,12 +36,6 @@ extern "C"
 void traiter(Tableau *tp, Tableau *ctxt, int nvar, int nparm, int ni, int nc,
 	     int bigparm, int flags);
 int integrer(Tableau **, Tableau **, int *, int *, int *, int *, int);
-#if defined(LINEAR_VALUE_IS_MP)
-#else
-Entier pgcd(Entier, Entier);
-Entier mod(Entier,Entier);
-int llog(Entier);
-#endif
 
 int dgetc(FILE *foo);
 FILE *pip_create_dump_file();
@@ -60,7 +54,7 @@ void tab_init(void);
 void tab_close(void);
 void sol_if(void);
 void sol_forme(int);
-void sol_val(Entier, Entier);
+void sol_val(piplib_int_t, piplib_int_t);
 void sol_nil(void);
 void sol_error(int);
 Tableau * tab_alloc(int, int, int);
