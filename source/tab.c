@@ -40,11 +40,6 @@ extern long int cross_product, limit;
 static int chunk_count;
 
 int dgetc(FILE *);
-#if defined(PIPLIB_INT_GMP)
-int dscanf(FILE *, piplib_int_t);
-#else
-int dscanf(FILE *, piplib_int_t *);
-#endif
 
 extern FILE * dump;
 
@@ -85,7 +80,7 @@ struct high_water_mark tab_hwm(void)
 }
 
 
-#if defined(PIPLIB_INT_GMP)
+#if defined(PIPLIB_ONE_DETERMINANT)
 /* the clear_tab routine clears the GMP objects which may be referenced
    in the given Tableau.
 */
@@ -93,14 +88,14 @@ void tab_clear(Tableau *tp)
 {
   int i, j;
   /* clear the determinant */
-  mpz_clear(tp->determinant);
+  piplib_int_clear(tp->determinant);
 
   for(i=0; i<tp->height; i++){
     /* clear the denominator */
-    mpz_clear(Denom(tp, i));
+    piplib_int_clear(Denom(tp, i));
     if((Flag(tp, i) & Unit) == 0)
       for(j=0; j<tp->width; j++)
-        mpz_clear(Index(tp,i,j));
+        piplib_int_clear(Index(tp,i,j));
   }
 }
 #endif
@@ -113,7 +108,7 @@ void tab_reset(struct high_water_mark by_the_mark)
      {
       g = tab_base->precedent;
       
-      #if defined(PIPLIB_INT_GMP)
+      #if defined(PIPLIB_ONE_DETERMINANT)
       /* Before actually freeing the memory, one has to clear the
        * included Tableaux. If this is not done, the GMP objects
        * referenced in the Tableaux will be orphaned.
@@ -135,7 +130,7 @@ void tab_reset(struct high_water_mark by_the_mark)
       chunk_count--;
      }
  if(chunk_count > 0) {
-     #if defined(PIPLIB_INT_GMP)
+     #if defined(PIPLIB_ONE_DETERMINANT)
      /* Do not forget to clear the tables in the current chunk above the
         high water mark */
      p = (char *)by_the_mark.top;
@@ -190,8 +185,8 @@ Tableau * tab_alloc(int h, int w, int n)
  tab_base->free = tab_free;
  tp = (Tableau *)p;
  q = (piplib_int_t *)(p +  sizeof(struct T) + (h+n-1) * sizeof (struct L));
- #if defined(PIPLIB_INT_GMP)
- mpz_init_set_ui(tp->determinant,1);
+ #if defined(PIPLIB_ONE_DETERMINANT)
+ piplib_int_init_set_si(tp->determinant,1);
  #else
  tp->determinant[0] = (piplib_int_t) 1;
  tp->l_determinant = 1;
@@ -199,26 +194,17 @@ Tableau * tab_alloc(int h, int w, int n)
  for(i = 0; i<n ; i++){
    tp->row[i].flags = Unit;
    tp->row[i].objet.unit = i;
-   #if defined(PIPLIB_INT_GMP)
-   mpz_init_set_ui(Denom(tp, i), 1);
-   #else
-   Denom(tp, i) = UN ;
-   #endif
+   piplib_int_init_set_si(Denom(tp, i), 1);
  }
  for(i = n; i < (h+n); i++){
    tp->row[i].flags = 0;
    tp->row[i].objet.val = q;
    for(j = 0; j < w; j++)
-   #if defined(PIPLIB_INT_GMP)
-   mpz_init_set_ui(*q++, 0); /* loop body. */
-   mpz_init_set_ui(Denom(tp, i), 0);
-   #else
-   *q++ = 0;                 /* loop body. */
-   Denom(tp, i) = ZERO ;
-   #endif
+   piplib_int_init_set_si(*q++, 0); /* loop body. */
+   piplib_int_init_set_si(Denom(tp, i), 0);
  }
  tp->height = h + n; tp->width = w;
- #if defined(PIPLIB_INT_GMP)
+ #if defined(PIPLIB_ONE_DETERMINANT)
  tp->taille = taille ;
  #endif
  
@@ -232,40 +218,23 @@ int h, w, n;
  Tableau *p;
  int i, j, c;
  piplib_int_t x;
- #if defined(PIPLIB_INT_GMP)
- mpz_init(x);
- #endif
+ piplib_int_init(x);
  
  p = tab_alloc(h, w, n);
  while((c = dgetc(foo)) != EOF)
       if(c == '(')break;
  for(i = n; i<h+n; i++)
      {p->row[i].flags = Unknown;
-      #if defined(PIPLIB_INT_GMP)
-      mpz_set_ui(Denom(p, i), 1);
-      #else
-      Denom(p, i) = UN;
-      #endif
+      piplib_int_set_si(Denom(p, i), 1);
       while((c = dgetc(foo)) != EOF)if(c == '[')break;
       for(j = 0; j<w; j++){
-        #if defined(PIPLIB_INT_GMP)
-	if(dscanf(foo, x) < 0)
-          return NULL;
-        else
-	  mpz_set(p->row[i].objet.val[j], x);
-        #else
-	if(dscanf(foo, &x) < 0)
-          return NULL;
-        else
-	  p->row[i].objet.val[j] = x;
-        #endif
+        if(dscanf(foo, &x) < 0) return NULL;
+        else piplib_int_assign(p->row[i].objet.val[j], x);
         }
       } 
       while((c = dgetc(foo)) != EOF)if(c == ']')break;
  
- #if defined(PIPLIB_INT_GMP)
- mpz_clear(x);
- #endif
+ piplib_int_clear(x);
      
  return(p);
 }
@@ -452,19 +421,13 @@ Tableau *p;
 
  int i, j, ff, fff, n;
  piplib_int_t x, d;
- #if defined(PIPLIB_INT_GMP)
- mpz_init(d);
- #endif
+ piplib_int_init(d);
 
  fprintf(foo, "%ld/[%d * %d]\n", cross_product, p->height, p->width);
  for(i = 0; i<p->height; i++){
    fff = ff = p->row[i].flags;
    /* if(fff ==0) continue; */
-   #if defined(PIPLIB_INT_GMP)
-   mpz_set(d, Denom(p, i));
-   #else
-   d = Denom(p, i);
-   #endif
+   piplib_int_assign(d, Denom(p, i));
    n = 0;
    while(fff){
      if(fff & 1) fprintf(foo, "%s ",Attr[n]);
@@ -476,24 +439,12 @@ Tableau *p;
        fprintf(foo, " /%d/",(j == p->row[i].objet.unit)? 1: 0);
    else
      for(j = 0; j<p->width; j++){
-       #if defined(PIPLIB_INT_GMP)
-       mpz_out_str(foo, 10, Index(p, i, j));
+       piplib_int_print(foo, Index(p, i, j));
        putc(' ', foo);
-       #else
-       x = Index(p,i,j);
-       fprintf(foo, piplib_int_format, x);
-       fprintf(foo, " ");
-       #endif
      }
    fprintf(foo, "]/");
-   #if defined(PIPLIB_INT_GMP)
-   mpz_out_str(foo, 10, d);
-   #else
-   fprintf(foo, "%d", (int)d);
-   #endif
+   piplib_int_print(foo, d);
    putc('\n', foo);
  }
- #if defined(PIPLIB_INT_GMP)
- mpz_clear(d);
- #endif
+ piplib_int_clear(d);
 }

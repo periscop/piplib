@@ -65,7 +65,7 @@ struct high_water_mark {
 #define Denom(p,i)   (p)->row[i].d
 #define MAX_DETERMINANT 4
 
-#if defined(PIPLIB_INT_GMP)
+#if defined(PIPLIB_ONE_DETERMINANT)
 struct T
     {int height, width, taille;
      piplib_int_t determinant;

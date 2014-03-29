@@ -114,11 +114,7 @@ FILE *pip_create_dump_file()
 }
 
 
-#if defined(PIPLIB_INT_GMP)
-int dscanf(FILE *foo, piplib_int_t  val)
-#else
-int dscanf(FILE *foo, piplib_int_t *val)
-#endif
+int dscanf(FILE* foo, piplib_int_t* val)
 {
  char * p;
  int c;
@@ -139,11 +135,7 @@ int dscanf(FILE *foo, piplib_int_t *val)
        && inbuff[inptr] != '\n'
        && inbuff[inptr] != '\t') break;
   }
- #if defined(PIPLIB_INT_GMP)
- if(gmp_sscanf(inbuff+inptr, "%lZd", val) != 1)
- #else
- if(sscanf(inbuff+inptr, piplib_int_format, val) != 1)
- #endif
+ if(piplib_int_sscanf(inbuff+inptr, *val) != 1)
  return -1;
  
  for(; inptr < proviso; inptr++)
@@ -170,14 +162,10 @@ void pip_matrix_print(FILE * foo, PipMatrix * Mat)
   fprintf(foo,"%d %d\n", NbRows=Mat->NbRows, NbColumns=Mat->NbColumns) ;
   for (i=0;i<NbRows;i++) 
   { p=*(Mat->p+i) ;
-    for (j=0;j<NbColumns;j++)
-    #if defined(PIPLIB_INT_GMP)
-    { fprintf(foo," ") ;
-      mpz_out_str(foo,10,*p++) ;
-    }
-    #else
-    fprintf(foo," "piplib_int_format, *p++) ;
-    #endif
+    for (j=0;j<NbColumns;j++) {
+      fprintf(foo, " ") ;
+      piplib_int_print(foo, *p++);
+	}
     fprintf(foo, "\n") ;
   }
 } 
@@ -194,26 +182,18 @@ void pip_vector_print(FILE * foo, PipVector * vector)
   if (vector != NULL)
   { fprintf(foo,"#[") ;
     for (i=0;i<vector->nb_elements;i++)
-    { fprintf(foo," ") ;
-      #if defined(PIPLIB_INT_GMP)
-      mpz_out_str(foo,10,vector->the_vector[i]) ;
-      if (mpz_cmp(vector->the_deno[i],UN) != 0)
-      #else
-      fprintf(foo,piplib_int_format,vector->the_vector[i]) ;
-      if (vector->the_deno[i] != UN)
-      #endif
-      { fprintf(foo,"/") ;
-        #if defined(PIPLIB_INT_GMP)
-        mpz_out_str(foo,10,vector->the_deno[i]) ;
-        #else
-        fprintf(foo,piplib_int_format,vector->the_deno[i]) ;
-        #endif
+    { fprintf(foo," ");
+      piplib_int_print(foo, vector->the_vector[i]);
+      // vector->the_deno[i] != 1
+      if (piplib_int_one(vector->the_deno[i]) == 0) {
+        fprintf(foo,"/") ;
+        piplib_int_print(foo, vector->the_deno[i]);
       }
     }
     fprintf(foo,"]") ;
   }
 }
-  
+
 
 /* Fonction pip_newparm_print :
  * Cette fonction se charge d'imprimer sur le flux 'foo' les informations
@@ -233,12 +213,8 @@ void pip_newparm_print(FILE * foo, PipNewparm * newparm, int indent)
       fprintf(foo,"%d",newparm->rank) ;
       fprintf(foo," (div ") ;
       pip_vector_print(foo,newparm->vector) ;
-      fprintf(foo," ") ;
-      #if defined(PIPLIB_INT_GMP)
-      mpz_out_str(foo,10,newparm->deno) ;
-      #else
-      fprintf(foo,piplib_int_format,newparm->deno) ;
-      #endif
+      fprintf(foo," ");
+      piplib_int_print(foo, newparm->deno);
       fprintf(foo,"))\n") ;
     }
     while ((newparm = newparm->next) != NULL) ;
@@ -348,15 +324,14 @@ void * pip_options_print(FILE * foo, PipOptions * options)
  * Premiere version : Ced. 29 juillet 2001. 
  */
 void pip_matrix_free(PipMatrix * matrix)
-{ 
-  #if defined(PIPLIB_INT_GMP)
-  int i, j ;
-  piplib_int_t * p ;
+{
+  int i, j;
+  piplib_int_t* p;
 
-  p = matrix->p_Init ;
-  for (i=0;i<matrix->p_Init_size;i++) 
-  mpz_clear(*p++) ;
-  #endif
+  p = matrix->p_Init;
+  for (i=0;i<matrix->p_Init_size;i++) {
+    piplib_int_clear(*p++);
+  }
 
   if (matrix != NULL)
   { free(matrix->p_Init) ;
@@ -377,13 +352,11 @@ void pip_vector_free(PipVector * vector)
 { int i ;
   
   if (vector != NULL)
-  { 
-    #if defined(PIPLIB_INT_GMP)
+  {
     for (i=0;i<vector->nb_elements;i++)
-    { mpz_clear(vector->the_vector[i]);
-      mpz_clear(vector->the_deno[i]);
+    { piplib_int_clear(vector->the_vector[i]);
+      piplib_int_clear(vector->the_deno[i]);
     }
-    #endif
   
     free(vector->the_vector) ;
     free(vector->the_deno) ;
@@ -403,9 +376,7 @@ void pip_newparm_free(PipNewparm * newparm)
 
   while (newparm != NULL)
   { next = newparm->next ;
-    #if defined(PIPLIB_INT_GMP)
-    mpz_clear(newparm->deno);
-    #endif
+    piplib_int_clear(newparm->deno);
     pip_vector_free(newparm->vector) ;
     free(newparm) ;
     newparm = next ;
@@ -551,12 +522,8 @@ PipMatrix * pip_matrix_alloc(unsigned NbRows, unsigned NbColumns)
       matrix->p_Init = q ;
       for (i=0;i<NbRows;i++) 
       { *p++ = q ;
-	for (j=0;j<NbColumns;j++)   
-        #if defined(PIPLIB_INT_GMP)
-	mpz_init_set_si(*(q+j),0) ;
-	#else
-	*(q+j) = 0 ;
-	#endif
+	for (j=0;j<NbColumns;j++)
+	  piplib_int_init_set_si(*(q+j),0) ;
 	q += NbColumns ;
       }
     }
@@ -582,10 +549,7 @@ PipMatrix * pip_matrix_alloc(unsigned NbRows, unsigned NbColumns)
  */
 PipMatrix * pip_matrix_read(FILE * foo)
 { unsigned NbRows, NbColumns ;
-  int i, j, n ;
-  #if defined(PIPLIB_INT_GMP)
-  long long val ;
-  #endif
+  int i, j, n;
   char *c, s[1024], str[1024] ;
   PipMatrix * matrix ;
   piplib_int_t * p ;
@@ -619,12 +583,7 @@ PipMatrix * pip_matrix_read(FILE * foo)
       { fprintf(stderr, "Not enough rows.\n") ;
         exit(1) ;
       }
-      #if defined(PIPLIB_INT_GMP)
-      sscanf(str,"%lld",&val) ;
-      mpz_set_si(*p++,val) ;
-      #else
-      sscanf(str,piplib_int_format,p++) ;
-      #endif
+      piplib_int_sscanf(str, *p); p++;
       c += n ;
     }
   }
@@ -638,13 +597,8 @@ static int pip_initialized = 0;
 void pip_init() {
   /* Avoid initializing (and leaking) several times */
   if (!pip_initialized) {
-    #if defined(PIPLIB_INT_GMP)
-    mpz_init_set_si(UN, 1);
-    mpz_init_set_si(ZERO, 0);
-    #else
-    UN   = 1 ;
-    ZERO = 0 ;
-    #endif
+    piplib_int_init_set_si(UN, 1);
+    piplib_int_init_set_si(ZERO, 0);
     sol_init() ;
     tab_init() ;
     pip_initialized = 1;
@@ -654,10 +608,8 @@ void pip_init() {
 void pip_close() {
   tab_close();
   sol_close();
-# if defined(PIPLIB_INT_GMP)
-  mpz_clear(UN);
-  mpz_clear(ZERO);
-# endif
+  piplib_int_clear(UN);
+  piplib_int_clear(ZERO);
   pip_initialized = 0;
 }
  
@@ -771,11 +723,7 @@ PipOptions * options ;
      if (!dump)
 	verbose = 0;
   }
-  #if defined(PIPLIB_INT_GMP)
-  limit = 0LL ;
-  #else
   limit = ZERO ;
-  #endif
 
   /* Si inequnk est NULL, la solution est automatiquement void (NULL). */
   if (inequnk != NULL)
@@ -792,13 +740,9 @@ PipOptions * options ;
      * y en a.
      */
     Nl = inequnk->NbRows ;
-    for (i=0;i<inequnk->NbRows;i++)
-    #if defined(PIPLIB_INT_GMP)
-    if (mpz_sgn(**(inequnk->p + i)) == 0)
-    #else
-    if (**(inequnk->p + i) == 0)
-    #endif
-    Nl ++ ;
+    for (i=0;i<inequnk->NbRows;i++) {
+      if (piplib_int_zero(**(inequnk->p + i))) { ++Nl; }
+	}
       
     /* On prend les 'marques' de debut de traitement. */
     cross_product = 0 ;
@@ -837,13 +781,9 @@ PipOptions * options ;
        * double quand il y en a.
        */
       Nm = ineqpar->NbRows ;
-      for (i=0;i<ineqpar->NbRows;i++)
-      #if defined(PIPLIB_INT_GMP)
-      if (mpz_sgn(**(ineqpar->p + i)) == 0)
-      #else
-      if (**(ineqpar->p + i) == 0)
-      #endif
-      Nm ++ ;
+      for (i=0;i<ineqpar->NbRows;i++) {
+        if (piplib_int_zero(**(ineqpar->p + i))) { Nm++; }
+	  }
       
       context = tab_Matrix2Tableau(ineqpar, Nm, Np-Urs_parms, -1,
 				   Shift, Bg-Nn-1, Urs_parms);

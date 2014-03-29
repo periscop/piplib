@@ -57,6 +57,15 @@ size_t piplib_lllog2(long long int x) {
 
   return ((n == 0) ? 1 : n);
 }
+size_t piplib_lllog10(long long int x) {
+  size_t n = 0;
+
+  x = llabs(x);
+
+  while (x) { x /= 10; ++n; }
+
+  return n;
+}
 long long int piplib_llmod(long long int const a, long long int const b) {
   long long mod = a % b;
    if (mod < 0) { mod += llabs(b); }
@@ -98,61 +107,56 @@ piplib_int_t D;
    operation, the responsibility of creating and destroying <<z>> is the 
    caller's.                                                                */
 
-void bezout(piplib_int_t x, piplib_int_t y, piplib_int_t delta, piplib_int_t *z){
+void bezout(piplib_int_t x, piplib_int_t y,
+            piplib_int_t delta, piplib_int_t* z) {
   piplib_int_t a, b, c, d, e, f, u, v, q, r;
-#if defined(PIPLIB_INT_GMP)
-  mpz_init(a); mpz_init(b); mpz_init(c); mpz_init(d);
-  mpz_init(e); mpz_init(f); mpz_init(u); mpz_init(v);
-  mpz_init(q); mpz_init(r);
-  mpz_set_ui(a, 1); mpz_set_ui(b, 0); mpz_set_ui(c, 0);
-  mpz_set_ui(d, 1); mpz_set(u, y); mpz_set(v, delta);
-#else
-  a = 1; b = 0; c = 0; d = 1;
-  u = y; v = delta;
-#endif
-  for(;;){
-#if defined(PIPLIB_INT_GMP)
-    mpz_fdiv_qr(q, r, u, v);
-    if(mpz_cmp_ui(r, 0) == 0) break;
-    mpz_set(u, v);
-    mpz_set(v, r);
-    mpz_mul(e, q, c);
-    mpz_sub(e, a, e);
-    mpz_mul(f, q, d);
-    mpz_sub(f, b, f);
-    mpz_set(a, c);
-    mpz_set(b, d);
-    mpz_set(c, e);
-    mpz_set(d, f);
-#else
-    q = u / v;
-    piplib_int_mod(r, u, v);
-    if(r == 0) break;
-    u = v;
-    v = r;
-    e = a - q*c;
-    f = b - q*d;
-    a = c;
-    b = d;
-    c = e;
-    d = f;
-#endif
+
+  piplib_int_init_set_si(a, 1);
+  piplib_int_init(b);
+  piplib_int_init(c);
+  piplib_int_init_set_si(d, 1);
+  piplib_int_init(e);
+  piplib_int_init(f);
+  piplib_int_init_set(u, v);
+  piplib_int_init_set(v, delta);
+  piplib_int_init(q);
+  piplib_int_init(r);
+
+  for(;;) {
+    piplib_int_floor_div_q_r(q, r, u, v);
+
+    if(piplib_int_zero(r) == 0) break;
+
+    piplib_int_assign(u, v);
+    piplib_int_assign(v, r);
+    piplib_int_mul(e, q, c);
+    piplib_int_sub(e, a, e);
+    piplib_int_mul(f, q, d);
+    piplib_int_sub(f, b, f);
+    piplib_int_assign(a, c);
+    piplib_int_assign(b, d);
+    piplib_int_assign(c, e);
+    piplib_int_assign(d, f);
   }
-#if defined(PIPLIB_INT_GMP)
-  if(mpz_cmp_ui(v, 1) != 0)
-    mpz_set_ui(*z, 0);
-  else {
-    mpz_mul(a, c, x);
-    mpz_mod(*z, a, delta);
+
+  // v != 1
+  if (piplib_int_one(v) == 0) {
+    piplib_int_set_si(*z, 0);
+  } else {
+    piplib_int_mul(a, c, x);
+    piplib_int_mod(*z, a, delta);
   }
-  mpz_clear(a); mpz_clear(b); mpz_clear(c); mpz_clear(d);
-  mpz_clear(e); mpz_clear(f); mpz_clear(u); mpz_clear(v);
-  mpz_clear(q); mpz_clear(r);
-  
-#else
-  if (v != 1) { *z = 0; } /* y and delta are not mutually prime */
-  else { piplib_int_mod(*z, c * x, delta); }
-#endif
+
+  piplib_int_clear(a);
+  piplib_int_clear(b);
+  piplib_int_clear(c);
+  piplib_int_clear(d);
+  piplib_int_clear(e);
+  piplib_int_clear(f);
+  piplib_int_clear(u);
+  piplib_int_clear(v);
+  piplib_int_clear(q);
+  piplib_int_clear(r);
 }
 
 Tableau *expanser();
@@ -288,56 +292,54 @@ static int find_parm(Tableau *context, int nr, int nparm, piplib_int_t *cut)
     return -1;
 }
 
-/* integrer(.....) add a cut to the problem tableau, or return 0 when an
-   integral solution has been found, or -1 when no integral solution
-   exists.
+/**
+ * @brief integrer
+ * 
+ * Add a cut to the problem tableau, or return 0 when an integral solution has
+ * been found, or -1 when no integral solution exists.
+ * 
+ * Since integrer may add rows and columns to the problem tableau, its
+ * arguments are pointers rather than values. If a cut is constructed, ni
+ * increases by 1. If the cut is parametric, nparm increases by 1 and nc
+ * increases by 2.
+ */
 
-   Since integrer may add rows and columns to the problem tableau, its
-   arguments are pointers rather than values. If a cut is constructed,
-   ni increases by 1. If the cut is parametric, nparm increases by 1 and
-   nc increases by 2.
-									 */
+int integrer(Tableau** ptp, Tableau** pcontext,
+             int* pnvar, int* pnparm, int* pni, int* pnc, int bigparm) {
+  int ncol = *pnvar + *pnparm + 1;
+  int nligne = *pnvar + *pni;
+  int nparm = *pnparm;
+  int nvar = *pnvar;
+  int ni = *pni;
+  int nc = *pnc;
+  piplib_int_t coupure[MAXCOL];
+  int i, j, k, ff;
+  piplib_int_t x, d;
+  int ok_var, ok_const, ok_parm;
+  piplib_int_t D;
+  int parm;
 
-int integrer(Tableau **ptp, Tableau **pcontext, 
-	     int *pnvar, int *pnparm, int *pni, int *pnc, int bigparm)
-{int ncol = *pnvar+*pnparm+1;
- int nligne = *pnvar + *pni;
- int nparm = *pnparm;
- int nvar = *pnvar;
- int ni = *pni;
- int nc = *pnc;
- piplib_int_t coupure[MAXCOL];
- int i, j, k, ff;
- piplib_int_t x, d;
- int ok_var, ok_const, ok_parm;
- piplib_int_t D;
-    int parm;
+  piplib_int_t t, delta, tau, lambda;
 
- piplib_int_t t, delta, tau, lambda;
-
-    if (ncol >= MAXCOL) {
-	fprintf(stderr, "Too many variables: %d\n", ncol);
-	exit(3);
-    }
+  if (ncol >= MAXCOL) {
+    fprintf(stderr, "Too many variables: %d\n", ncol);
+    exit(3);
+  }
  
- #if defined(PIPLIB_INT_GMP)
  for(i=0; i<=ncol; i++)
-   mpz_init(coupure[i]);
+   piplib_int_init(coupure[i]);
 
- mpz_init(x); mpz_init(d); mpz_init(D);
- mpz_init(t); mpz_init(delta); mpz_init(tau); mpz_init(lambda);
- #endif
+ piplib_int_init(x); piplib_int_init(d); piplib_int_init(D);
+ piplib_int_init(t); piplib_int_init(delta); piplib_int_init(tau); piplib_int_init(lambda);
 
 
 /* search for a non-integral row */
  for(i = 0; i<nvar; i++) {
-      #if defined(PIPLIB_INT_GMP)
-      mpz_set(D, Denom(*ptp, i));
-      if(mpz_cmp_ui(D, 1) == 0) continue;
-      #else
-      D = Denom(*ptp,i);
-      if(D == 1) continue;
-      #endif
+      piplib_int_assign(D, Denom(*ptp, i));
+
+      // D == 1
+      if (piplib_int_one(D)) continue;
+
 /*                          If the common denominator of the row is 1
                             the row is integral                         */
       ff = Flag(*ptp, i);
@@ -349,30 +351,17 @@ int integrer(Tableau **ptp, Tableau **pcontext,
                             modulo D, the common denominator            */
       ok_var = Pip_False;
       for(j = 0; j<nvar; j++) {
-         #if defined(PIPLIB_INT_GMP)
-         mpz_fdiv_r(x, Index(*ptp, i, j), D);
-         mpz_set(coupure[j], x);
-         #else
-         piplib_int_mod(coupure[j], Index(*ptp, i, j), D);
-         x = coupure[j];
-         #endif
+         piplib_int_floor_div_r(x, Index(*ptp, i, j), D);
+         piplib_int_assign(coupure[j], x);
 	    if (piplib_int_pos(x))
 		ok_var = Pip_True;
           }
 /*                          Done for the coefficient of the variables.  */
-
-      #if defined(PIPLIB_INT_GMP)
-      mpz_neg(x, Index(*ptp, i, nvar));
-      mpz_fdiv_r(x, x, D);
-      mpz_neg(x, x);
-      mpz_set(coupure[nvar], x);
-      ok_const = mpz_cmp_ui(x, 0);
-      #else
-      piplib_int_mod(coupure[nvar], -Index(*ptp, i, nvar), D);
-	  coupure[nvar] = - coupure[nvar];
-      x = coupure[nvar];
-      ok_const = (x != 0);
-      #endif
+      piplib_int_oppose(x, Index(*ptp, i, nvar));
+      piplib_int_floor_div_r(x, x, D);
+      piplib_int_oppose(x, x);
+      piplib_int_assign(coupure[nvar], x);
+      ok_const = (piplib_int_zero(x) == 0); // x != 0
 /*                          This is the constant term                   */
       ok_parm = Pip_False;
       for(j = nvar+1; j<ncol; j++) {
@@ -389,11 +378,7 @@ int integrer(Tableau **ptp, Tableau **pcontext,
       }
 /*                          These are the parametric terms              */
 
-      #if defined(PIPLIB_INT_GMP)
-      mpz_set(coupure[ncol], D);
-      #else
-      coupure[ncol] = D;    /* Just in case                             */
-      #endif
+      piplib_int_assign(coupure[ncol], D); /* Just in case */
 
 /* The question now is whether the cut is valid. The answer is given
 by the following decision table:
@@ -419,114 +404,67 @@ ok_var   ok_parm   ok_const
           if(ok_var) {                                   /*     case (d)  */
               if(nligne >= (*ptp)->height) {
 		  int d, dth, dtw;
-                  #if defined(PIPLIB_INT_GMP)
-	          d = mpz_sizeinbase(D, 2);
-                  #else
-                  d = llog(D);
-                  #endif
+	          d = piplib_int_size_in_base_2(D);
                   dth = d;
 		  *ptp = expanser(*ptp, nvar, ni, ncol, 0, dth, 0);
                   }
 	      /* Find the deepest cut*/
 	      if(deepest_cut){
-#if defined(PIPLIB_INT_GMP)
-	      mpz_neg(t, coupure[nvar]);
-              mpz_gcd(delta, t, D);
-	      mpz_divexact(tau, t, delta);
-	      mpz_divexact(d, D, delta);
-              mpz_sub_ui(t, d, 1);
-              bezout(t, tau, d, &lambda);
-	      mpz_gcd(t, lambda, D);
-              while(mpz_cmp_ui(t, 1) != 0){
-		mpz_add(lambda, lambda, d);
-		mpz_gcd(t, lambda, D);
+	      piplib_int_oppose(t, coupure[nvar]);
+          piplib_int_gcd(delta, t, D);
+	      piplib_int_div_exact(tau, t, delta);
+	      piplib_int_div_exact(d, D, delta);
+          piplib_int_decrement(t, d);
+          bezout(t, tau, d, &lambda);
+	      piplib_int_gcd(t, lambda, D);
+              // t != 1
+              while(piplib_int_one(t) == 0) {
+		piplib_int_add(lambda, lambda, d);
+		piplib_int_gcd(t, lambda, D);
 	      }
 	      for(j=0; j<nvar; j++){
-		mpz_mul(t, lambda, coupure[j]);
-		mpz_fdiv_r(coupure[j], t, D);
+		piplib_int_mul(t, lambda, coupure[j]);
+		piplib_int_floor_div_r(coupure[j], t, D);
 	      }
-	      mpz_mul(t, coupure[nvar], lambda);
-	      mpz_mod(t, t, D);
-	      mpz_sub(t, D, t);
-	      mpz_neg(coupure[nvar], t);
-#else
-	      t = -coupure[nvar];
-	      delta = piplib_llgcd_llabs(t,D);
-	      tau = t/delta;
-	      d = D/delta;
-	      bezout(d-1, tau, d, &lambda);
-	      while(piplib_llgcd_llabs(lambda, D) != 1) { lambda += d; }
-	      for(j=0; j<nvar; j++) {
-	        piplib_int_mod(coupure[j], lambda*coupure[j], D);
-		  }
-	      piplib_int_mod(coupure[nvar], -lambda*coupure[nvar], D);
-	      coupure[nvar] = - coupure[nvar];
-#endif
+	      piplib_int_mul(t, coupure[nvar], lambda);
+	      piplib_int_mod(t, t, D);
+	      piplib_int_sub(t, D, t);
+	      piplib_int_oppose(coupure[nvar], t);
 	      }
                          /* The cut has a negative <<constant>> part      */
               Flag(*ptp, nligne) = Minus; 
-              #if defined(PIPLIB_INT_GMP)
-              mpz_set(Denom(*ptp, nligne), D);
-              #else
-              Denom(*ptp, nligne) = D;
-              #endif
+              piplib_int_assign(Denom(*ptp, nligne), D);
                          /* Insert the cut */
 	      for(j = 0; j<ncol; j++)
-                  #if defined(PIPLIB_INT_GMP)
-	          mpz_set(Index(*ptp, nligne, j), coupure[j]);
-                  #else
-                  Index(*ptp, nligne, j) = coupure[j];
-                  #endif
+	          piplib_int_assign(Index(*ptp, nligne, j), coupure[j]);
                       /* A new row has been added to the problem tableau. */
 	      (*pni)++;
               if(verbose > 0) {
 		fprintf(dump, "just cut ");
                 if(deepest_cut){
 		  fprintf(dump, "Bezout multiplier ");
-#if defined(PIPLIB_INT_GMP)
-		  mpz_out_str(dump, 10, lambda);
-#else
-		  fprintf(dump, piplib_int_format, lambda);
-#endif
+		  piplib_int_print(dump, lambda);
 		}
                 fprintf(dump, "\n");
 		k=0;
                 for(i=0; i<nvar; i++){
                   if(Flag(*ptp, i) & Unit){
-#if defined(PIPLIB_INT_GMP)
 		    fprintf(dump, "0 ");
-#else
-		    sprintf(compose+k, "0 ");
-#endif
 		    k += 2;
 		  }
 		  else {
-#if defined(PIPLIB_INT_GMP)
-		    k += mpz_out_str(dump, 10, Index(*ptp, i, nvar));
+		    piplib_int_print(dump, Index(*ptp, i, nvar));
+		    k += piplib_int_size_in_base_10(Index(*ptp, i, nvar));
 		    fprintf(dump, "/");
 		    k++;
-		    k += mpz_out_str(dump, 10, Denom(*ptp, i));
+		    piplib_int_print(dump, Denom(*ptp, i));
+		    k += piplib_int_size_in_base_10(Denom(*ptp, i));
 		    fprintf(dump, " ");
 		    k++;
 		    if(k > 60){
 		      putc('\n', dump);
 		      k = 0;
 		    }
-#else
-		    sprintf(compose+k, piplib_int_format, Index(*ptp, i, nvar));
-		    k = strlen(compose);
-		    sprintf(compose+k, "/");
-		    k++;
-		    sprintf(compose+k, piplib_int_format, Denom(*ptp, i));
-		    k = strlen(compose);
-		    sprintf(compose+k, " ");
-		    k++;
-		    if(k>60)  {
-		      fputs(compose, dump);
-		      putc('\n', dump);
-		      k=0;
-		    }
-#endif
 		  }
 		}
 		fputs(compose, dump);
@@ -554,11 +492,7 @@ ok_var   ok_parm   ok_const
 	assert(ok_var);
           if(nligne >= (*ptp)->height || ncol >= (*ptp)->width) {
               int d, dth, dtw;
-             #if defined(PIPLIB_INT_GMP)
-             d = mpz_sizeinbase(D, 2);
-             #else
-             d = llog(D);
-             #endif
+             d = piplib_int_size_in_base_2(D);
               dth = d + ni;
 	      dtw = d;
 	      *ptp = expanser(*ptp, nvar, ni, ncol, 0, dth, dtw);
@@ -568,18 +502,10 @@ ok_var   ok_parm   ok_const
                             
 			 /* The cut has a negative <<constant>> part    */
 	  Flag(*ptp, nligne) = Minus;
-          #if defined(PIPLIB_INT_GMP)
-          mpz_set(Denom(*ptp, nligne), D);
-          #else
-	  Denom(*ptp, nligne) = D;
-          #endif
+          piplib_int_assign(Denom(*ptp, nligne), D);
               	 /* Insert the cut */
 	for (j = 0; j < ncol; j++)
-              #if defined(PIPLIB_INT_GMP)
-              mpz_set(Index(*ptp, nligne, j), coupure[j]);
-              #else
-	      Index(*ptp, nligne, j) = coupure[j];
-              #endif
+              piplib_int_assign(Index(*ptp, nligne, j), coupure[j]);
 	piplib_int_add(Index(*ptp, nligne, nvar+1+parm),
 		    Index(*ptp, nligne, nvar+1+parm), coupure[ncol]);
 		 /* A new row has been added to the problem tableau.    */

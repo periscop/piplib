@@ -91,20 +91,15 @@ int main(int argc, char *argv[])
  int p, q, xq;
  long temps;
  char *date;
- piplib_int_t x ;
- #if defined(PIPLIB_INT_GMP)
- mpz_init(x);
+ piplib_int_t x;
+ piplib_int_init(x);
+ #if defined(PIPLIB_ONE_DETERMINANT)
  #else
  piplib_int_t i;
  #endif
  
- #if defined(PIPLIB_INT_GMP)
- mpz_init_set_si(UN, 1);
- mpz_init_set_si(ZERO, 0);
- #else
- UN   = 1 ;
- ZERO = 0 ;
- #endif
+ piplib_int_init_set_si(UN, 1);
+ piplib_int_init_set_si(ZERO, 0);
  
  in = stdin; out = stdout;
  p = 1;
@@ -164,45 +159,24 @@ int main(int argc, char *argv[])
      {if(c != '(') continue;
       fprintf(out, "(");
       balance(in, out);
-      #if defined(PIPLIB_INT_GMP)
-      if(dscanf(in, x) < 0){escape(in, out, 1); continue;}
-      else
-        nvar = mpz_get_si(x);
-      if(dscanf(in, x) < 0){escape(in, out, 1); continue;}
-      else
-        nparm = mpz_get_si(x);
-      if(dscanf(in, x) < 0){escape(in, out, 1); continue;}
-      else
-        ni = mpz_get_si(x);
-      if(dscanf(in, x) < 0){escape(in, out, 1); continue;}
-      else
-        nc = mpz_get_si(x);
-      if(dscanf(in, x) < 0){escape(in, out, 1); continue;}
-      else
-        bigparm = mpz_get_si(x);
-      if(dscanf(in, x) < 0){escape(in, out, 1); continue;}
-      else
-        nq = mpz_get_si(x);
-      #else
       if(dscanf(in, &x) < 0){escape(in, out, 1); continue;}
       else 
-        nvar = (int) x;
+        nvar = piplib_int_get_si(x);
       if(dscanf(in, &x) < 0){escape(in, out, 1); continue;}
       else
-        nparm = (int) x;
+        nparm = piplib_int_get_si(x);
       if(dscanf(in, &x) < 0){escape(in, out, 1); continue;}
       else 
-        ni = (int) x;
+        ni = piplib_int_get_si(x);
       if(dscanf(in, &x) < 0){escape(in, out, 1); continue;}
       else
-        nc = (int) x;
+        nc = piplib_int_get_si(x);
       if(dscanf(in, &x) < 0){escape(in, out, 1); continue;}
       else 
-        bigparm = (int) x;
+        bigparm = piplib_int_get_si(x);
       if(dscanf(in, &x) < 0){escape(in, out, 1); continue;}
       else 
-        nq = (int) x;
-      #endif
+        nq = piplib_int_get_si(x);
       
       if(verbose > 0) {fprintf(dump, "%d %d %d %d %d %d\n",nvar, nparm, ni, nc,
                                bigparm, nq);
@@ -235,8 +209,8 @@ int main(int argc, char *argv[])
        traiter(ineq, context, nvar, nparm, ni, nc, bigparm, nq ? TRAITER_INT : 0);
 	if (verbose > 0) {
 	    fprintf(dump, "det: ");
-#if defined(PIPLIB_INT_GMP)
-	    mpz_out_str(dump, 10, ineq->determinant);
+#if defined(PIPLIB_ONE_DETERMINANT)
+	    piplib_int_print(dump, ineq->determinant);
 #else
 	    for (i=0; i<ineq->l_determinant; i++) {
 		fprintf(dump, piplib_int_format, ineq->determinant[i]);
@@ -268,9 +242,7 @@ int main(int argc, char *argv[])
  comptage, chrono.tms_utime, chrono.tms_stime);
 #endif
 
-#if defined(PIPLIB_INT_GMP)
- mpz_clear(x);
-#endif
+ piplib_int_clear(x);
  pip_close();
  exit(0);
 }

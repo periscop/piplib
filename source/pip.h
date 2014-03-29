@@ -4,3 +4,5 @@
 #include "sol.h"
 #include "tab.h"
 #include "funcall.h"
+
+int dscanf(FILE*, piplib_int_t*);

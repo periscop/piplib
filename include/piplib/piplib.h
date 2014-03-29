@@ -39,6 +39,7 @@
 long long int piplib_llgcd(long long int const, long long int const);
 long long int piplib_llgcd_llabs(long long int const, long long int const);
 size_t piplib_lllog2(long long int);
+size_t piplib_lllog10(long long int);
 long long int piplib_llmod(long long int const, long long int const);
 
 
@@ -46,13 +47,19 @@ long long int piplib_llmod(long long int const, long long int const);
 
   #include <gmp.h>
 
+  #define PIPLIB_ONE_DETERMINANT
+
   typedef mpz_t piplib_int_t;
   #define piplib_int_format "%d"
 
   #define piplib_int_init(i) (mpz_init(i))
+  #define piplib_int_init_set(i, v) (mpz_init_set(i, v))
+  #define piplib_int_init_set_si(i, v) (mpz_init_set_si(i, v))
   #define piplib_int_assign(r, i) (mpz_set(r, i))
   #define piplib_int_set_si(r, i) (mpz_set_si(r, i))
   #define piplib_int_clear(i) (mpz_clear(i))
+  #define piplib_int_print(file, i) (mpz_out_str(file, 10, i))
+  #define piplib_int_sscanf(string, i) (gmp_sscanf(string, "%lZd", i))
 
   #define piplib_int_get_si(i) ((int)mpz_get_si(i))
   #define piplib_int_get_d(i) (mpz_get_d(i))
@@ -61,13 +68,16 @@ long long int piplib_llmod(long long int const, long long int const);
   #define piplib_int_sub(r, a, b) (mpz_sub(r, a, b))
   #define piplib_int_increment(r, i) (mpz_add_ui(r, i, 1))
   #define piplib_int_decrement(r, i) (mpz_sub_ui(r, i, 1))
+  #define piplib_int_mul(r, a, b) (mpz_mul(r, a, b))
   #define piplib_int_div_exact(q, a, b) (mpz_divexact(q, a, b))
   #define piplib_int_floor_div_q(q, a, b) (mpz_fdiv_q(q, a, b))
-  //#define piplib_int_floor_div_r(r, a, b) (mpz_fdiv_r(r, a, b))
+  #define piplib_int_floor_div_r(r, a, b) (mpz_fdiv_r(r, a, b))
+  #define piplib_int_floor_div_q_r(q, r, a, b) (mpz_fdiv_qr(q, r, a, b))
   #define piplib_int_mod(mod, a, b) (mpz_mod(mod, a, b))
   #define piplib_int_gcd(gcd, a, b) (mpz_gcd(gcd, a, b))
   #define piplib_int_oppose(r, i) (mpz_neg(r, i))
   #define piplib_int_size_in_base_2(i) (mpz_sizeinbase(i, 2))
+  #define piplib_int_size_in_base_10(i) (mpz_sizeinbase(i, 10))
 
   #define piplib_int_eq(a, b) (mpz_cmp(a, b) == 0)
   #define piplib_int_ne(a, b) (mpz_cmp(a, b) != 0)
@@ -84,9 +94,13 @@ long long int piplib_llmod(long long int const, long long int const);
   #define piplib_int_format "%d"
 
   #define piplib_int_init(i) (osl_int_init(PIPLIB_INT_OSL_PRECISION, i))
+  #define piplib_int_init_set(i, v) (osl_int_init_set(PIPLIB_INT_OSL_PRECISION, i, v))
+  #define piplib_int_init_set_si(i, v) (osl_int_init_set_si(PIPLIB_INT_OSL_PRECISION, i, v))
   #define piplib_int_assign(r, i) (osl_int_assign(PIPLIB_INT_OSL_PRECISION, r, i))
   #define piplib_int_set_si(r, i) (osl_int_set_si(PIPLIB_INT_OSL_PRECISION, r, i))
   #define piplib_int_clear(i) (osl_int_clear(PIPLIB_INT_OSL_PRECISION, i))
+  #define piplib_int_print(file, i) (osl_int_print(file, PIPLIB_INT_OSL_PRECISION, i))
+  #define piplib_int_sscanf(string, i) (osl_int_sscanf(string, PIPLIB_INT_OSL_PRECISION, i))
 
   #define piplib_int_get_si(i) (osl_int_get_si(PIPLIB_INT_OSL_PRECISION, i))
   #define piplib_int_get_d(i) (osl_int_get_d(PIPLIB_INT_OSL_PRECISION, i))
@@ -95,13 +109,16 @@ long long int piplib_llmod(long long int const, long long int const);
   #define piplib_int_sub(r, a, b) (osl_int_sub(PIPLIB_INT_OSL_PRECISION, r, a, b))
   #define piplib_int_increment(r, i) (osl_int_increment(PIPLIB_INT_OSL_PRECISION, r, i))
   #define piplib_int_decrement(r, i) (osl_int_decrement(PIPLIB_INT_OSL_PRECISION, r, i))
+  #define piplib_int_mul(r, a, b) (osl_int_mul(PIPLIB_INT_OSL_PRECISION,r, a, b))
   #define piplib_int_div_exact(q, a, b) (osl_int_div_exact(PIPLIB_INT_OSL_PRECISION, q, a, b))
   #define piplib_int_floor_div_q(q, a, b) (osl_int_floor_div_q(PIPLIB_INT_OSL_PRECISION, q, a, b))
-  //#define piplib_int_floor_div_r(r, a, b) (osl_int_floor_div_r(PIPLIB_INT_OSL_PRECISION, r, a, b))
+  #define piplib_int_floor_div_r(r, a, b) (osl_int_floor_div_r(PIPLIB_INT_OSL_PRECISION, r, a, b))
+  #define piplib_int_floor_div_q_r(q, r, a, b) (osl_int_floor_div_q_r(q, r, a, b))
   #define piplib_int_mod(mod, a, b) (osl_int_mod(PIPLIB_INT_OSL_PRECISION, mod, a, b))
   #define piplib_int_gcd(gcd, a, b) (osl_int_gcd(PIPLIB_INT_OSL_PRECISION, gcd, a, b))
   #define piplib_int_oppose(r, i) (osl_int_oppose(PIPLIB_INT_OSL_PRECISION, r, i))
   #define piplib_int_size_in_base_2(i) (osl_int_size_in_base_2(PIPLIB_INT_OSL_PRECISION, i))
+  #define piplib_int_size_in_base_10(i) (osl_int_size_in_base_10(PIPLIB_INT_OSL_PRECISION, i))
 
   #define piplib_int_eq(a, b) (osl_int_eq(PIPLIB_INT_OSL_PRECISION, a, b))
   #define piplib_int_ne(a, b) (osl_int_ne(PIPLIB_INT_OSL_PRECISION, a, b))
@@ -131,9 +148,13 @@ long long int piplib_llmod(long long int const, long long int const);
 #if defined(PIPLIB_INT_SP) || defined(PIPLIB_INT_DP)
 
   #define piplib_int_init(i) (i = 0)
+  #define piplib_int_init_set(i, v) (i = v)
+  #define piplib_int_init_set_si(i, v) (i = v)
   #define piplib_int_assign(r, i) (r = i)
   #define piplib_int_set_si(r, i) (r = (piplib_int_t)i)
-  #define piplib_int_clear(i) do { } while(0)
+  #define piplib_int_clear(i) do { } while (0)
+  #define piplib_int_print(file, i) (fprintf(file, piplib_int_format, i))
+  #define piplib_int_sscanf(string, i) (sscanf(string, piplib_int_format, &i))
 
   #define piplib_int_get_si(i) ((int)(i))
   #define piplib_int_get_d(i) ((double)(i))
@@ -142,15 +163,18 @@ long long int piplib_llmod(long long int const, long long int const);
   #define piplib_int_sub(r, a, b) (r = a - b)
   #define piplib_int_increment(r, i) (r = i + 1)
   #define piplib_int_decrement(r, i) (r = i - 1)
+  #define piplib_int_mul(r, a, b) (r = a * b)
   #define piplib_int_div_exact(q, a, b) (q = (a) / (b))
   //#define piplib_int_floor_div_q(q, a, b) (q = (piplib_int_t)(piplib_ll_floor_div_q(a, b)))
   #define piplib_int_floor_div_q(q, a, b) (q = (piplib_int_t)((a - piplib_llmod(a, b)) / (b)))
-  //#define piplib_int_floor_div_r(r, a, b) (r = (piplib_int_t)piplib_llmod(a, b))
+  #define piplib_int_floor_div_r(r, a, b) (r = (piplib_int_t)piplib_llmod(a, b))
   //#define piplib_int_floor_div_r(r, a, b) (r = (piplib_int_t)(piplib_ll_floor_div_r(a, b)))
+  #define piplib_int_floor_div_q_r(q, r, a, b) do { piplib_int_floor_div_q(q, a, b); piplib_int_floor_div_r(r, a, b); } while (0)
   #define piplib_int_mod(mod, a, b) (mod = (piplib_int_t)(piplib_llmod(a, b)))
   #define piplib_int_gcd(gcd, a, b) (gcd = (piplib_int_t)(piplib_llgcd_llabs(a, b)))
   #define piplib_int_oppose(r, i) (r = - (i))
   #define piplib_int_size_in_base_2(i) (piplib_lllog2(i))
+  #define piplib_int_size_in_base_10(i) (piplib_lllog10(i))
 
   #define piplib_int_eq(a, b) (a == b)
   #define piplib_int_ne(a, b) (a != b)

@@ -37,16 +37,6 @@ extern FILE *dump;
 extern int profondeur;
 extern int compa_count;
 
-#if !defined(PIPLIB_INT_GMP)
-int llog(piplib_int_t x)
-{int n = 0;
-/* x must be positive, you dummy */
- if(x<0) x=-x;
- while(x) x >>= 1, n++;
- return(n);
-}
-#endif
-
 int chercher(Tableau *p, int masque, int n)
 {int i;
  for(i = 0; i<n; i++)
@@ -73,8 +63,8 @@ Tableau *expanser(Tableau *tp, int virt, int reel, int ncol,
  if(tp == NULL) return(NULL);
  rp = tab_alloc(reel+dh, ncol+dw, virt);
 
- #if defined(PIPLIB_INT_GMP)
- mpz_set(rp->determinant, tp->determinant);
+ #if defined(PIPLIB_ONE_DETERMINANT)
+ piplib_int_assign(rp->determinant, tp->determinant);
  #else
  rp->l_determinant = tp->l_determinant;
  for(i=0; i<tp->l_determinant; i++)
@@ -83,11 +73,7 @@ Tableau *expanser(Tableau *tp, int virt, int reel, int ncol,
  pq = (piplib_int_t *) & (rp->row[virt+reel+dh]);
  for(i = off; i<virt + reel; i++)
      {ff = Flag(rp, i) = Flag(tp, i-off);
-      #if defined(PIPLIB_INT_GMP)
-      mpz_set(Denom(rp, i), Denom(tp, i-off));
-      #else
-      Denom(rp, i) = Denom(tp, i-off);
-      #endif
+      piplib_int_assign(Denom(rp, i), Denom(tp, i-off));
       if(ff & Unit) rp->row[i].objet.unit = tp->row[i-off].objet.unit;
       else {
 	  rp->row[i].objet.val = pq;
@@ -95,11 +81,7 @@ Tableau *expanser(Tableau *tp, int virt, int reel, int ncol,
 	  pp = tp->row[i-off].objet.val;
 	  qq = rp->row[i].objet.val;
 	  for(j = 0; j<ncol; j++)
-             #if defined(PIPLIB_INT_GMP)
-	     mpz_set(*qq++, *pp++);
-             #else
-	     *qq++ = *pp++;
-             #endif
+	     piplib_int_assign(*qq++, *pp++);
 	  }
       }
  return(rp);
@@ -118,11 +100,6 @@ Tableau *expanser(Tableau *tp, int virt, int reel, int ncol,
 int exam_coef(Tableau *tp, int nvar, int ncol, int bigparm)
 {int i, j ;
  int ff, fff;
- #if defined(PIPLIB_INT_GMP)
- int x;
- #else
- piplib_int_t x;
- #endif
  piplib_int_t *p;
  
  if (bigparm >= 0)
@@ -143,14 +120,10 @@ int exam_coef(Tableau *tp, int nvar, int ncol, int bigparm)
 	   ff = Zero;
 	   p = &(tp->row[i].objet.val[nvar+1]);
 	   for(j = nvar+1; j<ncol; j++) {
-                #if defined(PIPLIB_INT_GMP)
-	        x = mpz_sgn(*p); p++ ;
-	        #else
-	        x = *p++;
-                #endif
-		if(x<0) fff = Minus;
-		else if (x>0) fff = Plus;
+		if (piplib_int_neg(*p)) fff = Minus;
+		else if (piplib_int_pos(*p)) fff = Plus;
 		else fff = Zero;
+		p++;
 		if(fff != Zero && fff != ff)
 		    if(ff == Zero) ff = fff;
 		    else {ff = Unknown;
@@ -161,13 +134,8 @@ int exam_coef(Tableau *tp, int nvar, int ncol, int bigparm)
    Si tous les coefficients des parame`tres sont ne'gatifs
    et si le terme constant est nul, le signe est inconnu!!
    On traite donc spe'cialement le terme constant. */
-           #if defined(PIPLIB_INT_GMP)
-	   x = mpz_sgn(Index(tp, i, nvar));
-	   #else
-	   x = Index(tp, i, nvar);
-           #endif
-	   if(x<0) fff = Minus;
-	   else if(x>0) fff = Plus;
+	   if(piplib_int_neg(Index(tp, i, nvar))) fff = Minus;
+	   else if(piplib_int_pos(Index(tp, i, nvar))) fff = Plus;
 	   else fff = Zero;
 /* ici on a le signe du terme constant */
 	   switch(ff){
@@ -211,15 +179,12 @@ void compa_test(Tableau *tp, Tableau *context,
      {ff = Flag(tp,i);
       if(ff & (Critic | Unknown))
 	  {isCritic = Pip_True;
-	   for(j = 0; j<nvar; j++)
-                 #if defined(PIPLIB_INT_GMP)
-		 if(mpz_sgn(Index(tp, i, j)) > 0)
-                 #else
-	         if(Index(tp, i, j) > 0)
-                 #endif
+	   for(j = 0; j<nvar; j++) {
+	         if(piplib_int_pos(Index(tp, i, j)))
 		 {isCritic = Pip_False;
 		  break;
 		 }
+	   }
            compa_count++;
 	   tPlus = expanser(context, nparm, nc, nparm+1, nparm, 1, 0);
 	   Flag(tPlus, nparm+nc) = Unknown;
@@ -313,55 +278,38 @@ int choisir_piv(Tableau *tp, int pivi, int nvar, int nligne)
 {
  int j, k;
  piplib_int_t pivot, foo, x, y;
- int sgn_x, pivj = -1;
+ int pivj = -1;
 
- #if defined(PIPLIB_INT_GMP)
- mpz_init(pivot); mpz_init(foo); mpz_init(x); mpz_init(y);
- #endif
+ piplib_int_init(pivot);
+ piplib_int_init(foo);
+ piplib_int_init(x);
+ piplib_int_init(y);
  
  for(j = 0; j<nvar; j++) {
-    #if defined(PIPLIB_INT_GMP)
-    mpz_set(foo, Index(tp, pivi, j));
-    if(mpz_sgn(foo) <= 0) continue;
+    piplib_int_assign(foo, Index(tp, pivi, j));
+    if(piplib_int_pos(foo) == 0) continue;
     if(pivj < 0)
 	{pivj = j;
-         mpz_set(pivot, foo);
+         piplib_int_assign(pivot, foo);
 	 continue;
 	}
     for(k = 0; k<nligne; k++)
-        {mpz_mul(x, pivot, *valeur(tp, k, j)); 
-         mpz_mul(y, *valeur(tp, k, pivj), foo);
-         mpz_sub(x, x, y);
+        {piplib_int_mul(x, pivot, *valeur(tp, k, j)); 
+         piplib_int_mul(y, *valeur(tp, k, pivj), foo);
+         piplib_int_sub(x, x, y);
          cross_product++;
-         sgn_x = mpz_sgn(x);
-         if(sgn_x) break;
+         if(piplib_int_zero(x) == 0) break;
 	}
-    if(sgn_x < 0)
+    if(piplib_int_neg(x))
         {pivj = j;
-         mpz_set(pivot, foo);
+         piplib_int_assign(pivot, foo);
         }
-    #else
-    if((foo = Index(tp, pivi, j)) <= 0) continue;
-    if(pivj < 0)
-	{pivj = j;
-	 pivot = foo;
-	 continue;
-	}
-    for(k = 0; k<nligne; k++)
-	{x = pivot * (*valeur(tp, k, j)) - (*valeur(tp, k, pivj)) * foo;
-	 cross_product++;
-	 if(x) break;
-	}
-    if(x < 0)
-	{pivj = j;
-	 pivot = foo;
-	}
-    #endif
  }
  
- #if defined(PIPLIB_INT_GMP)
- mpz_clear(pivot); mpz_clear(foo); mpz_clear(x); mpz_clear(y);
- #endif
+ piplib_int_clear(pivot);
+ piplib_int_clear(foo);
+ piplib_int_clear(x);
+ piplib_int_clear(y);
 
  return(pivj);
 }
@@ -380,11 +328,6 @@ int pivoter(Tableau *tp, int pivi, int nvar, int nparm, int ni)
  piplib_int_t new[MAXCOL], *p, *q;
  piplib_int_t lpiv;
  int sgn_x;
- #if !defined(PIPLIB_INT_GMP)
- char format_format[32];
-
- sprintf(format_format, "\nPivot %s/%s\n", piplib_int_format, piplib_int_format);
- #endif
 
  if(ncol >= MAXCOL) {
    fprintf(stdout, "Too much variables\n");
@@ -402,53 +345,41 @@ int pivoter(Tableau *tp, int pivi, int nvar, int nparm, int ni)
    exit(1);
  }
 
- #if defined(PIPLIB_INT_GMP)
- mpz_init(x); mpz_init(y); mpz_init(d); 
- mpz_init(gcd); mpz_init(u); mpz_init(dpiv);
- mpz_init(lpiv); mpz_init(pivot); mpz_init(foo);
- mpz_init(z); mpz_init(ppivot); mpz_init(dppiv);
+ piplib_int_init(x); piplib_int_init(y); piplib_int_init(d); 
+ piplib_int_init(gcd); piplib_int_init(u); piplib_int_init(dpiv);
+ piplib_int_init(lpiv); piplib_int_init(pivot); piplib_int_init(foo);
+ piplib_int_init(z); piplib_int_init(ppivot); piplib_int_init(dppiv);
 
  for(i=0; i<ncol; i++)
-   mpz_init(new[i]);
+   piplib_int_init(new[i]);
 
- mpz_set(pivot, Index(tp, pivi, pivj));
- mpz_set(dpiv, Denom(tp, pivi));
- mpz_gcd(d, pivot, dpiv);
- mpz_divexact(ppivot, pivot, d);
- mpz_divexact(dppiv, dpiv, d);
- #else
- pivot = Index(tp, pivi, pivj);
- dpiv = Denom(tp, pivi);
- d = piplib_llgcd_llabs(pivot, dpiv);
- ppivot = pivot/d;
- dppiv = dpiv/d;
- #endif
+ piplib_int_assign(pivot, Index(tp, pivi, pivj));
+ piplib_int_assign(dpiv, Denom(tp, pivi));
+ piplib_int_gcd(d, pivot, dpiv);
+ piplib_int_div_exact(ppivot, pivot, d);
+ piplib_int_div_exact(dppiv, dpiv, d);
  
  if(verbose>1){
-   #if defined(PIPLIB_INT_GMP)
    fprintf(dump, "Pivot ");
-   mpz_out_str(dump, 10, ppivot);
+   piplib_int_print(dump, ppivot);
    putc('/', dump);
-   mpz_out_str(dump, 10, dppiv);
+   piplib_int_print(dump, dppiv);
    putc('\n', dump);
-   #else
-   fprintf(dump, format_format, ppivot, dppiv);
-   #endif
    fprintf(dump, "%d x %d\n", pivi, pivj);
  }
 
- #if defined(PIPLIB_INT_GMP)
- mpz_fdiv_qr(x, y, tp->determinant, dppiv); 
+ #if defined(PIPLIB_ONE_DETERMINANT)
+ piplib_int_floor_div_q_r(x, y, tp->determinant, dppiv); 
  #else
  for(i=0; i< tp->l_determinant; i++){
-     d=piplib_llgcd_llabs(tp->determinant[i], dppiv);
+     piplib_int_gcd(d, tp->determinant[i], dppiv);
      tp->determinant[i] /= d;
      dppiv /= d;
      }
  #endif
 
- #if defined(PIPLIB_INT_GMP)
- if(mpz_sgn(y) != 0){ 
+ #if defined(PIPLIB_ONE_DETERMINANT)
+ if (piplib_int_zero(y) == 0) {
  #else
  if(dppiv != 1) {
  #endif
@@ -457,11 +388,11 @@ int pivoter(Tableau *tp, int pivi, int nvar, int nparm, int ni)
    exit(1);
  }
  
- #if defined(PIPLIB_INT_GMP)
- mpz_mul(tp->determinant, x, ppivot);
+ #if defined(PIPLIB_ONE_DETERMINANT)
+ piplib_int_mul(tp->determinant, x, ppivot);
  #else
  for(i=0; i<tp->l_determinant; i++)
-     if(llog(tp->determinant[i]) + llog(ppivot) < 8*sizeof(piplib_int_t)){
+     if(piplib_lllog2(tp->determinant[i]) + piplib_lllog2(ppivot) < 8*sizeof(piplib_int_t)){
 	 tp->determinant[i] *= ppivot;
 	 break;
 	 }
@@ -477,8 +408,8 @@ int pivoter(Tableau *tp, int pivi, int nvar, int nparm, int ni)
 
  if(verbose>1){
    fprintf(dump, "determinant ");
-   #if defined(PIPLIB_INT_GMP)
-   mpz_out_str(dump, 10, tp->determinant);
+   #if defined(PIPLIB_ONE_DETERMINANT)
+   piplib_int_print(dump, tp->determinant);
    #else
    for(i=0; i<tp->l_determinant; i++)
 	fprintf(dump, piplib_int_format, tp->determinant[i]);
@@ -488,83 +419,46 @@ int pivoter(Tableau *tp, int pivi, int nvar, int nparm, int ni)
 
  
  for(j = 0; j<ncol; j++)
-   #if defined(PIPLIB_INT_GMP)
    if(j==pivj)
-     mpz_set(new[j], dpiv);
+     piplib_int_assign(new[j], dpiv);
    else 
-     mpz_neg(new[j], Index(tp, pivi, j));
-   #else
-   new[j] = (j == pivj ? dpiv : -Index(tp, pivi, j));
-   #endif
+     piplib_int_oppose(new[j], Index(tp, pivi, j));
 
  for(k = 0; k<nligne; k++){
    if(Flag(tp,k) & Unit)continue;
    if(k == pivi)continue;
-   #if defined(PIPLIB_INT_GMP)
-   mpz_set(foo, Index(tp, k, pivj));
-   mpz_gcd(d, pivot, foo);
-   mpz_divexact(lpiv, pivot, d);
-   mpz_divexact(foo, foo, d);
-   mpz_set(d, Denom(tp,k));
-   mpz_mul(gcd, lpiv, d);
-   mpz_set(Denom(tp, k), gcd);
-   #else
-   foo = Index(tp, k, pivj);
-   d = piplib_llgcd_llabs(pivot, foo);
-   lpiv = pivot/d;
-   foo /= d;
-   d = Denom(tp,k);
-   gcd = lpiv * d;
-   Denom(tp, k) = gcd;
-   #endif
+   piplib_int_assign(foo, Index(tp, k, pivj));
+   piplib_int_gcd(d, pivot, foo);
+   piplib_int_div_exact(lpiv, pivot, d);
+   piplib_int_div_exact(foo, foo, d);
+   piplib_int_assign(d, Denom(tp,k));
+   piplib_int_mul(gcd, lpiv, d);
+   piplib_int_assign(Denom(tp, k), gcd);
    p = tp->row[k].objet.val;
    q = tp->row[pivi].objet.val;
    for(j = 0; j<ncol; j++){
      if(j == pivj)
-     #if defined(PIPLIB_INT_GMP)
-       mpz_mul(z, dpiv, foo);
-     #else
-       z = dpiv * foo;
-     #endif
+       piplib_int_mul(z, dpiv, foo);
      else {
-     #if defined(PIPLIB_INT_GMP)
-       mpz_mul(z, *p, lpiv);
-       mpz_mul(y, *q, foo);
-       mpz_sub(z, z, y);
-     #else
-       z = (*p) * lpiv - (*q) * foo;
-     #endif
+       piplib_int_mul(z, *p, lpiv);
+       piplib_int_mul(y, *q, foo);
+       piplib_int_sub(z, z, y);
      }
      q++;
      cross_product++;
-     #if defined(PIPLIB_INT_GMP)
-     mpz_set(*p, z);
+     piplib_int_assign(*p, z);
      p++;
-     if(mpz_cmp_ui(gcd, 1) != 0)
-       mpz_gcd(gcd, gcd, z);
-     #else
-     *p++ = z;
-     if(gcd != 1)
-       gcd = piplib_llgcd_llabs(gcd, z);
-     #endif
+     if (piplib_int_one(gcd) == 0)
+       piplib_int_gcd(gcd, gcd, z);
    }
-   #if defined(PIPLIB_INT_GMP)
-   if(mpz_cmp_ui(gcd, 1) != 0){
+   if(piplib_int_one(gcd) == 0){
      p = tp->row[k].objet.val;
      for(j = 0; j<ncol; j++){
-       mpz_divexact(*p, *p, gcd);
+       piplib_int_div_exact(*p, *p, gcd);
        p++;
      }
    }
-   mpz_divexact(Denom(tp,k), Denom(tp,k), gcd);
-   #else
-   if(gcd != 1) {
-    p = tp->row[k].objet.val;
-    for(j = 0; j<ncol; j++)
-      *p++ /= gcd;
-      Denom(tp,k) = Denom(tp,k)/gcd;
-   }
-   #endif
+   piplib_int_div_exact(Denom(tp,k), Denom(tp,k), gcd);
  }
  p = tp->row[pivi].objet.val;
  for(k = 0; k<nligne; k++)
@@ -572,33 +466,18 @@ int pivoter(Tableau *tp, int pivi, int nvar, int nparm, int ni)
  Flag(tp, k) = Plus;
  tp->row[k].objet.val = p;
  for(j = 0; j<ncol; j++)
-   #if defined(PIPLIB_INT_GMP)
-   mpz_set(*p++, new[j]);
-   #else
-   *p++ = new[j];
-   #endif
+   piplib_int_assign(*p++, new[j]);
 
- #if defined(PIPLIB_INT_GMP)
- mpz_set(Denom(tp, k), pivot);
+ piplib_int_assign(Denom(tp, k), pivot);
  Flag(tp, pivi) = Unit | Zero;
- mpz_set(Denom(tp, pivi), UN);
- #else
- Denom(tp, k) = pivot; 
- Flag(tp, pivi) = Unit | Zero;
- Denom(tp, pivi) = UN;
- #endif
+ piplib_int_assign(Denom(tp, pivi), UN);
  tp->row[pivi].objet.unit = pivj;
 
  for(k = 0; k<nligne; k++){
    ff = Flag(tp, k);
    if(ff & Unit) continue;
-   #if defined(PIPLIB_INT_GMP)
-   sgn_x = mpz_sgn(Index(tp, k, pivj));
-   #else
-   sgn_x = Index(tp, k, pivj);
-   #endif
-   if(sgn_x < 0) fff = Minus;
-   else if(sgn_x == 0) fff = Zero;
+   if (piplib_int_neg(Index(tp, k, pivj))) fff = Minus;
+   else if(piplib_int_zero(Index(tp, k, pivj))) fff = Zero;
    else fff = Plus;
    if(fff != Zero && fff != ff)
      if(ff == Zero) ff = (fff == Minus ? Unknown : fff);
@@ -611,15 +490,13 @@ int pivoter(Tableau *tp, int pivi, int nvar, int nparm, int ni)
    tab_display(tp, dump);
  }
 
- #if defined(PIPLIB_INT_GMP)
- mpz_clear(x); mpz_clear(y); mpz_clear(d); mpz_clear(gcd);
- mpz_clear(u); mpz_clear(dpiv); mpz_clear(lpiv);
- mpz_clear(pivot); mpz_clear(foo); mpz_clear(z);
- mpz_clear(ppivot); mpz_clear(dppiv);
+ piplib_int_clear(x); piplib_int_clear(y); piplib_int_clear(d); piplib_int_clear(gcd);
+ piplib_int_clear(u); piplib_int_clear(dpiv); piplib_int_clear(lpiv);
+ piplib_int_clear(pivot); piplib_int_clear(foo); piplib_int_clear(z);
+ piplib_int_clear(ppivot); piplib_int_clear(dppiv);
 
  for(i=0; i<ncol; i++)
-   mpz_clear(new[i]);
- #endif
+   piplib_int_clear(new[i]);
 
  return(0);
 }
@@ -709,16 +586,12 @@ void traiter(Tableau *tp, Tableau *ctxt, int nvar, int nparm, int ni, int nc,
  int i;
  int *pos;
 
- #if !defined(PIPLIB_INT_GMP)
- piplib_int_t D = UN;
- #endif
-
- #if defined(PIPLIB_INT_GMP)
- dcw = mpz_sizeinbase(tp->determinant, 2);
+ #if defined(PIPLIB_ONE_DETERMINANT)
+ dcw = piplib_int_size_in_base_2(tp->determinant);
  #else
  dcw = 0;
  for(i=0; i<tp->l_determinant; i++)
-   dcw += llog(tp->determinant[i]);
+   dcw += piplib_lllog2(tp->determinant[i]);
  #endif
  dch = 2 * dcw + 1;
  x = tab_hwm();
@@ -770,12 +643,12 @@ void traiter(Tableau *tp, Tableau *ctxt, int nvar, int nparm, int ni, int nc,
      piplib_int_t com_dem;
      struct high_water_mark q;
      if(nc >= context->height) {
-       #if defined(PIPLIB_INT_GMP)
-       dcw = mpz_sizeinbase(context->determinant,2);
+       #if defined(PIPLIB_ONE_DETERMINANT)
+       dcw = piplib_int_size_in_base_2(context->determinant);
        #else
        dcw = 0;
        for(i=0; i<tp->l_determinant; i++)
-       dcw += llog(tp->determinant[i]);
+       dcw += piplib_lllog2(tp->determinant[i]);
        #endif
        dch = 2 * dcw + 1;
        context = expanser(context, 0, nc, nparm+1, 0, dch, dcw);
@@ -812,30 +685,17 @@ void traiter(Tableau *tp, Tableau *ctxt, int nvar, int nparm, int ni, int nc,
      profondeur++;
      fflush(stdout);
      if(verbose > 0) fflush(dump);
-     #if defined(PIPLIB_INT_GMP)
      traiter(ntp, context, nvar, nparm, ni, nc+1, bigparm, flags);
      profondeur--;
      tab_reset(q);
      if(verbose>1)
        fprintf(stdout, "descente %d %lx\n", profondeur, tab_hwm().top);
      for(j = 0; j<nparm; j++)
-       mpz_neg(Index(context, nc, j), Index(context, nc, j));
-     mpz_add_ui(Index(context, nc, nparm), Index(context, nc, nparm), 1);
-     mpz_neg(Index(context, nc, nparm), Index(context, nc, nparm));
+       piplib_int_oppose(Index(context, nc, j), Index(context, nc, j));
+     piplib_int_increment(Index(context, nc, nparm), Index(context, nc, nparm));
+     piplib_int_oppose(Index(context, nc, nparm), Index(context, nc, nparm));
      Flag(tp, pivi) = Minus;
-     mpz_set(Denom(context, nc), UN);
-     #else
-     traiter(ntp, context, nvar, nparm, ni, nc+1, bigparm, flags);
-     profondeur--;
-     tab_reset(q);
-     if(verbose>1)
-       fprintf(stderr, "descente %d %lx\n", profondeur, tab_hwm().top);
-     for(j = 0; j<nparm; j++)
-       Index(context, nc, j) = - Index(context, nc, j);
-     Index(context, nc, nparm) = - Index(context, nc, nparm) -1;
-     Flag(tp, pivi) = Minus;
-     Denom(context, nc) = UN;
-     #endif
+     piplib_int_set_si(Denom(context, nc), 1);
      nc++;
      goto pirouette;
    }
