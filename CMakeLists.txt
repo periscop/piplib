@@ -46,6 +46,9 @@ set(VERSION "1.4.0")
 		message (STATUS "Library gmp not found :(")
 	endif()
 
+# OpenScop Library
+	find_package(osl)
+
 # Include directories (to use #include <> instead of #include "")
 
 	# include/osl/scop.h
@@ -137,6 +140,28 @@ set(VERSION "1.4.0")
 		target_link_libraries(piplib_gmp_static ${gmp_LIB})
 	endif()
 
+	# GMP
+	if (OSL_LIBRARY)
+		message(STATUS "Add library piplib_osl_int (shared)")
+		add_library(
+			piplib_osl_int
+			SHARED
+			${sources}
+		)
+		set_target_properties(piplib_osl_int PROPERTIES COMPILE_DEFINITIONS PIPLIB_INT_OSL)
+		target_link_libraries(piplib_osl_int ${OSL_LIBRARY})
+
+		message(STATUS "Add library piplib_osl_int (static)")
+		add_library(
+			piplib_osl_int_static
+			STATIC
+			${sources}
+		)
+		set_target_properties(piplib_osl_int_static PROPERTIES OUTPUT_NAME piplib_osl_int)
+		set_target_properties(piplib_osl_int_static PROPERTIES COMPILE_DEFINITIONS PIPLIB_INT_OSL)
+		target_link_libraries(piplib_osl_int_static ${OSL_LIBRARY})
+	endif()
+
 
 # Executables & tests
 
@@ -162,6 +187,14 @@ set(VERSION "1.4.0")
 		target_link_libraries(${exe} piplib_gmp_static)
 	endif()
 
+	if(OSL_LIBRARY)
+		set(exe "pip_osl_int")
+		message(STATUS "Add executable ${exe}")
+		add_executable(${exe} "source/maind.c")
+		set_target_properties(${exe} PROPERTIES COMPILE_DEFINITIONS PIPLIB_INT_OSL)
+		target_link_libraries(${exe} piplib_osl_int_static)
+	endif()
+
 	set(exe "exemple_sp")
 	message(STATUS "Add executable ${exe}")
 	add_executable(${exe} "example/example.c")
@@ -180,6 +213,14 @@ set(VERSION "1.4.0")
 		add_executable(${exe} "example/example.c")
 		set_target_properties(${exe} PROPERTIES COMPILE_DEFINITIONS PIPLIB_INT_GMP)
 		target_link_libraries(${exe} piplib_gmp_static)
+	endif()
+
+	if(OSL_LIBRARY)
+		set(exe "exemple_osl_int")
+		message(STATUS "Add executable ${exe}")
+		add_executable(${exe} "example/example.c")
+		set_target_properties(${exe} PROPERTIES COMPILE_DEFINITIONS PIPLIB_INT_OSL)
+		target_link_libraries(${exe} piplib_osl_int_static)
 	endif()
 
 	# Test
@@ -218,6 +259,15 @@ set(VERSION "1.4.0")
 					"${test}"
 					"${test_output}"
 					"${CMAKE_CURRENT_BINARY_DIR}/exemple_gmp"
+				)
+			endif()
+			if(OSL_LIBRARY)
+				add_test(
+					"${test}_pip_osl_int"
+					"${CMAKE_CURRENT_SOURCE_DIR}/example/check_source_result.py"
+					"${test}"
+					"${test_output}"
+					"${CMAKE_CURRENT_BINARY_DIR}/exemple_osl_int"
 				)
 			endif()
 		endforeach()

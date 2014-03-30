@@ -42,6 +42,14 @@ int mkstemp(char*);
 piplib_int_t UN;
 piplib_int_t ZERO;
 
+#ifdef PIPLIB_INT_OSL
+  #ifdef OSL_GMP_IS_HERE
+    int PIPLIB_INT_OSL_PRECISION = 0;
+  #else
+    int PIPLIB_INT_OSL_PRECISION = 64;
+  #endif
+#endif
+
 long int cross_product, limit;
 int allocation, comptage;
 int verbose = 0;

@@ -97,7 +97,7 @@ piplib_int_t D;
      {ff = Flag(tp, i);
       if(bigparm > 0)
 	 {if(ff & Unit)return(Pip_True);
-          if(Index(tp, i, bigparm) != D) return(Pip_True);
+          if (piplib_int_eq(Index(tp, i, bigparm), D) == 0) return(Pip_True);
 	 }
       }
  return(Pip_False);

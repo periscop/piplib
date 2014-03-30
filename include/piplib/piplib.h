@@ -90,33 +90,37 @@ long long int piplib_llmod(long long int const, long long int const);
 
   #include <osl/int.h>
 
+  #define PIPLIB_ONE_DETERMINANT
+
+  extern int PIPLIB_INT_OSL_PRECISION;
+
   typedef osl_int_t piplib_int_t;
   #define piplib_int_format "%d"
 
-  #define piplib_int_init(i) (osl_int_init(PIPLIB_INT_OSL_PRECISION, i))
-  #define piplib_int_init_set(i, v) (osl_int_init_set(PIPLIB_INT_OSL_PRECISION, i, v))
-  #define piplib_int_init_set_si(i, v) (osl_int_init_set_si(PIPLIB_INT_OSL_PRECISION, i, v))
-  #define piplib_int_assign(r, i) (osl_int_assign(PIPLIB_INT_OSL_PRECISION, r, i))
-  #define piplib_int_set_si(r, i) (osl_int_set_si(PIPLIB_INT_OSL_PRECISION, r, i))
-  #define piplib_int_clear(i) (osl_int_clear(PIPLIB_INT_OSL_PRECISION, i))
+  #define piplib_int_init(i) (osl_int_init(PIPLIB_INT_OSL_PRECISION, &(i)))
+  #define piplib_int_init_set(i, v) (osl_int_init_set(PIPLIB_INT_OSL_PRECISION, &(i), v))
+  #define piplib_int_init_set_si(i, v) (osl_int_init_set_si(PIPLIB_INT_OSL_PRECISION, &(i), v))
+  #define piplib_int_assign(r, i) (osl_int_assign(PIPLIB_INT_OSL_PRECISION, &(r), i))
+  #define piplib_int_set_si(r, i) (osl_int_set_si(PIPLIB_INT_OSL_PRECISION, &(r), i))
+  #define piplib_int_clear(i) (osl_int_clear(PIPLIB_INT_OSL_PRECISION, &(i)))
   #define piplib_int_print(file, i) (osl_int_print(file, PIPLIB_INT_OSL_PRECISION, i))
-  #define piplib_int_sscanf(string, i) (osl_int_sscanf(string, PIPLIB_INT_OSL_PRECISION, i))
+  #define piplib_int_sscanf(string, i) (osl_int_sscanf(string, PIPLIB_INT_OSL_PRECISION, &(i)))
 
   #define piplib_int_get_si(i) (osl_int_get_si(PIPLIB_INT_OSL_PRECISION, i))
   #define piplib_int_get_d(i) (osl_int_get_d(PIPLIB_INT_OSL_PRECISION, i))
 
-  #define piplib_int_add(r, a, b) (osl_int_add(PIPLIB_INT_OSL_PRECISION, r, a, b))
-  #define piplib_int_sub(r, a, b) (osl_int_sub(PIPLIB_INT_OSL_PRECISION, r, a, b))
-  #define piplib_int_increment(r, i) (osl_int_increment(PIPLIB_INT_OSL_PRECISION, r, i))
-  #define piplib_int_decrement(r, i) (osl_int_decrement(PIPLIB_INT_OSL_PRECISION, r, i))
-  #define piplib_int_mul(r, a, b) (osl_int_mul(PIPLIB_INT_OSL_PRECISION,r, a, b))
-  #define piplib_int_div_exact(q, a, b) (osl_int_div_exact(PIPLIB_INT_OSL_PRECISION, q, a, b))
-  #define piplib_int_floor_div_q(q, a, b) (osl_int_floor_div_q(PIPLIB_INT_OSL_PRECISION, q, a, b))
-  #define piplib_int_floor_div_r(r, a, b) (osl_int_floor_div_r(PIPLIB_INT_OSL_PRECISION, r, a, b))
-  #define piplib_int_floor_div_q_r(q, r, a, b) (osl_int_floor_div_q_r(q, r, a, b))
-  #define piplib_int_mod(mod, a, b) (osl_int_mod(PIPLIB_INT_OSL_PRECISION, mod, a, b))
-  #define piplib_int_gcd(gcd, a, b) (osl_int_gcd(PIPLIB_INT_OSL_PRECISION, gcd, a, b))
-  #define piplib_int_oppose(r, i) (osl_int_oppose(PIPLIB_INT_OSL_PRECISION, r, i))
+  #define piplib_int_add(r, a, b) (osl_int_add(PIPLIB_INT_OSL_PRECISION, &(r), a, b))
+  #define piplib_int_sub(r, a, b) (osl_int_sub(PIPLIB_INT_OSL_PRECISION, &(r), a, b))
+  #define piplib_int_increment(r, i) (osl_int_increment(PIPLIB_INT_OSL_PRECISION, &(r), i))
+  #define piplib_int_decrement(r, i) (osl_int_decrement(PIPLIB_INT_OSL_PRECISION, &(r), i))
+  #define piplib_int_mul(r, a, b) (osl_int_mul(PIPLIB_INT_OSL_PRECISION, &(r), a, b))
+  #define piplib_int_div_exact(q, a, b) (osl_int_div_exact(PIPLIB_INT_OSL_PRECISION, &(q), a, b))
+  #define piplib_int_floor_div_q(q, a, b) (osl_int_floor_div_q(PIPLIB_INT_OSL_PRECISION, &(q), a, b))
+  #define piplib_int_floor_div_r(r, a, b) (osl_int_floor_div_r(PIPLIB_INT_OSL_PRECISION, &(r), a, b))
+  #define piplib_int_floor_div_q_r(q, r, a, b) (osl_int_floor_div_q_r(PIPLIB_INT_OSL_PRECISION, &(q), &(r), a, b))
+  #define piplib_int_mod(mod, a, b) (osl_int_mod(PIPLIB_INT_OSL_PRECISION, &(mod), a, b))
+  #define piplib_int_gcd(gcd, a, b) (osl_int_gcd(PIPLIB_INT_OSL_PRECISION, &(gcd), a, b))
+  #define piplib_int_oppose(r, i) (osl_int_oppose(PIPLIB_INT_OSL_PRECISION, &(r), i))
   #define piplib_int_size_in_base_2(i) (osl_int_size_in_base_2(PIPLIB_INT_OSL_PRECISION, i))
   #define piplib_int_size_in_base_10(i) (osl_int_size_in_base_10(PIPLIB_INT_OSL_PRECISION, i))
 
