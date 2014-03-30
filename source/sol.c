@@ -525,7 +525,7 @@ PipNewparm * sol_newparm_edit(int *i, int Bg, int Urs_p, int flags)
     newparm_now = newparm ;
     if (verbose > 0)
     { fprintf(dump,"\n(newparm ") ;
-      fprintf(dump,piplib_int_format,newparm->rank) ;
+      fprintf(dump, "%i", newparm->rank) ;
       fprintf(dump," (div ") ;
       pip_vector_print(dump,newparm->vector) ;
       fprintf(dump," ") ;
@@ -628,8 +628,6 @@ PipQuast *sol_quast_edit(int *i, PipQuast *father, int Bg, int Urs_p, int flags)
 { int nb_elements ;
   struct S * p ;
   PipQuast * solution ;
-  PipList * list_new, * list_now ;
-  PipNewparm * newparm_new, * newparm_now ;
     
   /* On place p au lieu de lecture. */
   p = sol_space + (*i) ;

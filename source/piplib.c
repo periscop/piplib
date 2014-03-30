@@ -32,6 +32,8 @@
 #include <string.h>
 #ifdef WIN32
 #include <windows.h>
+#else
+int mkstemp(char*);
 #endif
 
 #include "pip.h"
@@ -156,8 +158,8 @@ int dscanf(FILE* foo, piplib_int_t* val)
  */
 void pip_matrix_print(FILE * foo, PipMatrix * Mat)
 { piplib_int_t * p;
-  int i, j ;
-  unsigned NbRows, NbColumns ;
+  unsigned int i, j ;
+  unsigned int NbRows, NbColumns ;
 
   fprintf(foo,"%d %d\n", NbRows=Mat->NbRows, NbColumns=Mat->NbColumns) ;
   for (i=0;i<NbRows;i++) 
@@ -266,8 +268,7 @@ void pip_list_print(FILE * foo, PipList * list, int indent)
  * 18 octobre 2001 : eclatement. 
  */
 void pip_quast_print(FILE * foo, PipQuast * solution, int indent)
-{ int i ;
-  PipVector * vector ;
+{ int i;
   int new_indent = indent >= 0 ? indent+1 : indent;
   
   if (solution != NULL)
@@ -300,7 +301,7 @@ void pip_quast_print(FILE * foo, PipQuast * solution, int indent)
  * into a file (foo, possibly stdout).
  * March 17th 2003: first version.
  */
-void * pip_options_print(FILE * foo, PipOptions * options)
+void pip_options_print(FILE* foo, PipOptions* options)
 { fprintf(foo,"Option setting is:\n") ;
   fprintf(foo,"Nq          =%d\n",options->Nq) ;
   fprintf(foo,"Verbose     =%d\n",options->Verbose) ;
@@ -325,12 +326,13 @@ void * pip_options_print(FILE * foo, PipOptions * options)
  */
 void pip_matrix_free(PipMatrix * matrix)
 {
-  int i, j;
+  int i;
   piplib_int_t* p;
 
   p = matrix->p_Init;
   for (i=0;i<matrix->p_Init_size;i++) {
-    piplib_int_clear(*p++);
+    piplib_int_clear(*p);
+    p++;
   }
 
   if (matrix != NULL)
@@ -488,7 +490,7 @@ PipOptions * pip_options_init(void)
 PipMatrix * pip_matrix_alloc(unsigned NbRows, unsigned NbColumns)
 { PipMatrix * matrix ;
   piplib_int_t ** p, * q ;
-  int i, j ;
+  unsigned int i, j ;
 
   matrix = (PipMatrix *)malloc(sizeof(PipMatrix)) ;
   if (matrix == NULL) 	
@@ -547,9 +549,10 @@ PipMatrix * pip_matrix_alloc(unsigned NbRows, unsigned NbColumns)
  *                   lire des long long pour l'instant. On utilise pas
  *                   mpz_inp_str car on lit depuis des char * et non des FILE.
  */
-PipMatrix * pip_matrix_read(FILE * foo)
-{ unsigned NbRows, NbColumns ;
-  int i, j, n;
+PipMatrix * pip_matrix_read(FILE * foo) {
+  unsigned int NbRows, NbColumns ;
+  unsigned int i, j;
+  int n;
   char *c, s[1024], str[1024] ;
   PipMatrix * matrix ;
   piplib_int_t * p ;
@@ -625,7 +628,7 @@ void pip_close() {
 static void pip_quast_equalities_dual(PipQuast *solution, PipMatrix *inequnk)
 {
     PipList **list_p, *list;
-    int i;
+    unsigned int i;
 
     if (!solution)
 	return;
@@ -697,11 +700,11 @@ PipMatrix * inequnk, * ineqpar ;
 int Bg ;
 PipOptions * options ;
 { Tableau * ineq, * context, * ctxt ;
-  int i, Np, Nn, Nl, Nm, p, q, xq, non_vide, Shift = 0, Urs_parms = 0;
-  char * g ;
-  struct high_water_mark hq ;
-  piplib_int_t D ;
-  PipQuast * solution ;
+  unsigned int i;
+  unsigned int Nl;
+  int Np, Nn, Nm, p, /*q,*/ xq, non_vide, Shift = 0, Urs_parms = 0;
+  struct high_water_mark hq;
+  PipQuast * solution;
   int	sol_flags = 0;
 
   pip_init() ;
@@ -723,7 +726,7 @@ PipOptions * options ;
      if (!dump)
 	verbose = 0;
   }
-  limit = ZERO ;
+  limit = 0;
 
   /* Si inequnk est NULL, la solution est automatiquement void (NULL). */
   if (inequnk != NULL)
@@ -812,7 +815,7 @@ PipOptions * options ;
     }
         
     if (verbose > 0)
-    fprintf(dump, "%d %d %d %d %d %d\n",Nn,Np,Nl,Nm,Bg,options->Nq) ;
+    fprintf(dump, "%d %d %u %d %d %d\n",Nn,Np,Nl,Nm,Bg,options->Nq) ;
     
     /* S'il est possible de trouver une solution, on passe au traitement. */
     if (non_vide) {
@@ -832,7 +835,7 @@ PipOptions * options ;
 
       if (options->Simplify)
       sol_simplify(xq) ;
-      q = sol_hwm() ;
+      /*q =*/ sol_hwm() ;
       /* On traduit la solution du format de solution de Pip vers un arbre
        * de structures de type PipQuast.
        */

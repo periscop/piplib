@@ -57,7 +57,7 @@ Tableau *expanser(Tableau *tp, int virt, int reel, int ncol,
                                int off, int dh, int dw)
 {
  int i, j, ff;
- char *q; piplib_int_t *pq;
+ piplib_int_t *pq;
  piplib_int_t *pp, *qq;
  Tableau *rp;
  if(tp == NULL) return(NULL);
@@ -124,11 +124,10 @@ int exam_coef(Tableau *tp, int nvar, int ncol, int bigparm)
 		else if (piplib_int_pos(*p)) fff = Plus;
 		else fff = Zero;
 		p++;
-		if(fff != Zero && fff != ff)
-		    if(ff == Zero) ff = fff;
-		    else {ff = Unknown;
-			  break;
-			 }
+		if(fff != Zero && fff != ff) {
+		    if(ff == Zero) { ff = fff; }
+		    else { ff = Unknown; break; }
+		}
 	       }
 /* bug de'tecte' par [paf], 16/2/93 !
    Si tous les coefficients des parame`tres sont ne'gatifs
@@ -163,7 +162,6 @@ void compa_test(Tableau *tp, Tableau *context,
  int i, j;
  int ff;
  int cPlus, cMinus, isCritic;
- int verbold;
  Tableau *tPlus, *tMinus;
  int p;
  struct high_water_mark q;
@@ -260,7 +258,7 @@ void solution(Tableau *tp, int nvar, int nparm)
      }
 }
 
-static void solution_dual(Tableau *tp, int nvar, int nparm, int *pos)
+static void solution_dual(Tableau *tp, int nvar/*, int nparm*/, int *pos)
 {
     int i;
 
@@ -321,13 +319,15 @@ int pivoter(Tableau *tp, int pivi, int nvar, int nparm, int ni)
  int ncol = nvar + nparm + 1;
  int nligne = nvar + ni;
  int i, j, k;
- piplib_int_t x, y, d, gcd, u, dpiv;
+ #if defined(PIPLIB_ONE_DETERMINANT)
+  piplib_int_t x;
+ #endif
+ piplib_int_t y, d, gcd, dpiv;
  int ff, fff;
  piplib_int_t pivot, foo, z;
  piplib_int_t ppivot, dppiv;
  piplib_int_t new[MAXCOL], *p, *q;
  piplib_int_t lpiv;
- int sgn_x;
 
  if(ncol >= MAXCOL) {
    fprintf(stdout, "Too much variables\n");
@@ -345,8 +345,11 @@ int pivoter(Tableau *tp, int pivi, int nvar, int nparm, int ni)
    exit(1);
  }
 
- piplib_int_init(x); piplib_int_init(y); piplib_int_init(d); 
- piplib_int_init(gcd); piplib_int_init(u); piplib_int_init(dpiv);
+ #if defined(PIPLIB_ONE_DETERMINANT)
+  piplib_int_init(x);
+ #endif
+ piplib_int_init(y); piplib_int_init(d); 
+ piplib_int_init(gcd); piplib_int_init(dpiv);
  piplib_int_init(lpiv); piplib_int_init(pivot); piplib_int_init(foo);
  piplib_int_init(z); piplib_int_init(ppivot); piplib_int_init(dppiv);
 
@@ -479,9 +482,10 @@ int pivoter(Tableau *tp, int pivi, int nvar, int nparm, int ni)
    if (piplib_int_neg(Index(tp, k, pivj))) fff = Minus;
    else if(piplib_int_zero(Index(tp, k, pivj))) fff = Zero;
    else fff = Plus;
-   if(fff != Zero && fff != ff)
-     if(ff == Zero) ff = (fff == Minus ? Unknown : fff);
-     else ff = Unknown;
+   if (fff != Zero && fff != ff)  {
+     if(ff == Zero) { ff = (fff == Minus ? Unknown : fff); }
+     else { ff = Unknown; }
+   }
    Flag(tp, k) = ff;
  }
 
@@ -490,8 +494,11 @@ int pivoter(Tableau *tp, int pivi, int nvar, int nparm, int ni)
    tab_display(tp, dump);
  }
 
- piplib_int_clear(x); piplib_int_clear(y); piplib_int_clear(d); piplib_int_clear(gcd);
- piplib_int_clear(u); piplib_int_clear(dpiv); piplib_int_clear(lpiv);
+ #if defined(PIPLIB_ONE_DETERMINANT)
+  piplib_int_clear(x);
+ #endif
+ piplib_int_clear(y); piplib_int_clear(d); piplib_int_clear(gcd);
+ piplib_int_clear(dpiv); piplib_int_clear(lpiv);
  piplib_int_clear(pivot); piplib_int_clear(foo); piplib_int_clear(z);
  piplib_int_clear(ppivot); piplib_int_clear(dppiv);
 
@@ -583,8 +590,10 @@ void traiter(Tableau *tp, Tableau *ctxt, int nvar, int nparm, int ni, int nc,
  struct high_water_mark x;
  Tableau *context;
  int dch, dcw;
- int i;
  int *pos;
+ #if !defined(PIPLIB_ONE_DETERMINANT)
+ int i;
+ #endif
 
  #if defined(PIPLIB_ONE_DETERMINANT)
  dcw = piplib_int_size_in_base_2(tp->determinant);
@@ -659,7 +668,7 @@ void traiter(Tableau *tp, Tableau *ctxt, int nvar, int nparm, int ni, int nc,
      }
      q = tab_hwm();
      if(verbose>1)
-       fprintf(stdout,"profondeur %d %lx\n", profondeur, q.top);
+       fprintf(stdout,"profondeur %d %p\n", profondeur, q.top);
      ntp = expanser(tp, nvar, ni, ncol, 0, 0, 0);
      fflush(stdout);
      sol_if();
@@ -689,7 +698,7 @@ void traiter(Tableau *tp, Tableau *ctxt, int nvar, int nparm, int ni, int nc,
      profondeur--;
      tab_reset(q);
      if(verbose>1)
-       fprintf(stdout, "descente %d %lx\n", profondeur, tab_hwm().top);
+       fprintf(stdout, "descente %d %p\n", profondeur, tab_hwm().top);
      for(j = 0; j<nparm; j++)
        piplib_int_oppose(Index(context, nc, j), Index(context, nc, j));
      piplib_int_increment(Index(context, nc, nparm), Index(context, nc, nparm));
@@ -703,7 +712,7 @@ void traiter(Tableau *tp, Tableau *ctxt, int nvar, int nparm, int ni, int nc,
    if (!(flags & TRAITER_INT)) {
      solution(tp, nvar, nparm);
      if (flags & TRAITER_DUAL)
-	solution_dual(tp, nvar, nparm, pos);
+	solution_dual(tp, nvar/*, nparm*/, pos);
      break;
    }
 /* Yes we do! */

@@ -78,6 +78,7 @@ long long int piplib_ll_floor_div_q(long long int const a,
   else if (q == 0) {
     if ((a > 0 && b < 0) || (a < 0 && b > 0)) { --q; }
   }
+  return q;
 }
 long long int piplib_ll_floor_div_r(long long int const a,
                                     long long int const b) {
@@ -107,7 +108,7 @@ piplib_int_t D;
    operation, the responsibility of creating and destroying <<z>> is the 
    caller's.                                                                */
 
-void bezout(piplib_int_t x, piplib_int_t y,
+void bezout(piplib_int_t x, /*piplib_int_t y,*/
             piplib_int_t delta, piplib_int_t* z) {
   piplib_int_t a, b, c, d, e, f, u, v, q, r;
 
@@ -117,6 +118,7 @@ void bezout(piplib_int_t x, piplib_int_t y,
   piplib_int_init_set_si(d, 1);
   piplib_int_init(e);
   piplib_int_init(f);
+  piplib_int_init(v);
   piplib_int_init_set(u, v);
   piplib_int_init_set(v, delta);
   piplib_int_init(q);
@@ -162,11 +164,11 @@ void bezout(piplib_int_t x, piplib_int_t y,
 Tableau *expanser();
 
 /* cut: constant parameters denominator */
-static int add_parm(Tableau **pcontext, int nr, int *pnparm, int *pni, int *pnc,
+static void add_parm(Tableau **pcontext, int nr, int *pnparm, int *pni, int *pnc,
 		    piplib_int_t *cut)
 {
     int nparm = *pnparm;
-    int i, j, k;
+    int j, k;
     piplib_int_t x;
 
     piplib_int_init(x);
@@ -319,7 +321,7 @@ int integrer(Tableau** ptp, Tableau** pcontext,
   piplib_int_t D;
   int parm;
 
-  piplib_int_t t, delta, tau, lambda;
+  piplib_int_t t, delta, /*tau,*/ lambda;
 
   if (ncol >= MAXCOL) {
     fprintf(stderr, "Too many variables: %d\n", ncol);
@@ -330,7 +332,7 @@ int integrer(Tableau** ptp, Tableau** pcontext,
    piplib_int_init(coupure[i]);
 
  piplib_int_init(x); piplib_int_init(d); piplib_int_init(D);
- piplib_int_init(t); piplib_int_init(delta); piplib_int_init(tau); piplib_int_init(lambda);
+ piplib_int_init(t); piplib_int_init(delta); /*piplib_int_init(tau);*/ piplib_int_init(lambda);
 
 
 /* search for a non-integral row */
@@ -400,10 +402,10 @@ ok_var   ok_parm   ok_const
                                                                 case (a)  */
 
       if(!ok_parm && !ok_const) continue;
-      if(!ok_parm)
+      if(!ok_parm) {
           if(ok_var) {                                   /*     case (d)  */
               if(nligne >= (*ptp)->height) {
-		  int d, dth, dtw;
+		  int d, dth;
 	          d = piplib_int_size_in_base_2(D);
                   dth = d;
 		  *ptp = expanser(*ptp, nvar, ni, ncol, 0, dth, 0);
@@ -412,10 +414,10 @@ ok_var   ok_parm   ok_const
 	      if(deepest_cut){
 	      piplib_int_oppose(t, coupure[nvar]);
           piplib_int_gcd(delta, t, D);
-	      piplib_int_div_exact(tau, t, delta);
+	      /*piplib_int_div_exact(tau, t, delta);*/
 	      piplib_int_div_exact(d, D, delta);
           piplib_int_decrement(t, d);
-          bezout(t, tau, d, &lambda);
+          bezout(t, /*tau,*/ d, &lambda);
 	      piplib_int_gcd(t, lambda, D);
               // t != 1
               while(piplib_int_one(t) == 0) {
@@ -477,6 +479,7 @@ ok_var   ok_parm   ok_const
             nligne = -1; 
             goto clear;
           }
+ }
 /* In case (e), one has to introduce a new parameter and
    introduce its defining inequalities into the context.
    
@@ -518,7 +521,7 @@ clear:
    for(i=0; i <= ncol; i++)
 	piplib_int_clear(coupure[i]);
     piplib_int_clear(x); piplib_int_clear(d); piplib_int_clear(D);
-    piplib_int_clear(t); piplib_int_clear(tau); piplib_int_clear(lambda); piplib_int_clear(delta);
+    piplib_int_clear(t); /*piplib_int_clear(tau);*/ piplib_int_clear(lambda); piplib_int_clear(delta);
     return nligne;
 }
 

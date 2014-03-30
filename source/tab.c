@@ -100,10 +100,11 @@ void tab_clear(Tableau *tp)
 }
 #endif
 
-void tab_reset(struct high_water_mark by_the_mark)
-
-{struct A *g;
- char *p;
+void tab_reset(struct high_water_mark by_the_mark) {
+ struct A *g;
+ #if defined(PIPLIB_ONE_DETERMINANT)
+  char *p;
+ #endif
  while(chunk_count > by_the_mark.chunk)
      {
       g = tab_base->precedent;
@@ -285,7 +286,8 @@ Tableau * tab_Matrix2Tableau(matrix, Nineq, Nv, n, Shift, Bg, Urs_parms)
 PipMatrix * matrix ;
 int Nineq, Nv, n, Shift, Bg, Urs_parms;
 { Tableau * p ;
-  unsigned i, j, k, current, new, nb_columns, decal=0, bignum_is_new ;
+  unsigned i, k, current, new, nb_columns, decal=0, bignum_is_new;
+  int j;
   unsigned cst;
   int inequality, ctx;
   piplib_int_t bignum;
@@ -297,7 +299,7 @@ int Nineq, Nv, n, Shift, Bg, Urs_parms;
   piplib_int_init(bignum);
   nb_columns = matrix->NbColumns - 1 ;
   /* S'il faut un BigNum et qu'il n'existe pas, on lui reserve sa place. */
-  bignum_is_new = Shift && (Bg+ctx > (matrix->NbColumns - 2));
+  bignum_is_new = Shift && (Bg+ctx > 0) && ((unsigned int)(Bg+ctx) > (matrix->NbColumns - 2));
   if (bignum_is_new)
     nb_columns++;
   if (ctx) {
@@ -335,7 +337,7 @@ int Nineq, Nv, n, Shift, Bg, Urs_parms;
       else
 	piplib_int_assign(p->row[current].objet.val[j], matrix->p[i][1+j]);
     }
-    for (k=j=Nv+1;j<nb_columns;j++) {
+    for (k=j=Nv+1;(unsigned int)j<nb_columns;j++) {
 	if (bignum_is_new && j == Bg)
 	  continue;
 	piplib_int_assign(p->row[current].objet.val[j], matrix->p[i][k++]);
@@ -368,7 +370,7 @@ int Nineq, Nv, n, Shift, Bg, Urs_parms;
       Flag(p,new)= Unknown ;
       piplib_int_set_si(Denom(p,new), 1);
       
-      for (j=0;j<nb_columns+Urs_parms;j++)
+      for (j=0;(unsigned int)j<nb_columns+Urs_parms;j++)
 	piplib_int_oppose(p->row[new].objet.val[j], p->row[current].objet.val[j]);
     }
   }
@@ -420,7 +422,7 @@ Tableau *p;
 {
 
  int i, j, ff, fff, n;
- piplib_int_t x, d;
+ piplib_int_t d;
  piplib_int_init(d);
 
  fprintf(foo, "%ld/[%d * %d]\n", cross_product, p->height, p->width);

@@ -332,6 +332,8 @@ struct pipoptions {
 };
 typedef struct pipoptions PipOptions;
 
+void pip_options_print(FILE*, PipOptions*);
+
 
 /* Fonctions d'affichages des structures de la PipLib. */
 void pip_matrix_print(FILE*, PipMatrix*);

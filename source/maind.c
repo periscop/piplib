@@ -89,8 +89,6 @@ int main(int argc, char *argv[])
  struct high_water_mark hq;
  int c, non_vide;
  int p, q, xq;
- long temps;
- char *date;
  piplib_int_t x;
  piplib_int_init(x);
  #if defined(PIPLIB_ONE_DETERMINANT)
@@ -184,7 +182,7 @@ int main(int argc, char *argv[])
                       }
       cross_product = 0;
       hq = tab_hwm();
-      if(verbose > 0) {fprintf(dump, "hwm %x\n", g);
+      if(verbose > 0) {fprintf(dump, "hwm %p\n", g);
                        fflush(dump);
                       }
       ineq = tab_get(in, ni, nvar+nparm+1, nvar);
