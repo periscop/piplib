@@ -31,19 +31,35 @@ extern "C"
   {
 #endif 
 
-void sol_init(void);
-int sol_hwm(void);
-void sol_reset(int);
-void sol_nil(void);
-void sol_if(void);
-void sol_list(int);
-void sol_form(int);
-void sol_new(int);
-void sol_div(void);
-void sol_val(piplib_int_t, piplib_int_t);
-int sol_edit(FILE *, int);
-int is_not_Nil(int);
-void sol_simplify(int);
+
+/**< Shift solution over -bigparam */
+#define SOL_SHIFT  (1 << 0)
+
+/**< Negate solution */
+#define SOL_NEGATE (1 << 1)
+
+/**< Remove big parameter */
+#define SOL_REMOVE (1 << 2)
+
+/**< Maximum was computed */
+#define SOL_MAX    (SOL_SHIFT | SOL_NEGATE)
+
+/**< Create dual leaf */
+#define SOL_DUAL   (1 << 3)
+
+
+void PIPLIB_NAME(sol_init)(void);
+int PIPLIB_NAME(sol_hwm)(void);
+void PIPLIB_NAME(sol_reset)(int);
+void PIPLIB_NAME(sol_nil)(void);
+void PIPLIB_NAME(sol_if)(void);
+void PIPLIB_NAME(sol_list)(int);
+void PIPLIB_NAME(sol_new)(int);
+void PIPLIB_NAME(sol_div)(void);
+void PIPLIB_NAME(sol_val)(PIPLIB_NAME(piplib_int_t), PIPLIB_NAME(piplib_int_t));
+int PIPLIB_NAME(sol_edit)(FILE *, int);
+int PIPLIB_NAME(is_not_Nil)(int);
+void PIPLIB_NAME(sol_simplify)(int);
 
 #if defined(__cplusplus)
   }

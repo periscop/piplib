@@ -31,22 +31,22 @@ extern "C"
   {
 #endif 
 
-struct A
-    {struct A *precedent;
+struct PIPLIB_NAME(A)
+    {struct PIPLIB_NAME(A) *precedent;
      char *bout;
      char *free;
     };
 
-struct L
+struct PIPLIB_NAME(L)
     {int flags;
-     piplib_int_t d;
+     PIPLIB_NAME(piplib_int_t) d;
      float size;
      union { int unit;
-	     piplib_int_t * val;
+	     PIPLIB_NAME(piplib_int_t) * val;
 	   } objet;
     };
 
-struct high_water_mark {
+struct PIPLIB_NAME(high_water_mark) {
     int chunk;
     void * top;
     };
@@ -66,25 +66,24 @@ struct high_water_mark {
 #define MAX_DETERMINANT 4
 
 #if defined(PIPLIB_ONE_DETERMINANT)
-struct T
+struct PIPLIB_NAME(T)
     {int height, width, taille;
-     piplib_int_t determinant;
-     struct L row[1];
+     PIPLIB_NAME(piplib_int_t) determinant;
+     struct PIPLIB_NAME(L) row[1];
     };
 #else
-struct T
+struct PIPLIB_NAME(T)
     {int height, width;
-     piplib_int_t determinant[MAX_DETERMINANT];
+     PIPLIB_NAME(piplib_int_t) determinant[MAX_DETERMINANT];
      int l_determinant;
-     struct L row[1];
+     struct PIPLIB_NAME(L) row[1];
     };
 #endif
 
-typedef struct T Tableau;
+typedef struct PIPLIB_NAME(T) PIPLIB_NAME(Tableau);
 
 /* Ced : ajouts specifiques a la PipLib pour funcall. */
-Tableau * tab_Matrix2Tableau(PipMatrix *, int, int, int, int, int, int);
-Tableau * tab_Matrix2TableauMax(PipMatrix *, int, int, int, int) ;
+PIPLIB_NAME(Tableau) * PIPLIB_NAME(tab_Matrix2Tableau)(PIPLIB_NAME(PipMatrix) *, int, int, int, int, int, int);
 
 #if defined(__cplusplus)
   }

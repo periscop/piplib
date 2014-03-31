@@ -33,36 +33,38 @@ extern "C"
 
 #define TRAITER_INT		(1 << 0)	/* Compute integer optimum */
 #define TRAITER_DUAL		(1 << 1)	/* Compute dual variables */
-void traiter(Tableau *tp, Tableau *ctxt, int nvar, int nparm, int ni, int nc,
+void PIPLIB_NAME(traiter)(PIPLIB_NAME(Tableau) *tp, PIPLIB_NAME(Tableau) *ctxt, int nvar, int nparm, int ni, int nc,
 	     int bigparm, int flags);
-int integrer(Tableau **, Tableau **, int *, int *, int *, int *, int);
+int PIPLIB_NAME(integrer)(PIPLIB_NAME(Tableau) **, PIPLIB_NAME(Tableau) **, int *, int *, int *, int *, int);
 
-int dgetc(FILE *foo);
-FILE *pip_create_dump_file();
-int sol_hwm(void);
-void sol_simplify(int);
-int is_not_Nil(int);
-int sol_edit(FILE *, int);
-void tab_reset(struct high_water_mark);
-void sol_reset(int);
-struct high_water_mark tab_hwm(void);
-Tableau *tab_get(FILE *, int,int,int);
-int tab_simplify(Tableau *tp, int cst);
-void sol_init(void);
-void sol_close(void);
-void tab_init(void);
-void tab_close(void);
-void sol_if(void);
-void sol_forme(int);
-void sol_val(piplib_int_t, piplib_int_t);
-void sol_nil(void);
-void sol_error(int);
-Tableau * tab_alloc(int, int, int);
-void sol_list(int);
-void tab_display(Tableau *, FILE *);
-Tableau * expanser(Tableau *, int, int, int, int, int, int);
-void sol_new(int);
-void sol_div(void);
+int PIPLIB_NAME(dgetc)(FILE *foo);
+FILE *PIPLIB_NAME(pip_create_dump_file)();
+int PIPLIB_NAME(sol_hwm)(void);
+void PIPLIB_NAME(sol_simplify)(int);
+int PIPLIB_NAME(is_not_Nil)(int);
+int PIPLIB_NAME(sol_edit)(FILE *, int);
+void PIPLIB_NAME(tab_reset)(struct PIPLIB_NAME(high_water_mark));
+void PIPLIB_NAME(sol_reset)(int);
+struct PIPLIB_NAME(high_water_mark) PIPLIB_NAME(tab_hwm)(void);
+PIPLIB_NAME(Tableau) *PIPLIB_NAME(tab_get)(FILE *, int,int,int);
+int PIPLIB_NAME(tab_simplify)(PIPLIB_NAME(Tableau) *tp, int cst);
+void PIPLIB_NAME(sol_init)(void);
+void PIPLIB_NAME(sol_close)(void);
+void PIPLIB_NAME(tab_init)(void);
+void PIPLIB_NAME(tab_close)(void);
+void PIPLIB_NAME(sol_if)(void);
+void PIPLIB_NAME(sol_forme)(int);
+void PIPLIB_NAME(sol_val)(PIPLIB_NAME(piplib_int_t), PIPLIB_NAME(piplib_int_t));
+void PIPLIB_NAME(sol_val_one)(PIPLIB_NAME(piplib_int_t));
+void PIPLIB_NAME(sol_val_zero_one)();
+void PIPLIB_NAME(sol_nil)(void);
+void PIPLIB_NAME(sol_error)(int);
+PIPLIB_NAME(Tableau) * PIPLIB_NAME(tab_alloc)(int, int, int);
+void PIPLIB_NAME(sol_list)(int);
+void PIPLIB_NAME(tab_display)(PIPLIB_NAME(Tableau) *, FILE *);
+PIPLIB_NAME(Tableau) * PIPLIB_NAME(expanser)(PIPLIB_NAME(Tableau) *, int, int, int, int, int, int);
+void PIPLIB_NAME(sol_new)(int);
+void PIPLIB_NAME(sol_div)(void);
 
 #if defined(__cplusplus)
   }

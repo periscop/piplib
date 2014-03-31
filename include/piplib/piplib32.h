@@ -28,5 +28,5 @@
  * utilisateurs de la PipLib. Premiere version du 29 juillet 2001.
  */ 
 
-# define PIPLIB_INT_SP
-# include <piplib/piplib.h>
+
+#include <piplib/piplib_sp.h>

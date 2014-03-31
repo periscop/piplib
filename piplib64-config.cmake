@@ -11,7 +11,7 @@ if (PIPLIB64_INCLUDE_DIR AND PIPLIB64_LIBRARY)
 endif()
 
 find_path(PIPLIB64_INCLUDE_DIR NAMES piplib/piplib64.h)
-find_library(PIPLIB64_LIBRARY NAMES piplib64)
+find_library(PIPLIB64_LIBRARY NAMES piplib_dp)
 
 if (PIPLIB64_LIBRARY AND PIPLIB64_INCLUDE_DIR)
 	message(STATUS "Library piplib64 found =) ${PIPLIB64_LIBRARY}")

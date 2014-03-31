@@ -13,11 +13,10 @@
 
 #include <piplib/piplib.h>
 
-
-static PipOptions *options_read(FILE *f)
+static PIPLIB_NAME(PipOptions) *options_read(FILE *f)
 {
   char s[1024];
-  PipOptions *options = pip_options_init();
+  PIPLIB_NAME(PipOptions) *options = PIPLIB_NAME(pip_options_init)();
   while (fgets(s, 1024, f)) {
     if (strncasecmp(s, "Maximize", 8) == 0)
       options->Maximize = 1;
@@ -35,17 +34,17 @@ static PipOptions *options_read(FILE *f)
 
 int main(int argc, const char **argv)
 { int bignum ;
-  PipMatrix  * domain, * context  ;
-  PipQuast   * solution ;
-  PipOptions * options ;
-  int verbose = 0;
+  PIPLIB_NAME(PipMatrix)  * domain, * context  ;
+  PIPLIB_NAME(PipQuast)   * solution ;
+  PIPLIB_NAME(PipOptions) * options ;
+  int PIPLIB_NAME(verbose) = 0;
 
   while (argc > 1) {
     if (strncmp(argv[1], "-v", 2) == 0) {
       const char *v = argv[1]+2;
-      ++verbose;
+      ++PIPLIB_NAME(verbose);
       while (*v++ == 'v')
-	++verbose;
+	++PIPLIB_NAME(verbose);
     } else
       break;
     ++argv;
@@ -53,24 +52,24 @@ int main(int argc, const char **argv)
   }
   
   printf("[PIP2-like future input] Please enter:\n- the context matrix,\n") ;
-  context = pip_matrix_read(stdin) ;
-  pip_matrix_print(stdout,context) ;
+  context = PIPLIB_NAME(pip_matrix_read)(stdin) ;
+  PIPLIB_NAME(pip_matrix_print)(stdout,context) ;
 
   printf("- the bignum column (start at 0, -1 if no bignum),\n") ;
   fscanf(stdin," %d",&bignum) ;
   printf("%d\n",bignum) ;
 
   printf("- the constraint matrix.\n") ;
-  domain = pip_matrix_read(stdin) ;
-  pip_matrix_print(stdout,domain) ;
+  domain = PIPLIB_NAME(pip_matrix_read)(stdin) ;
+  PIPLIB_NAME(pip_matrix_print)(stdout,domain) ;
   printf("\n") ;
   
   if (isatty(0))
     printf("- options (EOF to stop).\n") ;
   options = options_read(stdin);
-  options->Verbose = verbose;
+  options->Verbose = PIPLIB_NAME(verbose);
   if (isatty(0))
-    pip_options_print(stdout, options);
+    PIPLIB_NAME(pip_options_print)(stdout, options);
 
   /* The bignum in PIP1 is fixed on the constraint matrix, here is
    * the translation.
@@ -78,14 +77,14 @@ int main(int argc, const char **argv)
   if (bignum > 0)
   bignum += domain->NbColumns - context->NbColumns ;
   
-  solution = pip_solve(domain,context,bignum,options) ;
+  solution = PIPLIB_NAME(pip_solve)(domain,context,bignum,options) ;
 
-  pip_options_free(options) ;
-  pip_matrix_free(domain) ;
-  pip_matrix_free(context) ;
+  PIPLIB_NAME(pip_options_free)(options) ;
+  PIPLIB_NAME(pip_matrix_free)(domain) ;
+  PIPLIB_NAME(pip_matrix_free)(context) ;
 
-  pip_quast_print(stdout,solution,0) ;
+  PIPLIB_NAME(pip_quast_print)(stdout,solution,0) ;
 
-  pip_quast_free(solution) ;
+  PIPLIB_NAME(pip_quast_free)(solution) ;
   return 0 ;
 }

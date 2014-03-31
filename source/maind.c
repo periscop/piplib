@@ -29,33 +29,27 @@
 #include <string.h>
 #include <sys/types.h>
 #include <stdlib.h>
-#ifdef __TURBOC__
-#include <dir.h>
-#endif
-#define min(x,y) ((x) < (y)? (x) : (y))
 
 #include "pip.h"
 #include "version.h"
 
 #ifdef UNIX
 #include <sys/times.h>
-struct tms chrono;
 #endif
 
-static char version[] = "Version "PIPLIB_HEAD"\n";
+
+/*extern long int cross_product ;*/
+extern int PIPLIB_NAME(verbose) ;
+extern FILE * PIPLIB_NAME(dump) ;
+/*extern int compa_count;*/
+extern int PIPLIB_NAME(deepest_cut);
 
 
-extern long int cross_product, limit ;
-extern int allocation, comptage, verbose ;
-extern FILE * dump ;
-extern int compa_count ;
-extern int deepest_cut;
-
-void balance(FILE *foo, FILE *bar)
+void PIPLIB_NAME(balance)(FILE *foo, FILE *bar)
 {
  int level = 0;
  int c;
- while((c = dgetc(foo)) != EOF)
+ while((c = PIPLIB_NAME(dgetc)(foo)) != EOF)
      {
       switch(c)
 	  {case '(' : level++; break;
@@ -65,9 +59,9 @@ void balance(FILE *foo, FILE *bar)
      }
 }
 
-void escape(FILE *foo, FILE *bar, int level)
+void PIPLIB_NAME(escape)(FILE *foo, FILE *bar, int level)
 {int c;
- while((c = dgetc(foo)) != EOF)
+ while((c = PIPLIB_NAME(dgetc)(foo)) != EOF)
    switch(c)
      {case '(' : level ++; break;
      case ')' : if(--level == 0)
@@ -77,33 +71,33 @@ void escape(FILE *foo, FILE *bar, int level)
      }
 }
 
-char * getenv();
-
 int main(int argc, char *argv[])
 {
+ #ifdef UNIX
+  struct tms chrono;
+  int comptage = 1;
+ #endif
+
  FILE *in, *out;
- Tableau *ineq, *context, *ctxt;
+ PIPLIB_NAME(Tableau) *ineq, *context, *ctxt;
  int nvar, nparm, ni, nc, bigparm;
  int nq; char * g;
  int simple = 0;
- struct high_water_mark hq;
+ struct PIPLIB_NAME(high_water_mark) hq;
  int c, non_vide;
  int p, q, xq;
- piplib_int_t x;
+ PIPLIB_NAME(piplib_int_t) x;
  piplib_int_init(x);
  #if defined(PIPLIB_ONE_DETERMINANT)
  #else
- piplib_int_t i;
+ PIPLIB_NAME(piplib_int_t) i;
  #endif
- 
- piplib_int_init_set_si(UN, 1);
- piplib_int_init_set_si(ZERO, 0);
  
  in = stdin; out = stdout;
  p = 1;
  if(argc > 1)
  { if(strcmp(argv[1], "-s") == 0)
-	 { verbose = -1;
+	 { PIPLIB_NAME(verbose) = -1;
 	   p = 2;
 	 }
    /* the number of 'v' in the verbose option control the amount of debug
@@ -111,22 +105,22 @@ int main(int argc, char *argv[])
     */
    else
 	 if(strncmp(argv[1], "-v", 2) == 0)
-   { verbose = 1;
+   { PIPLIB_NAME(verbose) = 1;
      g = argv[1]+2;
-     while(*g++ == 'v') verbose++;
+     while(*g++ == 'v') PIPLIB_NAME(verbose)++;
 	  
      p = 2;
-     dump = pip_create_dump_file();
-     if (!dump)
-	verbose = 0;
+     PIPLIB_NAME(dump) = PIPLIB_NAME(pip_create_dump_file)();
+     if (!PIPLIB_NAME(dump))
+	PIPLIB_NAME(verbose) = 0;
    }
    if(argc>p && strcmp(argv[p], "-d") == 0)
-   { deepest_cut = 1;
+   { PIPLIB_NAME(deepest_cut) = 1;
      p++;
    }
  }
 	
- if(verbose >= 0) fprintf(stderr, version);
+ if(PIPLIB_NAME(verbose) >= 0) fprintf(stderr, "Version "PIPLIB_HEAD"\n");
  if(argc > p)
  { if(strcmp(argv[p], "-z") == 0)
    { simple = 1;
@@ -148,91 +142,91 @@ int main(int argc, char *argv[])
    }
  }
  
- limit = 0L;
  p++;
- if(argc > p) limit = atol(argv[p]);
- sol_init();
- tab_init();
- while((c = dgetc(in)) != EOF)
+ PIPLIB_NAME(sol_init)();
+ PIPLIB_NAME(tab_init)();
+ while((c = PIPLIB_NAME(dgetc)(in)) != EOF)
      {if(c != '(') continue;
       fprintf(out, "(");
-      balance(in, out);
-      if(dscanf(in, &x) < 0){escape(in, out, 1); continue;}
+      PIPLIB_NAME(balance)(in, out);
+      if(PIPLIB_NAME(dscanf)(in, &x) < 0){PIPLIB_NAME(escape)(in, out, 1); continue;}
       else 
         nvar = piplib_int_get_si(x);
-      if(dscanf(in, &x) < 0){escape(in, out, 1); continue;}
+      if(PIPLIB_NAME(dscanf)(in, &x) < 0){PIPLIB_NAME(escape)(in, out, 1); continue;}
       else
         nparm = piplib_int_get_si(x);
-      if(dscanf(in, &x) < 0){escape(in, out, 1); continue;}
+      if(PIPLIB_NAME(dscanf)(in, &x) < 0){PIPLIB_NAME(escape)(in, out, 1); continue;}
       else 
         ni = piplib_int_get_si(x);
-      if(dscanf(in, &x) < 0){escape(in, out, 1); continue;}
+      if(PIPLIB_NAME(dscanf)(in, &x) < 0){PIPLIB_NAME(escape)(in, out, 1); continue;}
       else
         nc = piplib_int_get_si(x);
-      if(dscanf(in, &x) < 0){escape(in, out, 1); continue;}
+      if(PIPLIB_NAME(dscanf)(in, &x) < 0){PIPLIB_NAME(escape)(in, out, 1); continue;}
       else 
         bigparm = piplib_int_get_si(x);
-      if(dscanf(in, &x) < 0){escape(in, out, 1); continue;}
+      if(PIPLIB_NAME(dscanf)(in, &x) < 0){PIPLIB_NAME(escape)(in, out, 1); continue;}
       else 
         nq = piplib_int_get_si(x);
       
-      if(verbose > 0) {fprintf(dump, "%d %d %d %d %d %d\n",nvar, nparm, ni, nc,
+      if(PIPLIB_NAME(verbose) > 0) {fprintf(PIPLIB_NAME(dump), "%d %d %d %d %d %d\n",nvar, nparm, ni, nc,
                                bigparm, nq);
-                       fflush(dump);
+                       fflush(PIPLIB_NAME(dump));
                       }
-      cross_product = 0;
-      hq = tab_hwm();
-      if(verbose > 0) {fprintf(dump, "hwm %p\n", g);
-                       fflush(dump);
+      /*cross_product = 0;*/
+      hq = PIPLIB_NAME(tab_hwm)();
+      if(PIPLIB_NAME(verbose) > 0) {fprintf(PIPLIB_NAME(dump), "hwm %p\n", g);
+                       fflush(PIPLIB_NAME(dump));
                       }
-      ineq = tab_get(in, ni, nvar+nparm+1, nvar);
+      ineq = PIPLIB_NAME(tab_get)(in, ni, nvar+nparm+1, nvar);
       if (nq)
-	  tab_simplify(ineq, nvar);
-      if(ineq == NULL){escape(in, out, 2); continue;}
-      context = tab_get(in, nc, nparm+1, 0);
+	  PIPLIB_NAME(tab_simplify)(ineq, nvar);
+      if(ineq == NULL){PIPLIB_NAME(escape)(in, out, 2); continue;}
+      context = PIPLIB_NAME(tab_get)(in, nc, nparm+1, 0);
       if (nq)
-	  tab_simplify(context, nparm);
-      if(context == NULL){escape(in, out, 2); continue;}
-      xq = p = sol_hwm();
+	  PIPLIB_NAME(tab_simplify)(context, nparm);
+      if(context == NULL){PIPLIB_NAME(escape)(in, out, 2); continue;}
+      xq = p = PIPLIB_NAME(sol_hwm)();
 /* verification de la non-vacuite' du contexte */
       if(nc)
-      {ctxt = expanser(context, nparm, nc, nparm+1, nparm, 0, 0);
-       traiter(ctxt, NULL, nparm, 0, nc, 0, -1, TRAITER_INT);
-       non_vide = is_not_Nil(p);
-       sol_reset(p);
+      {ctxt = PIPLIB_NAME(expanser)(context, nparm, nc, nparm+1, nparm, 0, 0);
+       PIPLIB_NAME(traiter)(ctxt, NULL, nparm, 0, nc, 0, -1, TRAITER_INT);
+       non_vide = PIPLIB_NAME(is_not_Nil)(p);
+       PIPLIB_NAME(sol_reset)(p);
       }
       else non_vide = Pip_True;
       if(non_vide) {
-       compa_count = 0;
-       traiter(ineq, context, nvar, nparm, ni, nc, bigparm, nq ? TRAITER_INT : 0);
-	if (verbose > 0) {
-	    fprintf(dump, "det: ");
+       /*compa_count = 0;*/
+       PIPLIB_NAME(traiter)(ineq, context, nvar, nparm, ni, nc, bigparm, nq ? TRAITER_INT : 0);
+	if (PIPLIB_NAME(verbose) > 0) {
+	    fprintf(PIPLIB_NAME(dump), "det: ");
 #if defined(PIPLIB_ONE_DETERMINANT)
-	    piplib_int_print(dump, ineq->determinant);
+	    piplib_int_print(PIPLIB_NAME(dump), ineq->determinant);
 #else
 	    for (i=0; i<ineq->l_determinant; i++) {
-		fprintf(dump, piplib_int_format, ineq->determinant[i]);
-		fprintf(dump, " ");
+		fprintf(PIPLIB_NAME(dump), piplib_int_format, ineq->determinant[i]);
+		fprintf(PIPLIB_NAME(dump), " ");
 	    }
 #endif
-	    fprintf(dump, "\n");
+	    fprintf(PIPLIB_NAME(dump), "\n");
 	}
 	fputs(")\n",out);
-       if(simple) sol_simplify(xq);
-       q = sol_hwm();
-       while((xq = sol_edit(out, xq)) != q);
-       sol_reset(p);
+       if(simple) PIPLIB_NAME(sol_simplify)(xq);
+       q = PIPLIB_NAME(sol_hwm)();
+       while((xq = PIPLIB_NAME(sol_edit)(out, xq)) != q);
+       PIPLIB_NAME(sol_reset)(p);
       }
       else fprintf(out, "void\n");
-      tab_reset(hq);
-      if(verbose > 0) fflush(dump);
+      PIPLIB_NAME(tab_reset)(hq);
+      if(PIPLIB_NAME(verbose) > 0) fflush(PIPLIB_NAME(dump));
       /* add a right parenthesis in order to keep the output in balance */
       fprintf(out, ")\n");
       fflush(out);
-      if(verbose >= 0) 
-       fprintf(stderr,"cross : %ld, alloc : %d, compa : %d\n\r",
-               cross_product, allocation, compa_count);
-      comptage++;
+      if(PIPLIB_NAME(verbose) >= 0) 
+       fprintf(stderr,"cross : (%ld), compa : (%d)\n\r",
+               /*cross_product*/0L, /*compa_count*/0);
+      #ifdef UNIX
+       comptage++;
+      #endif
      }
 #ifdef UNIX
  times(& chrono);
@@ -241,7 +235,7 @@ int main(int argc, char *argv[])
 #endif
 
  piplib_int_clear(x);
- pip_close();
- exit(0);
+ PIPLIB_NAME(pip_close)();
+ return 0;
 }
 

@@ -32,14 +32,11 @@ extern "C"
 #endif 
 
 /* Modified by Serge Torres to handle very big problems (since 1.3.4 we can put
- * any value we want: sol_space is allocated dynamically), but it is left by
+ * any value we want: PIPLIB_NAME(sol_space) is allocated dynamically), but it is left by
  * default to 4096 because of time/space reasons for most people.
  * #define SOL_SIZE 67108864
  */
 #define SOL_SIZE 4096
-
-extern piplib_int_t UN;
-extern piplib_int_t ZERO;
 
 #define Pip_True 1
 #define Pip_False 0
@@ -48,8 +45,6 @@ extern piplib_int_t ZERO;
 #ifdef TC
 #define DEBUG 8
 #endif
-
-#define Q if(cross_product>=limit)
 
 #define MAXCOL 512
 #define MAXPARM 50

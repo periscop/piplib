@@ -5,4 +5,4 @@
 #include "tab.h"
 #include "funcall.h"
 
-int dscanf(FILE*, piplib_int_t*);
+int PIPLIB_NAME(dscanf)(FILE*, PIPLIB_NAME(piplib_int_t)*);

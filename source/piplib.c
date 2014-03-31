@@ -30,6 +30,7 @@
 # include <stdio.h>
 # include <ctype.h>
 #include <string.h>
+
 #ifdef WIN32
 #include <windows.h>
 #else
@@ -37,10 +38,6 @@ int mkstemp(char*);
 #endif
 
 #include "pip.h"
-#define min(x,y) ((x) < (y)? (x) : (y))
-
-piplib_int_t UN;
-piplib_int_t ZERO;
 
 #ifdef PIPLIB_INT_OSL
   #ifdef OSL_GMP_IS_HERE
@@ -50,14 +47,12 @@ piplib_int_t ZERO;
   #endif
 #endif
 
-long int cross_product, limit;
-int allocation, comptage;
-int verbose = 0;
-int profondeur = 0;
-int compa_count;
-int deepest_cut = 0;
+/*long int cross_product;*/
+int PIPLIB_NAME(verbose) = 0;
+/*int compa_count;*/
+int PIPLIB_NAME(deepest_cut) = 0;
 
-FILE *dump = NULL;
+FILE *PIPLIB_NAME(dump) = NULL;
 
 /* Larger line buffer to accomodate Frédo Vivien exemples. A version
 handling arbitrary line length should be written ASAP.
@@ -65,9 +60,9 @@ handling arbitrary line length should be written ASAP.
 
 #define INLENGTH 2048
 
-char inbuff[INLENGTH];
-int inptr = 256;
-int proviso = 0;
+char PIPLIB_NAME(inbuff)[INLENGTH];
+int PIPLIB_NAME(inptr) = 256;
+int PIPLIB_NAME(proviso) = 0;
 
 
 /******************************************************************************
@@ -75,29 +70,30 @@ int proviso = 0;
  ******************************************************************************/
 
 
-int dgetc(FILE *foo)
+int PIPLIB_NAME(dgetc)(FILE *foo)
 {
  char *p;
- if(inptr >= proviso)
-   {p = fgets(inbuff, INLENGTH, foo);
+ if(PIPLIB_NAME(inptr) >= PIPLIB_NAME(proviso))
+   {p = fgets(PIPLIB_NAME(inbuff), INLENGTH, foo);
     if(p == NULL) return EOF;
-    proviso = min(INLENGTH, strlen(inbuff));
-    inptr = 0;
-    if(verbose > 2) fprintf(dump, "-- %s", inbuff);
+    #define piplib_min(x,y) ((x) < (y)? (x) : (y))
+    PIPLIB_NAME(proviso) = piplib_min(INLENGTH, strlen(PIPLIB_NAME(inbuff)));
+    PIPLIB_NAME(inptr) = 0;
+    if(PIPLIB_NAME(verbose) > 2) fprintf(PIPLIB_NAME(dump), "-- %s", PIPLIB_NAME(inbuff));
   }
- return inbuff[inptr++];
+ return PIPLIB_NAME(inbuff)[PIPLIB_NAME(inptr)++];
 }
 
 #ifdef WIN32
-static char *create_temp_filename()
+static char* PIPLIB_NAME(create_temp_filename)()
 {
     static char dump_name[MAX_PATH];
 
-    GetTempFileName(".", "Pip", 0, dump_name);
+    GetTempFileName(".", "Pip", 0, PIPLIB_NAME(dump)_name);
     return dump_name;
 }
 #else
-static char *create_temp_filename()
+static char* PIPLIB_NAME(create_temp_filename)()
 {
     static char dump_name_template[] = "PipXXXXXX";
     static char dump_name[sizeof(dump_name_template)];
@@ -108,48 +104,48 @@ static char *create_temp_filename()
 }
 #endif
 
-FILE *pip_create_dump_file()
+FILE *PIPLIB_NAME(pip_create_dump_file)()
 {
     char *g;
-    FILE *dump;
+    FILE *PIPLIB_NAME(dump);
 
     g = getenv("DEBUG");
     if (g && *g) {
-    	dump = fopen(g, "w");
-        if (!dump)
+    	PIPLIB_NAME(dump) = fopen(g, "w");
+        if (!PIPLIB_NAME(dump))
 	    fprintf(stderr, "%s unaccessible\n", g);
     } else
-        dump = fopen(create_temp_filename(), "w");
-    return dump;
+        PIPLIB_NAME(dump) = fopen(PIPLIB_NAME(create_temp_filename)(), "w");
+    return PIPLIB_NAME(dump);
 }
 
 
-int dscanf(FILE* foo, piplib_int_t* val)
+int PIPLIB_NAME(dscanf)(FILE* foo, PIPLIB_NAME(piplib_int_t)* val)
 {
  char * p;
  int c;
 
- for(;inptr < proviso; inptr++)
-   if(inbuff[inptr] != ' ' && inbuff[inptr] != '\n' && inbuff[inptr] != '\t')
+ for(;PIPLIB_NAME(inptr) < PIPLIB_NAME(proviso); PIPLIB_NAME(inptr)++)
+   if(PIPLIB_NAME(inbuff)[PIPLIB_NAME(inptr)] != ' ' && PIPLIB_NAME(inbuff)[PIPLIB_NAME(inptr)] != '\n' && PIPLIB_NAME(inbuff)[PIPLIB_NAME(inptr)] != '\t')
 				break;
- while(inptr >= proviso)
-   {p = fgets(inbuff, 256, foo);
+ while(PIPLIB_NAME(inptr) >= PIPLIB_NAME(proviso))
+   {p = fgets(PIPLIB_NAME(inbuff), 256, foo);
     if(p == NULL) return EOF;
-    proviso = strlen(inbuff);
-    if(verbose > 2) {
-      fprintf(dump, ".. %s", inbuff);
-      fflush(dump);
+    PIPLIB_NAME(proviso) = strlen(PIPLIB_NAME(inbuff));
+    if(PIPLIB_NAME(verbose) > 2) {
+      fprintf(PIPLIB_NAME(dump), ".. %s", PIPLIB_NAME(inbuff));
+      fflush(PIPLIB_NAME(dump));
     }
-    for(inptr = 0; inptr < proviso; inptr++)
-       if(inbuff[inptr] != ' '
-       && inbuff[inptr] != '\n'
-       && inbuff[inptr] != '\t') break;
+    for(PIPLIB_NAME(inptr) = 0; PIPLIB_NAME(inptr) < PIPLIB_NAME(proviso); PIPLIB_NAME(inptr)++)
+       if(PIPLIB_NAME(inbuff)[PIPLIB_NAME(inptr)] != ' '
+       && PIPLIB_NAME(inbuff)[PIPLIB_NAME(inptr)] != '\n'
+       && PIPLIB_NAME(inbuff)[PIPLIB_NAME(inptr)] != '\t') break;
   }
- if(piplib_int_sscanf(inbuff+inptr, *val) != 1)
+ if(piplib_int_sscanf(PIPLIB_NAME(inbuff)+PIPLIB_NAME(inptr), *val) != 1)
  return -1;
  
- for(; inptr < proviso; inptr++)
-	if((c = inbuff[inptr]) != '-' && !isdigit(c)) break;
+ for(; PIPLIB_NAME(inptr) < PIPLIB_NAME(proviso); PIPLIB_NAME(inptr)++)
+	if((c = PIPLIB_NAME(inbuff)[PIPLIB_NAME(inptr)]) != '-' && !isdigit(c)) break;
  return 0;
 }
 
@@ -164,8 +160,8 @@ int dscanf(FILE* foo, piplib_int_t* val)
  * que contient la structure de type PipMatrix qu'elle recoit en parametre.
  * Premiere version : Ced. 29 juillet 2001. 
  */
-void pip_matrix_print(FILE * foo, PipMatrix * Mat)
-{ piplib_int_t * p;
+void PIPLIB_NAME(pip_matrix_print)(FILE * foo, PIPLIB_NAME(PipMatrix) * Mat)
+{ PIPLIB_NAME(piplib_int_t) * p;
   unsigned int i, j ;
   unsigned int NbRows, NbColumns ;
 
@@ -186,7 +182,7 @@ void pip_matrix_print(FILE * foo, PipMatrix * Mat)
  * que contient la structure de type PipVector qu'elle recoit en parametre.
  * Premiere version : Ced. 20 juillet 2001. 
  */
-void pip_vector_print(FILE * foo, PipVector * vector)
+void PIPLIB_NAME(pip_vector_print)(FILE * foo, PIPLIB_NAME(PipVector) * vector)
 { int i ;
   
   if (vector != NULL)
@@ -213,7 +209,7 @@ void pip_vector_print(FILE * foo, PipVector * vector)
  * desire pas d'indentation.
  * Premiere version : Ced. 18 octobre 2001. 
  */
-void pip_newparm_print(FILE * foo, PipNewparm * newparm, int indent)
+void PIPLIB_NAME(pip_newparm_print)(FILE * foo, PIPLIB_NAME(PipNewparm) * newparm, int indent)
 { int i ;
 
   if (newparm != NULL)
@@ -222,7 +218,7 @@ void pip_newparm_print(FILE * foo, PipNewparm * newparm, int indent)
       fprintf(foo,"(newparm ") ;
       fprintf(foo,"%d",newparm->rank) ;
       fprintf(foo," (div ") ;
-      pip_vector_print(foo,newparm->vector) ;
+      PIPLIB_NAME(pip_vector_print)(foo,newparm->vector) ;
       fprintf(foo," ");
       piplib_int_print(foo, newparm->deno);
       fprintf(foo,"))\n") ;
@@ -242,7 +238,7 @@ void pip_newparm_print(FILE * foo, PipNewparm * newparm, int indent)
  * 16 novembre 2005 : Ced. Prise en compte du cas list->vector == NULL,
  *                         jusque là impossible.
  */
-void pip_list_print(FILE * foo, PipList * list, int indent)
+void PIPLIB_NAME(pip_list_print)(FILE * foo, PIPLIB_NAME(PipList) * list, int indent)
 { int i ;
 
   if (list == NULL)
@@ -255,7 +251,7 @@ void pip_list_print(FILE * foo, PipList * list, int indent)
     do
     { if (list->vector != NULL)
       { for (i=0;i<indent+1;i++) fprintf(foo," ") ;         /* Indent. */
-        pip_vector_print(foo,list->vector) ;
+        PIPLIB_NAME(pip_vector_print)(foo,list->vector) ;
         fprintf(foo,"\n") ;
       }
     }
@@ -275,24 +271,24 @@ void pip_list_print(FILE * foo, PipList * list, int indent)
  * 20 juillet 2001 : Premiere version, Ced. 
  * 18 octobre 2001 : eclatement. 
  */
-void pip_quast_print(FILE * foo, PipQuast * solution, int indent)
+void PIPLIB_NAME(pip_quast_print)(FILE * foo, PIPLIB_NAME(PipQuast) * solution, int indent)
 { int i;
   int new_indent = indent >= 0 ? indent+1 : indent;
   
   if (solution != NULL)
-  { pip_newparm_print(foo,solution->newparm,indent) ;
+  { PIPLIB_NAME(pip_newparm_print)(foo,solution->newparm,indent) ;
     if (solution->condition == NULL) {
-	pip_list_print(foo, solution->list, indent);
+	PIPLIB_NAME(pip_list_print)(foo, solution->list, indent);
 	/* Possible dual solution */
 	if (solution->next_then)
-	    pip_quast_print(foo, solution->next_then, new_indent);
+	    PIPLIB_NAME(pip_quast_print)(foo, solution->next_then, new_indent);
     } else
     { for (i=0;i<indent;i++) fprintf(foo," ") ;             /* Indent. */
       fprintf(foo,"(if ") ;
-      pip_vector_print(foo,solution->condition) ;
+      PIPLIB_NAME(pip_vector_print)(foo,solution->condition) ;
       fprintf(foo,"\n") ;
-      pip_quast_print(foo, solution->next_then, new_indent);
-      pip_quast_print(foo, solution->next_else, new_indent);
+      PIPLIB_NAME(pip_quast_print)(foo, solution->next_then, new_indent);
+      PIPLIB_NAME(pip_quast_print)(foo, solution->next_else, new_indent);
       for (i=0;i<indent;i++) fprintf(foo," ") ;             /* Indent. */
       fprintf(foo,")\n") ;
     }
@@ -304,12 +300,12 @@ void pip_quast_print(FILE * foo, PipQuast * solution, int indent)
 }    
   
 
-/* Function pip_options_print:
+/* Function PIPLIB_NAME(pip_options_print):
  * This function prints the content of a PipOptions structure (options)
  * into a file (foo, possibly stdout).
  * March 17th 2003: first version.
  */
-void pip_options_print(FILE* foo, PipOptions* options)
+void PIPLIB_NAME(pip_options_print)(FILE* foo, PIPLIB_NAME(PipOptions)* options)
 { fprintf(foo,"Option setting is:\n") ;
   fprintf(foo,"Nq          =%d\n",options->Nq) ;
   fprintf(foo,"Verbose     =%d\n",options->Verbose) ;
@@ -332,10 +328,10 @@ void pip_options_print(FILE* foo, PipOptions* options)
  * que pointe son parametre.
  * Premiere version : Ced. 29 juillet 2001. 
  */
-void pip_matrix_free(PipMatrix * matrix)
+void PIPLIB_NAME(pip_matrix_free)(PIPLIB_NAME(PipMatrix) * matrix)
 {
   int i;
-  piplib_int_t* p;
+  PIPLIB_NAME(piplib_int_t)* p;
 
   p = matrix->p_Init;
   for (i=0;i<matrix->p_Init_size;i++) {
@@ -358,7 +354,7 @@ void pip_matrix_free(PipMatrix * matrix)
  * 18 octobre 2001 : simplification suite a l'eclatement de PipVector.
  * 16 novembre 2005 : Ced. Prise en compte du cas NULL.
  */
-void pip_vector_free(PipVector * vector)
+void PIPLIB_NAME(pip_vector_free)(PIPLIB_NAME(PipVector) * vector)
 { int i ;
   
   if (vector != NULL)
@@ -381,13 +377,13 @@ void pip_vector_free(PipVector * vector)
  * liste chainee dont il pouvait etre le depart.
  * Premiere version : Ced. 18 octobre 2001. 
  */
-void pip_newparm_free(PipNewparm * newparm)
-{ PipNewparm * next ;
+void PIPLIB_NAME(pip_newparm_free)(PIPLIB_NAME(PipNewparm) * newparm)
+{ PIPLIB_NAME(PipNewparm) * next ;
 
   while (newparm != NULL)
   { next = newparm->next ;
     piplib_int_clear(newparm->deno);
-    pip_vector_free(newparm->vector) ;
+    PIPLIB_NAME(pip_vector_free)(newparm->vector) ;
     free(newparm) ;
     newparm = next ;
   }
@@ -400,12 +396,12 @@ void pip_newparm_free(PipNewparm * newparm)
  * liste chainee dont il pouvait etre le depart.
  * Premiere version : Ced. 18 octobre 2001. 
  */
-void pip_list_free(PipList * list)
-{ PipList * next ;
+void PIPLIB_NAME(pip_list_free)(PIPLIB_NAME(PipList) * list)
+{ PIPLIB_NAME(PipList) * next ;
 
   while (list != NULL)
   { next = list->next ;
-    pip_vector_free(list->vector) ;
+    PIPLIB_NAME(pip_vector_free)(list->vector) ;
     free(list) ;
     list = next ;
   }
@@ -419,17 +415,17 @@ void pip_list_free(PipList * list)
  * 20 juillet 2001 : Premiere version, Ced.
  * 18 octobre 2001 : simplification suite a l'eclatement de PipVector.
  */
-void pip_quast_free(PipQuast * solution)
+void PIPLIB_NAME(pip_quast_free)(PIPLIB_NAME(PipQuast) * solution)
 {
     if (!solution)
 	return;
-    pip_newparm_free(solution->newparm) ;
+    PIPLIB_NAME(pip_newparm_free)(solution->newparm) ;
   
-    pip_list_free(solution->list) ;
+    PIPLIB_NAME(pip_list_free)(solution->list) ;
 
-    pip_vector_free(solution->condition);
-    pip_quast_free(solution->next_then);
-    pip_quast_free(solution->next_else);
+    PIPLIB_NAME(pip_vector_free)(solution->condition);
+    PIPLIB_NAME(pip_quast_free)(solution->next_then);
+    PIPLIB_NAME(pip_quast_free)(solution->next_else);
     free(solution) ;
 }
 
@@ -438,7 +434,7 @@ void pip_quast_free(PipQuast * solution)
  * This function frees the allocated memory for a PipOptions structure.
  * March 15th 2003: first version.
  */
-void pip_options_free(PipOptions * options)
+void PIPLIB_NAME(pip_options_free)(PIPLIB_NAME(PipOptions) * options)
 { free(options) ;
 }
 
@@ -465,10 +461,10 @@ void pip_options_free(PipOptions * options)
  ********
  * March 15th 2003: first version.
  */ 
-PipOptions * pip_options_init(void)
-{ PipOptions * options ;
+PIPLIB_NAME(PipOptions) * PIPLIB_NAME(pip_options_init)(void)
+{ PIPLIB_NAME(PipOptions) * options ;
 
-  options = (PipOptions *)malloc(sizeof(PipOptions)) ;
+  options = (PIPLIB_NAME(PipOptions) *)malloc(sizeof(PIPLIB_NAME(PipOptions))) ;
   /* Default values of the options. */
   options->Nq          = 1 ;  /* Integer solution. */
   options->Verbose     = 0 ;  /* No comments. */
@@ -495,12 +491,12 @@ PipOptions * pip_options_init(void)
  * pointeur sur l'espace memoire alloue.
  * Premiere version : Ced. 18 octobre 2001. 
  */
-PipMatrix * pip_matrix_alloc(unsigned NbRows, unsigned NbColumns)
-{ PipMatrix * matrix ;
-  piplib_int_t ** p, * q ;
+PIPLIB_NAME(PipMatrix) * PIPLIB_NAME(pip_matrix_alloc)(unsigned NbRows, unsigned NbColumns)
+{ PIPLIB_NAME(PipMatrix) * matrix ;
+  PIPLIB_NAME(piplib_int_t) ** p, * q ;
   unsigned int i, j ;
 
-  matrix = (PipMatrix *)malloc(sizeof(PipMatrix)) ;
+  matrix = (PIPLIB_NAME(PipMatrix) *)malloc(sizeof(PIPLIB_NAME(PipMatrix))) ;
   if (matrix == NULL) 	
   { fprintf(stderr, "Memory Overflow.\n") ;
     exit(1) ;
@@ -518,12 +514,12 @@ PipMatrix * pip_matrix_alloc(unsigned NbRows, unsigned NbColumns)
       matrix->p_Init = NULL ;
     }
     else 
-    { p = (piplib_int_t **)malloc(NbRows*sizeof(piplib_int_t *)) ;
+    { p = (PIPLIB_NAME(piplib_int_t) **)malloc(NbRows*sizeof(PIPLIB_NAME(piplib_int_t) *)) ;
       if (p == NULL) 
       { fprintf(stderr, "Memory Overflow.\n") ;
         exit(1) ;
       }
-      q = (piplib_int_t *)malloc(NbRows * NbColumns * sizeof(piplib_int_t)) ;
+      q = (PIPLIB_NAME(piplib_int_t) *)malloc(NbRows * NbColumns * sizeof(PIPLIB_NAME(piplib_int_t))) ;
       if (q == NULL) 
       { fprintf(stderr, "Memory Overflow.\n") ;
         exit(1) ;
@@ -557,19 +553,19 @@ PipMatrix * pip_matrix_alloc(unsigned NbRows, unsigned NbColumns)
  *                   lire des long long pour l'instant. On utilise pas
  *                   mpz_inp_str car on lit depuis des char * et non des FILE.
  */
-PipMatrix * pip_matrix_read(FILE * foo) {
+PIPLIB_NAME(PipMatrix) * PIPLIB_NAME(pip_matrix_read)(FILE * foo) {
   unsigned int NbRows, NbColumns ;
   unsigned int i, j;
   int n;
   char *c, s[1024], str[1024] ;
-  PipMatrix * matrix ;
-  piplib_int_t * p ;
+  PIPLIB_NAME(PipMatrix) * matrix ;
+  PIPLIB_NAME(piplib_int_t) * p ;
 
   while (fgets(s,1024,foo) == 0) ;
   while ((*s=='#' || *s=='\n') || (sscanf(s," %u %u",&NbRows,&NbColumns)<2))
   fgets(s, 1024, foo) ;
   
-  matrix = pip_matrix_alloc(NbRows,NbColumns) ;
+  matrix = PIPLIB_NAME(pip_matrix_alloc)(NbRows,NbColumns) ;
 
   p = matrix->p_Init ;
   for (i=0;i<matrix->NbRows;i++) 
@@ -603,25 +599,21 @@ PipMatrix * pip_matrix_read(FILE * foo) {
  
  
 /* initialization of pip */
-static int pip_initialized = 0;
+static int PIPLIB_NAME(pip_initialized) = 0;
 
-void pip_init() {
+void PIPLIB_NAME(pip_init)() {
   /* Avoid initializing (and leaking) several times */
-  if (!pip_initialized) {
-    piplib_int_init_set_si(UN, 1);
-    piplib_int_init_set_si(ZERO, 0);
-    sol_init() ;
-    tab_init() ;
-    pip_initialized = 1;
+  if (!PIPLIB_NAME(pip_initialized)) {
+    PIPLIB_NAME(sol_init)() ;
+    PIPLIB_NAME(tab_init)() ;
+    PIPLIB_NAME(pip_initialized) = 1;
   }
 }
 
-void pip_close() {
-  tab_close();
-  sol_close();
-  piplib_int_clear(UN);
-  piplib_int_clear(ZERO);
-  pip_initialized = 0;
+void PIPLIB_NAME(pip_close)() {
+  PIPLIB_NAME(tab_close)();
+  PIPLIB_NAME(sol_close)();
+  PIPLIB_NAME(pip_initialized) = 0;
 }
  
 /*
@@ -633,16 +625,16 @@ void pip_close() {
  * and negate the value if it corresponds to the negative
  * inequality.
  */
-static void pip_quast_equalities_dual(PipQuast *solution, PipMatrix *inequnk)
+static void PIPLIB_NAME(pip_quast_equalities_dual)(PIPLIB_NAME(PipQuast) *solution, PIPLIB_NAME(PipMatrix) *inequnk)
 {
-    PipList **list_p, *list;
+    PIPLIB_NAME(PipList) **list_p, *list;
     unsigned int i;
 
     if (!solution)
 	return;
     if (solution->condition) {
-	pip_quast_equalities_dual(solution->next_then, inequnk);
-	pip_quast_equalities_dual(solution->next_else, inequnk);
+	PIPLIB_NAME(pip_quast_equalities_dual)(solution->next_then, inequnk);
+	PIPLIB_NAME(pip_quast_equalities_dual)(solution->next_else, inequnk);
     }
     if (!solution->list)
 	return;
@@ -658,12 +650,12 @@ static void pip_quast_equalities_dual(PipQuast *solution, PipMatrix *inequnk)
 		list = *list_p;
 		*list_p = list->next;
 		list->next = NULL;
-		pip_list_free(list);
+		PIPLIB_NAME(pip_list_free)(list);
 	    } else {
 		list = *list_p;
 		*list_p = list->next;
 		list->next = NULL;
-		pip_list_free(list);
+		PIPLIB_NAME(pip_list_free)(list);
 		piplib_int_oppose((*list_p)->vector->the_vector[0],
 			      (*list_p)->vector->the_vector[0]);
 		list_p = &(*list_p)->next;
@@ -703,19 +695,19 @@ static void pip_quast_equalities_dual(PipQuast *solution, PipMatrix *inequnk)
  *                         Chaque option inclut les précédentes. [paf]
  * 15 mars 2003    : passage a une structure d'options.
  */
-PipQuast * pip_solve(inequnk, ineqpar, Bg, options)
-PipMatrix * inequnk, * ineqpar ;
+PIPLIB_NAME(PipQuast) * PIPLIB_NAME(pip_solve)(inequnk, ineqpar, Bg, options)
+PIPLIB_NAME(PipMatrix) * inequnk, * ineqpar ;
 int Bg ;
-PipOptions * options ;
-{ Tableau * ineq, * context, * ctxt ;
+PIPLIB_NAME(PipOptions) * options ;
+{ PIPLIB_NAME(Tableau) * ineq, * context, * ctxt ;
   unsigned int i;
   unsigned int Nl;
   int Np, Nn, Nm, p, /*q,*/ xq, non_vide, Shift = 0, Urs_parms = 0;
-  struct high_water_mark hq;
-  PipQuast * solution;
+  struct PIPLIB_NAME(high_water_mark) hq;
+  PIPLIB_NAME(PipQuast) * solution;
   int	sol_flags = 0;
 
-  pip_init() ;
+  PIPLIB_NAME(pip_init)() ;
    	
   /* initialisations diverses :
    * - la valeur de Verbose et Deepest_cut sont placees dans leurs variables
@@ -723,18 +715,16 @@ PipOptions * options ;
    *   fichier dans lequel ecrire les tracages. Si la variable d'environnement
    *   DEBUG est placee, on ecrira dans le nom de fichier correspondant, sinon,
    *   dans un nouveau fichier de nom genere par mkstemp,
-   * - limit est mis au 0 long int (sa valeur par defaut dans Pip original),
    * - on lance les initialisations pour tab et sol (autres mises en place
    *   de variables globales).
    */
-  verbose = options->Verbose ;
-  deepest_cut = options->Deepest_cut ;
-  if (verbose > 0) {
-     dump = pip_create_dump_file();
-     if (!dump)
-	verbose = 0;
+  PIPLIB_NAME(verbose) = options->Verbose ;
+  PIPLIB_NAME(deepest_cut) = options->Deepest_cut ;
+  if (PIPLIB_NAME(verbose) > 0) {
+     PIPLIB_NAME(dump) = PIPLIB_NAME(pip_create_dump_file)();
+     if (!PIPLIB_NAME(dump))
+	PIPLIB_NAME(verbose) = 0;
   }
-  limit = 0;
 
   /* Si inequnk est NULL, la solution est automatiquement void (NULL). */
   if (inequnk != NULL)
@@ -756,9 +746,9 @@ PipOptions * options ;
 	}
       
     /* On prend les 'marques' de debut de traitement. */
-    cross_product = 0 ;
-    hq = tab_hwm() ;
-    xq = p = sol_hwm();
+    /*cross_product = 0 ;*/
+    hq = PIPLIB_NAME(tab_hwm)() ;
+    xq = p = PIPLIB_NAME(sol_hwm)();
     
     if (options->Maximize) {
       sol_flags |= SOL_MAX;
@@ -796,65 +786,65 @@ PipOptions * options ;
         if (piplib_int_zero(**(ineqpar->p + i))) { Nm++; }
 	  }
       
-      context = tab_Matrix2Tableau(ineqpar, Nm, Np-Urs_parms, -1,
+      context = PIPLIB_NAME(tab_Matrix2Tableau)(ineqpar, Nm, Np-Urs_parms, -1,
 				   Shift, Bg-Nn-1, Urs_parms);
       if (options->Nq)
-	tab_simplify(context, Np);
+	PIPLIB_NAME(tab_simplify)(context, Np);
       
       if (Nm)
       { /* Traduction du format de matrice de la polylib vers celui de
          * traitement de Pip. Puis traitement proprement dit.
          */
-	ctxt = expanser(context, Np, Nm, Np+1, Np, 0, 0) ;
-        traiter(ctxt, NULL, Np, 0, Nm, 0, -1, TRAITER_INT);
-        non_vide = is_not_Nil(p) ;
-        sol_reset(p) ;
+	ctxt = PIPLIB_NAME(expanser)(context, Np, Nm, Np+1, Np, 0, 0) ;
+        PIPLIB_NAME(traiter)(ctxt, NULL, Np, 0, Nm, 0, -1, TRAITER_INT);
+        non_vide = PIPLIB_NAME(is_not_Nil)(p) ;
+        PIPLIB_NAME(sol_reset)(p) ;
       }
       else
       non_vide = Pip_True ;
     }
     else
     { Nm = 0 ;
-      ineqpar = pip_matrix_alloc(0, 2);
-      context = tab_Matrix2Tableau(ineqpar, Nm, Np-Urs_parms, -1,
+      ineqpar = PIPLIB_NAME(pip_matrix_alloc)(0, 2);
+      context = PIPLIB_NAME(tab_Matrix2Tableau)(ineqpar, Nm, Np-Urs_parms, -1,
 				   Shift, Bg-Nn-1, Urs_parms);
-      pip_matrix_free(ineqpar);
+      PIPLIB_NAME(pip_matrix_free)(ineqpar);
       non_vide = Pip_True ;
     }
         
-    if (verbose > 0)
-    fprintf(dump, "%d %d %u %d %d %d\n",Nn,Np,Nl,Nm,Bg,options->Nq) ;
+    if (PIPLIB_NAME(verbose) > 0)
+    fprintf(PIPLIB_NAME(dump), "%d %d %u %d %d %d\n",Nn,Np,Nl,Nm,Bg,options->Nq) ;
     
     /* S'il est possible de trouver une solution, on passe au traitement. */
     if (non_vide) {
       int flags = 0;
-      ineq = tab_Matrix2Tableau(inequnk,Nl,Nn,Nn, Shift,Bg, Urs_parms);
+      ineq = PIPLIB_NAME(tab_Matrix2Tableau)(inequnk,Nl,Nn,Nn, Shift,Bg, Urs_parms);
       if (options->Nq)
-	tab_simplify(ineq, Nn);
+	PIPLIB_NAME(tab_simplify)(ineq, Nn);
   
-      compa_count = 0 ;
+      /*compa_count = 0;*/
       if (options->Nq)
 	flags |= TRAITER_INT;
       else if (options->Compute_dual) {
 	flags |= TRAITER_DUAL;
 	sol_flags |= SOL_DUAL;
       }
-      traiter(ineq, context, Nn, Np, Nl, Nm, Bg, flags);
+      PIPLIB_NAME(traiter)(ineq, context, Nn, Np, Nl, Nm, Bg, flags);
 
       if (options->Simplify)
-      sol_simplify(xq) ;
-      /*q =*/ sol_hwm() ;
+      PIPLIB_NAME(sol_simplify)(xq) ;
+      /*q =*/ PIPLIB_NAME(sol_hwm)() ;
       /* On traduit la solution du format de solution de Pip vers un arbre
        * de structures de type PipQuast.
        */
-      solution = sol_quast_edit(&xq, NULL, Bg-Nn-1, Urs_parms, sol_flags);
+      solution = PIPLIB_NAME(sol_quast_edit)(&xq, NULL, Bg-Nn-1, Urs_parms, sol_flags);
       if ((sol_flags & SOL_DUAL) && Nl > inequnk->NbRows)
-	  pip_quast_equalities_dual(solution, inequnk);
-      sol_reset(p) ;
+	  PIPLIB_NAME(pip_quast_equalities_dual)(solution, inequnk);
+      PIPLIB_NAME(sol_reset)(p) ;
     }
     else
     return NULL ;
-    tab_reset(hq) ;
+    PIPLIB_NAME(tab_reset)(hq) ;
   }
   else
   return NULL ;

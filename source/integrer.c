@@ -34,21 +34,19 @@
 /*  The routines in this file are used to build a Gomory cut from
     a non-integral row of the problem tableau                             */
 
-extern long int cross_product, limit;
-extern int verbose;
-extern int deepest_cut;
-extern FILE * dump;
-char compose[256];
+extern int PIPLIB_NAME(verbose);
+extern int PIPLIB_NAME(deepest_cut);
+extern FILE * PIPLIB_NAME(dump);
 
-
+#if defined(PIPLIB_INT_SP) || defined(PIPLIB_INT_DP)
 // From osl_int
-long long int piplib_llgcd(long long int const a, long long int const b) {
-  return (b ? piplib_llgcd(b, a % b) : a);
+long long int PIPLIB_NAME(piplib_llgcd)(long long int const a, long long int const b) {
+  return (b ? PIPLIB_NAME(piplib_llgcd)(b, a % b) : a);
 }
-long long int piplib_llgcd_llabs(long long int const a, long long int const b) {
-  return llabs(piplib_llgcd(a, b));
+long long int PIPLIB_NAME(piplib_llgcd_llabs)(long long int const a, long long int const b) {
+  return llabs(PIPLIB_NAME(piplib_llgcd)(a, b));
 }
-size_t piplib_lllog2(long long int x) {
+size_t PIPLIB_NAME(piplib_lllog2)(long long int x) {
   size_t n = 0;
 
   x = llabs(x);
@@ -57,7 +55,7 @@ size_t piplib_lllog2(long long int x) {
 
   return ((n == 0) ? 1 : n);
 }
-size_t piplib_lllog10(long long int x) {
+size_t PIPLIB_NAME(piplib_lllog10)(long long int x) {
   size_t n = 0;
 
   x = llabs(x);
@@ -66,7 +64,7 @@ size_t piplib_lllog10(long long int x) {
 
   return n;
 }
-long long int piplib_llmod(long long int const a, long long int const b) {
+long long int PIPLIB_NAME(piplib_llmod)(long long int const a, long long int const b) {
   long long mod = a % b;
    if (mod < 0) { mod += llabs(b); }
   return mod;
@@ -85,32 +83,17 @@ long long int piplib_ll_floor_div_r(long long int const a,
   long long int q = piplib_ll_floor_div_q(a, b);
   return (a - q * b);
 }
+#endif
 
-/* this routine is useless at present                                     */
-
-int non_borne(tp, nvar, D, bigparm)
-Tableau *tp;
-int nvar, bigparm;
-piplib_int_t D;
-{int i, ff;
- for(i = 0; i<nvar; i++)
-     {ff = Flag(tp, i);
-      if(bigparm > 0)
-	 {if(ff & Unit)return(Pip_True);
-          if (piplib_int_eq(Index(tp, i, bigparm), D) == 0) return(Pip_True);
-	 }
-      }
- return(Pip_False);
-}
 
 /* This routine solve for z in the equation z.y = x (mod delta), provided
    y and delta are mutually prime. Remember that for multiple precision
    operation, the responsibility of creating and destroying <<z>> is the 
    caller's.                                                                */
 
-void bezout(piplib_int_t x, /*piplib_int_t y,*/
-            piplib_int_t delta, piplib_int_t* z) {
-  piplib_int_t a, b, c, d, e, f, u, v, q, r;
+void PIPLIB_NAME(bezout)(PIPLIB_NAME(piplib_int_t) x, /*PIPLIB_NAME(piplib_int_t) y,*/
+            PIPLIB_NAME(piplib_int_t) delta, PIPLIB_NAME(piplib_int_t)* z) {
+  PIPLIB_NAME(piplib_int_t) a, b, c, d, e, f, u, v, q, r;
 
   piplib_int_init_set_si(a, 1);
   piplib_int_init(b);
@@ -161,15 +144,15 @@ void bezout(piplib_int_t x, /*piplib_int_t y,*/
   piplib_int_clear(r);
 }
 
-Tableau *expanser();
+PIPLIB_NAME(Tableau) *PIPLIB_NAME(expanser)();
 
 /* cut: constant parameters denominator */
-static void add_parm(Tableau **pcontext, int nr, int *pnparm, int *pni, int *pnc,
-		    piplib_int_t *cut)
+static void PIPLIB_NAME(add_parm)(PIPLIB_NAME(Tableau) **pcontext, int nr, int *pnparm, int *pni, int *pnc,
+		    PIPLIB_NAME(piplib_int_t) *cut)
 {
     int nparm = *pnparm;
     int j, k;
-    piplib_int_t x;
+    PIPLIB_NAME(piplib_int_t) x;
 
     piplib_int_init(x);
 
@@ -178,22 +161,22 @@ static void add_parm(Tableau **pcontext, int nr, int *pnparm, int *pni, int *pnc
                      + c_{nvar})/D                             (3)
          The minus sign is there to compensate the one in (1)     */
 
-    sol_new(nparm);
-    sol_div();
-    sol_forme(nparm+1);
+    PIPLIB_NAME(sol_new)(nparm);
+    PIPLIB_NAME(sol_div)();
+    PIPLIB_NAME(sol_forme)(nparm+1);
     for (j = 0; j < nparm; j++) {
 	piplib_int_oppose(x, cut[1+j]);
-        sol_val(x, UN);
+        PIPLIB_NAME(sol_val_one)(x);
     }
     piplib_int_oppose(x, cut[0]);
-    sol_val(x, UN);
-    sol_val(cut[1+nparm], UN);		    /* The divisor                */
+    PIPLIB_NAME(sol_val_one)(x);
+    PIPLIB_NAME(sol_val_one)(cut[1+nparm]);		    /* The divisor                */
 
     if (nr+2 > (*pcontext)->height || nparm+1+1 > (*pcontext)->width) {
 	int dcw, dch;
 	dcw = piplib_int_size_in_base_2(cut[1+nparm]);
 	dch = 2 * dcw + *pni;
-	*pcontext = expanser(*pcontext, 0, nr, nparm+1, 0, dch, dcw);
+	*pcontext = PIPLIB_NAME(expanser)(*pcontext, 0, nr, nparm+1, 0, dch, dcw);
     }
 
 /* Since a new parameter is to be added, the constant term has to be moved
@@ -228,15 +211,15 @@ static void add_parm(Tableau **pcontext, int nr, int *pnparm, int *pni, int *pnc
     piplib_int_set_si(Denom(*pcontext, nr+1), 1);
     (*pnparm)++;
     (*pnc) += 2;
-    if (verbose > 0) {
-	fprintf(dump, "enlarged context %d x %d\n", *pnparm, *pnc);
-	fflush(dump);
+    if (PIPLIB_NAME(verbose) > 0) {
+	fprintf(PIPLIB_NAME(dump), "enlarged context %d x %d\n", *pnparm, *pnc);
+	fflush(PIPLIB_NAME(dump));
     }
 
     piplib_int_clear(x);
 }
 
-static int has_cut(Tableau *context, int nr, int nparm, int p, piplib_int_t *cut)
+static int PIPLIB_NAME(has_cut)(PIPLIB_NAME(Tableau) *context, int nr, int nparm, int p, PIPLIB_NAME(piplib_int_t) *cut)
 {
     int row, col;
 
@@ -261,7 +244,7 @@ static int has_cut(Tableau *context, int nr, int nparm, int p, piplib_int_t *cut
 }
 
 /* cut: constant parameters denominator */
-static int find_parm(Tableau *context, int nr, int nparm, piplib_int_t *cut)
+static int PIPLIB_NAME(find_parm)(PIPLIB_NAME(Tableau) *context, int nr, int nparm, PIPLIB_NAME(piplib_int_t) *cut)
 {
     int p;
     int col;
@@ -275,13 +258,13 @@ static int find_parm(Tableau *context, int nr, int nparm, piplib_int_t *cut)
     for (p = nparm-1; p >= 0; --p) {
 	if (piplib_int_zero(cut[1+p]) == 0)
 	    break;
-	if (!has_cut(context, nr, nparm, p, cut))
+	if (!PIPLIB_NAME(has_cut)(context, nr, nparm, p, cut))
 	    continue;
 	piplib_int_increment(cut[0], cut[0]);
 	piplib_int_sub(cut[0], cut[0], cut[1+nparm]);
 	for (col = 0; col < 1+nparm+1; ++col)
 	    piplib_int_oppose(cut[col], cut[col]);
-	found = has_cut(context, nr, nparm, p, cut);
+	found = PIPLIB_NAME(has_cut)(context, nr, nparm, p, cut);
 	for (col = 0; col < 1+nparm+1; ++col)
 	    piplib_int_oppose(cut[col], cut[col]);
 	if (found)
@@ -306,7 +289,7 @@ static int find_parm(Tableau *context, int nr, int nparm, piplib_int_t *cut)
  * increases by 2.
  */
 
-int integrer(Tableau** ptp, Tableau** pcontext,
+int PIPLIB_NAME(integrer)(PIPLIB_NAME(Tableau)** ptp, PIPLIB_NAME(Tableau)** pcontext,
              int* pnvar, int* pnparm, int* pni, int* pnc, int bigparm) {
   int ncol = *pnvar + *pnparm + 1;
   int nligne = *pnvar + *pni;
@@ -314,14 +297,14 @@ int integrer(Tableau** ptp, Tableau** pcontext,
   int nvar = *pnvar;
   int ni = *pni;
   int nc = *pnc;
-  piplib_int_t coupure[MAXCOL];
+  PIPLIB_NAME(piplib_int_t) coupure[MAXCOL];
   int i, j, k, ff;
-  piplib_int_t x, d;
+  PIPLIB_NAME(piplib_int_t) x, d;
   int ok_var, ok_const, ok_parm;
-  piplib_int_t D;
+  PIPLIB_NAME(piplib_int_t) D;
   int parm;
 
-  piplib_int_t t, delta, /*tau,*/ lambda;
+  PIPLIB_NAME(piplib_int_t) t, delta, /*tau,*/ lambda;
 
   if (ncol >= MAXCOL) {
     fprintf(stderr, "Too many variables: %d\n", ncol);
@@ -408,16 +391,16 @@ ok_var   ok_parm   ok_const
 		  int d, dth;
 	          d = piplib_int_size_in_base_2(D);
                   dth = d;
-		  *ptp = expanser(*ptp, nvar, ni, ncol, 0, dth, 0);
+		  *ptp = PIPLIB_NAME(expanser)(*ptp, nvar, ni, ncol, 0, dth, 0);
                   }
 	      /* Find the deepest cut*/
-	      if(deepest_cut){
+	      if(PIPLIB_NAME(deepest_cut)){
 	      piplib_int_oppose(t, coupure[nvar]);
           piplib_int_gcd(delta, t, D);
 	      /*piplib_int_div_exact(tau, t, delta);*/
 	      piplib_int_div_exact(d, D, delta);
           piplib_int_decrement(t, d);
-          bezout(t, /*tau,*/ d, &lambda);
+          PIPLIB_NAME(bezout)(t, /*tau,*/ d, &lambda);
 	      piplib_int_gcd(t, lambda, D);
               // t != 1
               while(piplib_int_one(t) == 0) {
@@ -441,38 +424,37 @@ ok_var   ok_parm   ok_const
 	          piplib_int_assign(Index(*ptp, nligne, j), coupure[j]);
                       /* A new row has been added to the problem tableau. */
 	      (*pni)++;
-              if(verbose > 0) {
-		fprintf(dump, "just cut ");
-                if(deepest_cut){
-		  fprintf(dump, "Bezout multiplier ");
-		  piplib_int_print(dump, lambda);
+              if(PIPLIB_NAME(verbose) > 0) {
+		fprintf(PIPLIB_NAME(dump), "just cut ");
+                if(PIPLIB_NAME(deepest_cut)){
+		  fprintf(PIPLIB_NAME(dump), "Bezout multiplier ");
+		  piplib_int_print(PIPLIB_NAME(dump), lambda);
 		}
-                fprintf(dump, "\n");
+                fprintf(PIPLIB_NAME(dump), "\n");
 		k=0;
                 for(i=0; i<nvar; i++){
                   if(Flag(*ptp, i) & Unit){
-		    fprintf(dump, "0 ");
+		    fprintf(PIPLIB_NAME(dump), "0 ");
 		    k += 2;
 		  }
 		  else {
-		    piplib_int_print(dump, Index(*ptp, i, nvar));
+		    piplib_int_print(PIPLIB_NAME(dump), Index(*ptp, i, nvar));
 		    k += piplib_int_size_in_base_10(Index(*ptp, i, nvar));
-		    fprintf(dump, "/");
+		    fprintf(PIPLIB_NAME(dump), "/");
 		    k++;
-		    piplib_int_print(dump, Denom(*ptp, i));
+		    piplib_int_print(PIPLIB_NAME(dump), Denom(*ptp, i));
 		    k += piplib_int_size_in_base_10(Denom(*ptp, i));
-		    fprintf(dump, " ");
+		    fprintf(PIPLIB_NAME(dump), " ");
 		    k++;
 		    if(k > 60){
-		      putc('\n', dump);
+		      putc('\n', PIPLIB_NAME(dump));
 		      k = 0;
 		    }
 		  }
 		}
-		fputs(compose, dump);
-		putc('\n', dump);
+		putc('\n', PIPLIB_NAME(dump));
 	      }
-	      if(verbose > 2) tab_display(*ptp, dump);
+	      if(PIPLIB_NAME(verbose) > 2) PIPLIB_NAME(tab_display)(*ptp, PIPLIB_NAME(dump));
 	      goto clear;
               }
           else {                                         /*   case (b)    */
@@ -486,9 +468,9 @@ ok_var   ok_parm   ok_const
    Let the cut be    sum_{j=0}^{nvar-1} c_j x_j + c_{nvar} +             (2)
                      sum_{j=0}^{nparm-1} c_{nvar + 1 + j} p_j >= 0.       */
            
-	parm = find_parm(*pcontext, nc, nparm, coupure+nvar);
+	parm = PIPLIB_NAME(find_parm)(*pcontext, nc, nparm, coupure+nvar);
 	if (parm == -1) {
-	    add_parm(pcontext, nc, pnparm, pni, pnc, coupure+nvar);
+	    PIPLIB_NAME(add_parm)(pcontext, nc, pnparm, pni, pnc, coupure+nvar);
 	    parm = nparm;
 	}
 
@@ -498,7 +480,7 @@ ok_var   ok_parm   ok_const
              d = piplib_int_size_in_base_2(D);
               dth = d + ni;
 	      dtw = d;
-	      *ptp = expanser(*ptp, nvar, ni, ncol, 0, dth, dtw);
+	      *ptp = PIPLIB_NAME(expanser)(*ptp, nvar, ni, ncol, 0, dth, dtw);
               }
                          /* Zeroing out the new column seems to be useless
 			    since <<expanser>> does it anyway            */
