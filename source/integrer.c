@@ -91,18 +91,17 @@ long long int piplib_ll_floor_div_r(long long int const a,
    operation, the responsibility of creating and destroying <<z>> is the 
    caller's.                                                                */
 
-void PIPLIB_NAME(bezout)(PIPLIB_NAME(piplib_int_t) x, /*PIPLIB_NAME(piplib_int_t) y,*/
+void PIPLIB_NAME(bezout)(PIPLIB_NAME(piplib_int_t) x, PIPLIB_NAME(piplib_int_t) y,
             PIPLIB_NAME(piplib_int_t) delta, PIPLIB_NAME(piplib_int_t)* z) {
   PIPLIB_NAME(piplib_int_t) a, b, c, d, e, f, u, v, q, r;
 
   piplib_int_init_set_si(a, 1);
-  piplib_int_init(b);
-  piplib_int_init(c);
+  piplib_int_init_set_si(b, 0);
+  piplib_int_init_set_si(c, 0);
   piplib_int_init_set_si(d, 1);
   piplib_int_init(e);
   piplib_int_init(f);
-  piplib_int_init(v);
-  piplib_int_init_set(u, v);
+  piplib_int_init_set(u, y);
   piplib_int_init_set(v, delta);
   piplib_int_init(q);
   piplib_int_init(r);
@@ -110,7 +109,7 @@ void PIPLIB_NAME(bezout)(PIPLIB_NAME(piplib_int_t) x, /*PIPLIB_NAME(piplib_int_t
   for(;;) {
     piplib_int_floor_div_q_r(q, r, u, v);
 
-    if(piplib_int_zero(r) == 0) break;
+    if(piplib_int_zero(r)) break;
 
     piplib_int_assign(u, v);
     piplib_int_assign(v, r);
@@ -304,7 +303,7 @@ int PIPLIB_NAME(integrer)(PIPLIB_NAME(Tableau)** ptp, PIPLIB_NAME(Tableau)** pco
   PIPLIB_NAME(piplib_int_t) D;
   int parm;
 
-  PIPLIB_NAME(piplib_int_t) t, delta, /*tau,*/ lambda;
+  PIPLIB_NAME(piplib_int_t) t, delta, tau, lambda;
 
   if (ncol >= MAXCOL) {
     fprintf(stderr, "Too many variables: %d\n", ncol);
@@ -315,7 +314,7 @@ int PIPLIB_NAME(integrer)(PIPLIB_NAME(Tableau)** ptp, PIPLIB_NAME(Tableau)** pco
    piplib_int_init(coupure[i]);
 
  piplib_int_init(x); piplib_int_init(d); piplib_int_init(D);
- piplib_int_init(t); piplib_int_init(delta); /*piplib_int_init(tau);*/ piplib_int_init(lambda);
+ piplib_int_init(t); piplib_int_init(delta); piplib_int_init(tau); piplib_int_init(lambda);
 
 
 /* search for a non-integral row */
@@ -397,10 +396,10 @@ ok_var   ok_parm   ok_const
 	      if(PIPLIB_NAME(deepest_cut)){
 	      piplib_int_oppose(t, coupure[nvar]);
           piplib_int_gcd(delta, t, D);
-	      /*piplib_int_div_exact(tau, t, delta);*/
+	      piplib_int_div_exact(tau, t, delta);
 	      piplib_int_div_exact(d, D, delta);
           piplib_int_decrement(t, d);
-          PIPLIB_NAME(bezout)(t, /*tau,*/ d, &lambda);
+          PIPLIB_NAME(bezout)(t, tau, d, &lambda);
 	      piplib_int_gcd(t, lambda, D);
               // t != 1
               while(piplib_int_one(t) == 0) {
@@ -503,7 +502,7 @@ clear:
    for(i=0; i <= ncol; i++)
 	piplib_int_clear(coupure[i]);
     piplib_int_clear(x); piplib_int_clear(d); piplib_int_clear(D);
-    piplib_int_clear(t); /*piplib_int_clear(tau);*/ piplib_int_clear(lambda); piplib_int_clear(delta);
+    piplib_int_clear(t); piplib_int_clear(tau); piplib_int_clear(lambda); piplib_int_clear(delta);
     return nligne;
 }
 
