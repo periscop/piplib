@@ -29,6 +29,7 @@
  */ 
 
 #ifndef PIPLIB_OSL_H
+#define PIPLIB_OSL_H
 
 #define PIPLIB_INT_OSL 1
 

@@ -29,6 +29,7 @@
  */ 
 
 #ifndef PIPLIB_MP_H
+#define PIPLIB_MP_H
 
 #define PIPLIB_INT_GMP 1
 

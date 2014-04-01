@@ -29,6 +29,7 @@
  */ 
 
 #ifndef PIPLIB_DP_H
+#define PIPLIB_DP_H
 
 #define PIPLIB_INT_DP 1
 
