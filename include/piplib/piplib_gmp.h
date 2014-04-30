@@ -31,6 +31,11 @@
 #ifndef PIPLIB_MP_H
 #define PIPLIB_MP_H
 
+#undef PIPLIB_INT_SP
+#undef PIPLIB_INT_DP
+#undef PIPLIB_INT_GMP
+#undef PIPLIB_INT_OSL
+
 #define PIPLIB_INT_GMP 1
 
 #include <piplib/piplib.h>

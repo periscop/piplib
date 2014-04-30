@@ -401,3 +401,83 @@ PIPLIB_NAME(PipQuast)* PIPLIB_NAME(sol_quast_edit)(int* i, PIPLIB_NAME(PipQuast)
 #if defined(__cplusplus)
   }
 #endif
+
+
+
+/* Old names (undef) */
+
+#undef piplib_int_t
+#undef PipMatrix
+#undef PipVector
+#undef PipNewparm
+#undef PipList
+#undef PipQuast
+#undef PipOptions
+#undef PipMatrix
+
+#undef pip_options_print
+
+#undef pip_matrix_print
+#undef pip_vector_print
+#undef pip_newparm_print
+#undef pip_list_print
+#undef pip_quast_print
+
+#undef pip_matrix_free
+#undef pip_vector_free
+#undef pip_newparm_free
+#undef pip_list_free
+#undef pip_quast_free
+#undef pip_options_free
+
+#undef pip_matrix_alloc
+#undef pip_matrix_read
+#undef pip_options_init
+
+#undef pip_init
+#undef pip_close
+
+#undef pip_solve
+
+#undef sol_quast_edit
+
+#undef Entier
+
+/* Old names (define) */
+
+#define piplib_int_t piplib_int_t_dp
+#define PipMatrix PipMatrix_dp
+#define PipVector PipVector_dp
+#define PipNewparm PipNewparm_dp
+#define PipList PipList_dp
+#define PipQuast PipQuast_dp
+#define PipOptions PipOptions_dp
+#define PipMatrix PipMatrix_dp
+
+#define pip_options_print pip_options_print_dp
+
+#define pip_matrix_print pip_matrix_print_dp
+#define pip_vector_print pip_vector_print_dp
+#define pip_newparm_print pip_newparm_print_dp
+#define pip_list_print pip_list_print_dp
+#define pip_quast_print pip_quast_print_dp
+
+#define pip_matrix_free pip_matrix_free_dp
+#define pip_vector_free pip_vector_free_dp
+#define pip_newparm_free pip_newparm_free_dp
+#define pip_list_free pip_list_free_dp
+#define pip_quast_free pip_quast_free_dp
+#define pip_options_free pip_options_free_dp
+
+#define pip_matrix_alloc pip_matrix_alloc_dp
+#define pip_matrix_read pip_matrix_read_dp
+#define pip_options_init pip_options_init_dp
+
+#define pip_init pip_init_dp
+#define pip_close pip_close_dp
+
+#define pip_solve pip_solve_dp
+
+#define sol_quast_edit sol_quast_edit_dp
+
+#define Entier piplib_int_t_dp
