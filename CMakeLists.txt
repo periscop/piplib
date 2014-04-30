@@ -140,7 +140,7 @@ set(VERSION "1.4.0")
 		target_link_libraries(piplib_gmp_static ${gmp_LIB})
 	endif()
 
-	# GMP
+	# OpenScop
 	if (OSL_LIBRARY)
 		message(STATUS "Add library piplib_osl_int (shared)")
 		add_library(
