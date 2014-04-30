@@ -190,7 +190,7 @@ PIPLIB_NAME(Tableau) * PIPLIB_NAME(tab_alloc)(int h, int w, int n)
  tp->determinant[0] = (PIPLIB_NAME(piplib_int_t)) 1;
  tp->l_determinant = 1;
  #endif
- for(i = 0; i<n ; i++){
+ for(i = 0; i<n; i++){
    tp->row[i].flags = Unit;
    tp->row[i].objet.unit = i;
    piplib_int_init_set_si(Denom(tp, i), 1);
@@ -198,6 +198,7 @@ PIPLIB_NAME(Tableau) * PIPLIB_NAME(tab_alloc)(int h, int w, int n)
  for(i = n; i < (h+n); i++){
    tp->row[i].flags = 0;
    tp->row[i].objet.val = q;
+   tp->row[i].size = 0;
    for(j = 0; j < w; j++)
    piplib_int_init_set_si(*q++, 0); /* loop body. */
    piplib_int_init_set_si(Denom(tp, i), 0);
@@ -338,7 +339,8 @@ int Nineq, Nv, n, Shift, Bg, Urs_parms;
     for (k=j=Nv+1;(unsigned int)j<nb_columns;j++) {
 	if (bignum_is_new && j == Bg)
 	  continue;
-	piplib_int_assign(p->row[current].objet.val[j], matrix->p[i][k++]);
+	piplib_int_assign(p->row[current].objet.val[j], matrix->p[i][k]);
+	k++;
     }
     for (j=0; j < Urs_parms; ++j) {
 	int pos_n = nb_columns - ctx + j;

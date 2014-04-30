@@ -326,9 +326,8 @@ int PIPLIB_NAME(choisir_piv)(PIPLIB_NAME(Tableau) *tp, int pivi, int nvar, int n
 }
 
 
-int PIPLIB_NAME(pivoter)(PIPLIB_NAME(Tableau) *tp, int pivi, int nvar, int nparm, int ni)
-
-{int pivj;
+int PIPLIB_NAME(pivoter)(PIPLIB_NAME(Tableau) *tp, int pivi, int nvar, int nparm, int ni) {
+ int pivj;
  int ncol = nvar + nparm + 1;
  int nligne = nvar + ni;
  int i, j, k;
@@ -473,16 +472,18 @@ int PIPLIB_NAME(pivoter)(PIPLIB_NAME(Tableau) *tp, int pivi, int nvar, int nparm
        piplib_int_div_exact(*p, *p, gcd);
        p++;
      }
+     piplib_int_div_exact(Denom(tp,k), Denom(tp,k), gcd);
    }
-   piplib_int_div_exact(Denom(tp,k), Denom(tp,k), gcd);
  }
  p = tp->row[pivi].objet.val;
  for(k = 0; k<nligne; k++)
    if((Flag(tp, k) & Unit) && tp->row[k].objet.unit == pivj) break;
  Flag(tp, k) = Plus;
  tp->row[k].objet.val = p;
- for(j = 0; j<ncol; j++)
-   piplib_int_assign(*p++, new[j]);
+ for(j = 0; j<ncol; j++) {
+   piplib_int_assign(*p, new[j]);
+   p++;
+ }
 
  piplib_int_assign(Denom(tp, k), pivot);
  Flag(tp, pivi) = Unit | Zero;
@@ -689,7 +690,7 @@ void PIPLIB_NAME(traiter)(PIPLIB_NAME(Tableau) *tp, PIPLIB_NAME(Tableau) *ctxt, 
      fflush(stdout);
      PIPLIB_NAME(sol_if)();
      PIPLIB_NAME(sol_forme)(nparm+1);
-     piplib_int_init(com_dem);
+     piplib_int_init_set_si(com_dem, 0);
      for (j = 0; j < nparm; j++)
        piplib_int_gcd(com_dem, com_dem, Index(tp, pivi, j + nvar +1));
      if (!(flags & TRAITER_INT))
