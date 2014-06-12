@@ -88,7 +88,7 @@
 
   #include <osl/int.h>
 
-  #define PIPLIB_NAME(name) name##_osl_int
+  #define PIPLIB_NAME(name) name##_osl
 
   #define PIPLIB_ONE_DETERMINANT
 

@@ -142,24 +142,24 @@ set(VERSION "1.4.0")
 
 	# OpenScop
 	if (OSL_LIBRARY)
-		message(STATUS "Add library piplib_osl_int (shared)")
+		message(STATUS "Add library piplib_osl (shared)")
 		add_library(
-			piplib_osl_int
+			piplib_osl
 			SHARED
 			${sources}
 		)
-		set_target_properties(piplib_osl_int PROPERTIES COMPILE_DEFINITIONS PIPLIB_INT_OSL)
-		target_link_libraries(piplib_osl_int ${OSL_LIBRARY})
+		set_target_properties(piplib_osl PROPERTIES COMPILE_DEFINITIONS PIPLIB_INT_OSL)
+		target_link_libraries(piplib_osl ${OSL_LIBRARY})
 
-		message(STATUS "Add library piplib_osl_int (static)")
+		message(STATUS "Add library piplib_osl (static)")
 		add_library(
-			piplib_osl_int_static
+			piplib_osl_static
 			STATIC
 			${sources}
 		)
-		set_target_properties(piplib_osl_int_static PROPERTIES OUTPUT_NAME piplib_osl_int)
-		set_target_properties(piplib_osl_int_static PROPERTIES COMPILE_DEFINITIONS PIPLIB_INT_OSL)
-		target_link_libraries(piplib_osl_int_static ${OSL_LIBRARY})
+		set_target_properties(piplib_osl_static PROPERTIES OUTPUT_NAME piplib_osl)
+		set_target_properties(piplib_osl_static PROPERTIES COMPILE_DEFINITIONS PIPLIB_INT_OSL)
+		target_link_libraries(piplib_osl_static ${OSL_LIBRARY})
 	endif()
 
 
@@ -188,11 +188,11 @@ set(VERSION "1.4.0")
 	endif()
 
 	if(OSL_LIBRARY)
-		set(exe "pip_osl_int")
+		set(exe "pip_osl")
 		message(STATUS "Add executable ${exe}")
 		add_executable(${exe} "source/maind.c")
 		set_target_properties(${exe} PROPERTIES COMPILE_DEFINITIONS PIPLIB_INT_OSL)
-		target_link_libraries(${exe} piplib_osl_int_static)
+		target_link_libraries(${exe} piplib_osl_static)
 	endif()
 
 	set(exe "exemple_sp")
@@ -216,11 +216,11 @@ set(VERSION "1.4.0")
 	endif()
 
 	if(OSL_LIBRARY)
-		set(exe "exemple_osl_int")
+		set(exe "exemple_osl")
 		message(STATUS "Add executable ${exe}")
 		add_executable(${exe} "example/example.c")
 		set_target_properties(${exe} PROPERTIES COMPILE_DEFINITIONS PIPLIB_INT_OSL)
-		target_link_libraries(${exe} piplib_osl_int_static)
+		target_link_libraries(${exe} piplib_osl_static)
 	endif()
 
 	# Test
@@ -263,11 +263,11 @@ set(VERSION "1.4.0")
 			endif()
 			if(OSL_LIBRARY)
 				add_test(
-					"${test}_pip_osl_int"
+					"${test}_pip_osl"
 					"${CMAKE_CURRENT_SOURCE_DIR}/example/check_source_result.py"
 					"${test}"
 					"${test_output}"
-					"${CMAKE_CURRENT_BINARY_DIR}/exemple_osl_int"
+					"${CMAKE_CURRENT_BINARY_DIR}/exemple_osl"
 				)
 			endif()
 		endforeach()
@@ -277,23 +277,27 @@ set(VERSION "1.4.0")
 
 # Install
 
+	# .h
+	install(DIRECTORY include/ DESTINATION include FILES_MATCHING PATTERN "*.h")
+	install(DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/include/" DESTINATION include FILES_MATCHING PATTERN "*.h")
+	# Libraries
 	install(TARGETS piplib_sp LIBRARY DESTINATION lib)
 	install(TARGETS piplib_dp LIBRARY DESTINATION lib)
 	install(TARGETS piplib_gmp LIBRARY DESTINATION lib)
-	install(TARGETS piplib_osl_int LIBRARY DESTINATION lib)
+	install(TARGETS piplib_osl LIBRARY DESTINATION lib)
 	install(TARGETS piplib_sp_static ARCHIVE DESTINATION lib)
 	install(TARGETS piplib_dp_static ARCHIVE DESTINATION lib)
 	install(TARGETS piplib_gmp_static ARCHIVE DESTINATION lib)
-	install(TARGETS piplib_osl_int_static ARCHIVE DESTINATION lib)
+	install(TARGETS piplib_osl_static ARCHIVE DESTINATION lib)
+	# .cmake
 	install(DIRECTORY include/ DESTINATION include FILES_MATCHING PATTERN "*.h")
-	install(DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/include/" DESTINATION include FILES_MATCHING PATTERN "*.h")
-	install(FILES piplib32-config.cmake DESTINATION lib/piplib32)
-	install(FILES piplib32-config.cmake DESTINATION lib/piplib64)
-	install(FILES piplibmp-config.cmake DESTINATION lib/piplibmp)
-	install(FILES piplib_sp-config.cmake DESTINATION lib/piplib_sp)
-	install(FILES piplib_dp-config.cmake DESTINATION lib/piplib_dp)
-	install(FILES piplib_gmp-config.cmake DESTINATION lib/piplib_gmp)
-	install(FILES piplib_osl_int-config.cmake DESTINATION lib/piplib_osl_int)
+	install(FILES cmake/piplib32-config.cmake DESTINATION lib/piplib32)
+	install(FILES cmake/piplib32-config.cmake DESTINATION lib/piplib64)
+	install(FILES cmake/piplibmp-config.cmake DESTINATION lib/piplibmp)
+	install(FILES cmake/piplib_sp-config.cmake DESTINATION lib/piplib_sp)
+	install(FILES cmake/piplib_dp-config.cmake DESTINATION lib/piplib_dp)
+	install(FILES cmake/piplib_gmp-config.cmake DESTINATION lib/piplib_gmp)
+	install(FILES cmake/piplib_osl-config.cmake DESTINATION lib/piplib_osl)
 
 
 # Little help
