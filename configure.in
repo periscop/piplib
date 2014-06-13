@@ -80,13 +80,12 @@ dnl  **************************************************************************/
 
 dnl The different packages that can be built and installed.
 PIP="pip"
-INT_BITS=`expr $ac_cv_sizeof_int \* 8`
-eval DFLAGS$INT_BITS=-DLINEAR_VALUE_IS_INT
-LONG_BITS=`expr $ac_cv_sizeof_long_long_int \* 8`
-eval DFLAGS$LONG_BITS=-DLINEAR_VALUE_IS_LONGLONG
-MP_BITS="MP"
-MP_DFLAGS=-DLINEAR_VALUE_IS_MP
+SP_DFLAGS=-DPIPLIB_INT_SP
+DP_DFLAGS=-DPIPLIB_INT_DP
+MP_DFLAGS=-DPIPLIB_INT_GMP
 NEED_MP="no"
+OSL_DFLAGS=-DPIPLIB_INT_OSL
+NEED_OSL="no"
 
 
 dnl Options.
@@ -128,7 +127,8 @@ AC_ARG_WITH(bits,
 			[integer type version(s) to build (default is all)])])
 
 TEST_MP="yes"
-TO_BUILD="32 64"
+TEST_OSL="yes"
+TO_BUILD="_sp _dp"
 
 case "$with_bits" in
 *all*|"")
@@ -136,9 +136,11 @@ case "$with_bits" in
 *)
 	TO_BUILD=""
 	TEST_MP="no"
-	case "$with_bits" in *32*) TO_BUILD="$TO_BUILD 32" ;; esac
-	case "$with_bits" in *64*) TO_BUILD="$TO_BUILD 64" ;; esac
-	case "$with_bits" in *gmp*) TEST_MP="yes"; NEED_MP="yes" ;; esac
+	TEST_OSL="no"
+	case "$with_bits" in *32*) TO_BUILD="$TO_BUILD _sp" ;; esac
+	case "$with_bits" in *64*) TO_BUILD="$TO_BUILD _dp" ;; esac
+	case "$with_bits" in *MP*) TEST_MP="yes"; NEED_MP="yes" ;; esac
+	case "$with_bits" in *OSL*) TEST_OSL="yes"; NEED_OSL="yes" ;; esac
 	;;
 esac
 
@@ -170,7 +172,7 @@ else
     ], [AC_MSG_WARN(Can't find gmp headers.)])
     if test $gmp_found = yes; then
 	EXTRA_LIBS="$EXTRA_LIBS -lgmp"
-	TO_BUILD="$TO_BUILD MP"
+	TO_BUILD="$TO_BUILD _gmp"
     else
 	if test $NEED_MP = yes; then
 		AC_MSG_ERROR([gmp not found])
@@ -213,8 +215,8 @@ AC_SUBST(pips)
 AC_SUBST(EXTRA_LIBS)
 
 dnl compilation flags
-AC_SUBST(DFLAGS32)
-AC_SUBST(DFLAGS64)
+AC_SUBST(SP_DFLAGS)
+AC_SUBST(DP_DFLAGS)
 AC_SUBST(MP_DFLAGS)
 
 AC_CONFIG_FILES(Makefile example/Makefile test/Makefile doc/Makefile)
