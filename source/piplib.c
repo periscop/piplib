@@ -79,7 +79,9 @@ int PIPLIB_NAME(dgetc)(FILE *foo)
     #define piplib_min(x,y) ((x) < (y)? (x) : (y))
     PIPLIB_NAME(proviso) = piplib_min(INLENGTH, strlen(PIPLIB_NAME(inbuff)));
     PIPLIB_NAME(inptr) = 0;
-    if(PIPLIB_NAME(verbose) > 2) fprintf(PIPLIB_NAME(dump), "-- %s", PIPLIB_NAME(inbuff));
+    if(PIPLIB_NAME(verbose) > 2) {
+      fprintf(PIPLIB_NAME(dump), "-- %s", PIPLIB_NAME(inbuff));
+    }
   }
  return PIPLIB_NAME(inbuff)[PIPLIB_NAME(inptr)++];
 }
@@ -126,8 +128,10 @@ int PIPLIB_NAME(dscanf)(FILE* foo, PIPLIB_NAME(piplib_int_t)* val)
  int c;
 
  for(;PIPLIB_NAME(inptr) < PIPLIB_NAME(proviso); PIPLIB_NAME(inptr)++)
-   if(PIPLIB_NAME(inbuff)[PIPLIB_NAME(inptr)] != ' ' && PIPLIB_NAME(inbuff)[PIPLIB_NAME(inptr)] != '\n' && PIPLIB_NAME(inbuff)[PIPLIB_NAME(inptr)] != '\t')
-				break;
+   if (PIPLIB_NAME(inbuff)[PIPLIB_NAME(inptr)] != ' ' &&
+       PIPLIB_NAME(inbuff)[PIPLIB_NAME(inptr)] != '\n' &&
+       PIPLIB_NAME(inbuff)[PIPLIB_NAME(inptr)] != '\t')
+     break;
  while(PIPLIB_NAME(inptr) >= PIPLIB_NAME(proviso))
    {p = fgets(PIPLIB_NAME(inbuff), 256, foo);
     if(p == NULL) return EOF;
@@ -136,7 +140,9 @@ int PIPLIB_NAME(dscanf)(FILE* foo, PIPLIB_NAME(piplib_int_t)* val)
       fprintf(PIPLIB_NAME(dump), ".. %s", PIPLIB_NAME(inbuff));
       fflush(PIPLIB_NAME(dump));
     }
-    for(PIPLIB_NAME(inptr) = 0; PIPLIB_NAME(inptr) < PIPLIB_NAME(proviso); PIPLIB_NAME(inptr)++)
+    for(PIPLIB_NAME(inptr) = 0;
+        PIPLIB_NAME(inptr) < PIPLIB_NAME(proviso);
+        PIPLIB_NAME(inptr)++)
        if(PIPLIB_NAME(inbuff)[PIPLIB_NAME(inptr)] != ' '
        && PIPLIB_NAME(inbuff)[PIPLIB_NAME(inptr)] != '\n'
        && PIPLIB_NAME(inbuff)[PIPLIB_NAME(inptr)] != '\t') break;
@@ -145,7 +151,7 @@ int PIPLIB_NAME(dscanf)(FILE* foo, PIPLIB_NAME(piplib_int_t)* val)
  return -1;
  
  for(; PIPLIB_NAME(inptr) < PIPLIB_NAME(proviso); PIPLIB_NAME(inptr)++)
-	if((c = PIPLIB_NAME(inbuff)[PIPLIB_NAME(inptr)]) != '-' && !isdigit(c)) break;
+  if((c = PIPLIB_NAME(inbuff)[PIPLIB_NAME(inptr)]) != '-' && !isdigit(c)) break;
  return 0;
 }
 
@@ -209,7 +215,9 @@ void PIPLIB_NAME(pip_vector_print)(FILE * foo, PIPLIB_NAME(PipVector) * vector)
  * desire pas d'indentation.
  * Premiere version : Ced. 18 octobre 2001. 
  */
-void PIPLIB_NAME(pip_newparm_print)(FILE * foo, PIPLIB_NAME(PipNewparm) * newparm, int indent)
+void PIPLIB_NAME(pip_newparm_print)(FILE * foo,
+                                    PIPLIB_NAME(PipNewparm) * newparm,
+                                    int indent)
 { int i ;
 
   if (newparm != NULL)
@@ -238,7 +246,8 @@ void PIPLIB_NAME(pip_newparm_print)(FILE * foo, PIPLIB_NAME(PipNewparm) * newpar
  * 16 novembre 2005 : Ced. Prise en compte du cas list->vector == NULL,
  *                         jusque là impossible.
  */
-void PIPLIB_NAME(pip_list_print)(FILE * foo, PIPLIB_NAME(PipList) * list, int indent)
+void PIPLIB_NAME(pip_list_print)(FILE * foo,
+                                 PIPLIB_NAME(PipList) * list, int indent)
 { int i ;
 
   if (list == NULL)
@@ -271,7 +280,8 @@ void PIPLIB_NAME(pip_list_print)(FILE * foo, PIPLIB_NAME(PipList) * list, int in
  * 20 juillet 2001 : Premiere version, Ced. 
  * 18 octobre 2001 : eclatement. 
  */
-void PIPLIB_NAME(pip_quast_print)(FILE * foo, PIPLIB_NAME(PipQuast) * solution, int indent)
+void PIPLIB_NAME(pip_quast_print)(FILE * foo,
+                                  PIPLIB_NAME(PipQuast) * solution, int indent)
 { int i;
   int new_indent = indent >= 0 ? indent+1 : indent;
   
@@ -491,7 +501,8 @@ PIPLIB_NAME(PipOptions) * PIPLIB_NAME(pip_options_init)(void)
  * pointeur sur l'espace memoire alloue.
  * Premiere version : Ced. 18 octobre 2001. 
  */
-PIPLIB_NAME(PipMatrix) * PIPLIB_NAME(pip_matrix_alloc)(unsigned NbRows, unsigned NbColumns)
+PIPLIB_NAME(PipMatrix) * PIPLIB_NAME(pip_matrix_alloc)(unsigned NbRows,
+                                                       unsigned NbColumns)
 { PIPLIB_NAME(PipMatrix) * matrix ;
   PIPLIB_NAME(piplib_int_t) ** p, * q ;
   unsigned int i, j ;
@@ -514,12 +525,14 @@ PIPLIB_NAME(PipMatrix) * PIPLIB_NAME(pip_matrix_alloc)(unsigned NbRows, unsigned
       matrix->p_Init = NULL ;
     }
     else 
-    { p = (PIPLIB_NAME(piplib_int_t) **)malloc(NbRows*sizeof(PIPLIB_NAME(piplib_int_t) *)) ;
+    { p = (PIPLIB_NAME(piplib_int_t) **)malloc(
+            NbRows*sizeof(PIPLIB_NAME(piplib_int_t) *)) ;
       if (p == NULL) 
       { fprintf(stderr, "Memory Overflow.\n") ;
         exit(1) ;
       }
-      q = (PIPLIB_NAME(piplib_int_t) *)malloc(NbRows * NbColumns * sizeof(PIPLIB_NAME(piplib_int_t))) ;
+      q = (PIPLIB_NAME(piplib_int_t) *)malloc(
+            NbRows * NbColumns * sizeof(PIPLIB_NAME(piplib_int_t))) ;
       if (q == NULL) 
       { fprintf(stderr, "Memory Overflow.\n") ;
         exit(1) ;
@@ -625,7 +638,8 @@ void PIPLIB_NAME(pip_close)() {
  * and negate the value if it corresponds to the negative
  * inequality.
  */
-static void PIPLIB_NAME(pip_quast_equalities_dual)(PIPLIB_NAME(PipQuast) *solution, PIPLIB_NAME(PipMatrix) *inequnk)
+static void PIPLIB_NAME(pip_quast_equalities_dual)(
+  PIPLIB_NAME(PipQuast) *solution, PIPLIB_NAME(PipMatrix) *inequnk)
 {
     PIPLIB_NAME(PipList) **list_p, *list;
     unsigned int i;
@@ -813,12 +827,14 @@ PIPLIB_NAME(PipOptions) * options ;
     }
         
     if (PIPLIB_NAME(verbose) > 0)
-    fprintf(PIPLIB_NAME(dump), "%d %d %u %d %d %d\n",Nn,Np,Nl,Nm,Bg,options->Nq) ;
+    fprintf(PIPLIB_NAME(dump),
+            "%d %d %u %d %d %d\n",Nn,Np,Nl,Nm,Bg,options->Nq);
     
     /* S'il est possible de trouver une solution, on passe au traitement. */
     if (non_vide) {
       int flags = 0;
-      ineq = PIPLIB_NAME(tab_Matrix2Tableau)(inequnk,Nl,Nn,Nn, Shift,Bg, Urs_parms);
+      ineq = PIPLIB_NAME(tab_Matrix2Tableau)(inequnk, Nl, Nn, Nn,
+                                             Shift, Bg, Urs_parms);
       if (options->Nq)
 	PIPLIB_NAME(tab_simplify)(ineq, Nn);
   
@@ -837,7 +853,8 @@ PIPLIB_NAME(PipOptions) * options ;
       /* On traduit la solution du format de solution de Pip vers un arbre
        * de structures de type PipQuast.
        */
-      solution = PIPLIB_NAME(sol_quast_edit)(&xq, NULL, Bg-Nn-1, Urs_parms, sol_flags);
+      solution = PIPLIB_NAME(sol_quast_edit)(&xq, NULL, Bg-Nn-1,
+                                             Urs_parms, sol_flags);
       if ((sol_flags & SOL_DUAL) && Nl > inequnk->NbRows)
 	  PIPLIB_NAME(pip_quast_equalities_dual)(solution, inequnk);
       PIPLIB_NAME(sol_reset)(p) ;

@@ -149,29 +149,36 @@ int main(int argc, char *argv[])
      {if(c != '(') continue;
       fprintf(out, "(");
       PIPLIB_NAME(balance)(in, out);
-      if(PIPLIB_NAME(dscanf)(in, &x) < 0){PIPLIB_NAME(escape)(in, out, 1); continue;}
-      else 
+      if(PIPLIB_NAME(dscanf)(in, &x) < 0) {
+        PIPLIB_NAME(escape)(in, out, 1); continue;
+      } else 
         nvar = piplib_int_get_si(x);
-      if(PIPLIB_NAME(dscanf)(in, &x) < 0){PIPLIB_NAME(escape)(in, out, 1); continue;}
-      else
+      if(PIPLIB_NAME(dscanf)(in, &x) < 0) {
+        PIPLIB_NAME(escape)(in, out, 1); continue;
+      } else
         nparm = piplib_int_get_si(x);
-      if(PIPLIB_NAME(dscanf)(in, &x) < 0){PIPLIB_NAME(escape)(in, out, 1); continue;}
-      else 
+      if(PIPLIB_NAME(dscanf)(in, &x) < 0) {
+        PIPLIB_NAME(escape)(in, out, 1); continue;
+      } else 
         ni = piplib_int_get_si(x);
-      if(PIPLIB_NAME(dscanf)(in, &x) < 0){PIPLIB_NAME(escape)(in, out, 1); continue;}
-      else
+      if(PIPLIB_NAME(dscanf)(in, &x) < 0) {
+        PIPLIB_NAME(escape)(in, out, 1); continue;
+      } else
         nc = piplib_int_get_si(x);
-      if(PIPLIB_NAME(dscanf)(in, &x) < 0){PIPLIB_NAME(escape)(in, out, 1); continue;}
-      else 
+      if(PIPLIB_NAME(dscanf)(in, &x) < 0) {
+        PIPLIB_NAME(escape)(in, out, 1); continue;
+      } else 
         bigparm = piplib_int_get_si(x);
-      if(PIPLIB_NAME(dscanf)(in, &x) < 0){PIPLIB_NAME(escape)(in, out, 1); continue;}
-      else 
+      if(PIPLIB_NAME(dscanf)(in, &x) < 0) {
+        PIPLIB_NAME(escape)(in, out, 1); continue;
+      } else 
         nq = piplib_int_get_si(x);
       
-      if(PIPLIB_NAME(verbose) > 0) {fprintf(PIPLIB_NAME(dump), "%d %d %d %d %d %d\n",nvar, nparm, ni, nc,
-                               bigparm, nq);
-                       fflush(PIPLIB_NAME(dump));
-                      }
+      if(PIPLIB_NAME(verbose) > 0) {
+        fprintf(PIPLIB_NAME(dump), "%d %d %d %d %d %d\n",
+                                    nvar, nparm, ni, nc, bigparm, nq);
+        fflush(PIPLIB_NAME(dump));
+      }
       /*cross_product = 0;*/
       hq = PIPLIB_NAME(tab_hwm)();
       if(PIPLIB_NAME(verbose) > 0) {fprintf(PIPLIB_NAME(dump), "hwm %p\n", g);
@@ -196,7 +203,8 @@ int main(int argc, char *argv[])
       else non_vide = Pip_True;
       if(non_vide) {
        /*compa_count = 0;*/
-       PIPLIB_NAME(traiter)(ineq, context, nvar, nparm, ni, nc, bigparm, nq ? TRAITER_INT : 0);
+       PIPLIB_NAME(traiter)(
+         ineq, context, nvar, nparm, ni, nc, bigparm, nq ? TRAITER_INT : 0);
 	if (PIPLIB_NAME(verbose) > 0) {
 	    fprintf(PIPLIB_NAME(dump), "det: ");
 #if defined(PIPLIB_ONE_DETERMINANT)

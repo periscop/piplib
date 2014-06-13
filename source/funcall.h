@@ -31,11 +31,16 @@ extern "C"
   {
 #endif 
 
-#define TRAITER_INT		(1 << 0)	/* Compute integer optimum */
-#define TRAITER_DUAL		(1 << 1)	/* Compute dual variables */
-void PIPLIB_NAME(traiter)(PIPLIB_NAME(Tableau) *tp, PIPLIB_NAME(Tableau) *ctxt, int nvar, int nparm, int ni, int nc,
-	     int bigparm, int flags);
-int PIPLIB_NAME(integrer)(PIPLIB_NAME(Tableau) **, PIPLIB_NAME(Tableau) **, int *, int *, int *, int *, int);
+#define TRAITER_INT  (1 << 0) /* Compute integer optimum */
+#define TRAITER_DUAL (1 << 1) /* Compute dual variables */
+
+void PIPLIB_NAME(traiter)(
+  PIPLIB_NAME(Tableau) *tp, PIPLIB_NAME(Tableau) *ctxt,
+  int nvar, int nparm, int ni, int nc, int bigparm, int flags);
+
+int PIPLIB_NAME(integrer)(
+  PIPLIB_NAME(Tableau) **, PIPLIB_NAME(Tableau) **,
+  int *, int *, int *, int *, int);
 
 int PIPLIB_NAME(dgetc)(FILE *foo);
 FILE *PIPLIB_NAME(pip_create_dump_file)();
@@ -62,7 +67,8 @@ void PIPLIB_NAME(sol_error)(int);
 PIPLIB_NAME(Tableau) * PIPLIB_NAME(tab_alloc)(int, int, int);
 void PIPLIB_NAME(sol_list)(int);
 void PIPLIB_NAME(tab_display)(PIPLIB_NAME(Tableau) *, FILE *);
-PIPLIB_NAME(Tableau) * PIPLIB_NAME(expanser)(PIPLIB_NAME(Tableau) *, int, int, int, int, int, int);
+PIPLIB_NAME(Tableau) * PIPLIB_NAME(expanser)(PIPLIB_NAME(Tableau) *,
+                                             int, int, int, int, int, int);
 void PIPLIB_NAME(sol_new)(int);
 void PIPLIB_NAME(sol_div)(void);
 

@@ -40,10 +40,12 @@ extern FILE * PIPLIB_NAME(dump);
 
 #if defined(PIPLIB_INT_SP) || defined(PIPLIB_INT_DP)
 // From osl_int
-long long int PIPLIB_NAME(piplib_llgcd)(long long int const a, long long int const b) {
+long long int PIPLIB_NAME(piplib_llgcd)(long long int const a,
+                                        long long int const b) {
   return (b ? PIPLIB_NAME(piplib_llgcd)(b, a % b) : a);
 }
-long long int PIPLIB_NAME(piplib_llgcd_llabs)(long long int const a, long long int const b) {
+long long int PIPLIB_NAME(piplib_llgcd_llabs)(long long int const a,
+                                              long long int const b) {
   return llabs(PIPLIB_NAME(piplib_llgcd)(a, b));
 }
 size_t PIPLIB_NAME(piplib_lllog2)(long long int x) {
@@ -64,7 +66,8 @@ size_t PIPLIB_NAME(piplib_lllog10)(long long int x) {
 
   return n;
 }
-long long int PIPLIB_NAME(piplib_llmod)(long long int const a, long long int const b) {
+long long int PIPLIB_NAME(piplib_llmod)(long long int const a,
+                                        long long int const b) {
   long long mod = a % b;
    if (mod < 0) { mod += llabs(b); }
   return mod;
@@ -91,8 +94,10 @@ long long int piplib_ll_floor_div_r(long long int const a,
    operation, the responsibility of creating and destroying <<z>> is the 
    caller's.                                                                */
 
-void PIPLIB_NAME(bezout)(PIPLIB_NAME(piplib_int_t) x, PIPLIB_NAME(piplib_int_t) y,
-            PIPLIB_NAME(piplib_int_t) delta, PIPLIB_NAME(piplib_int_t)* z) {
+void PIPLIB_NAME(bezout)(
+  PIPLIB_NAME(piplib_int_t) x, PIPLIB_NAME(piplib_int_t) y,
+  PIPLIB_NAME(piplib_int_t) delta, PIPLIB_NAME(piplib_int_t)* z)
+{
   PIPLIB_NAME(piplib_int_t) a, b, c, d, e, f, u, v, q, r;
 
   piplib_int_init_set_si(a, 1);
@@ -146,8 +151,9 @@ void PIPLIB_NAME(bezout)(PIPLIB_NAME(piplib_int_t) x, PIPLIB_NAME(piplib_int_t) 
 PIPLIB_NAME(Tableau) *PIPLIB_NAME(expanser)();
 
 /* cut: constant parameters denominator */
-static void PIPLIB_NAME(add_parm)(PIPLIB_NAME(Tableau) **pcontext, int nr, int *pnparm, int *pni, int *pnc,
-		    PIPLIB_NAME(piplib_int_t) *cut)
+static void PIPLIB_NAME(add_parm)(PIPLIB_NAME(Tableau)** pcontext,
+                        int nr, int *pnparm, int *pni, int *pnc,
+                        PIPLIB_NAME(piplib_int_t) *cut)
 {
     int nparm = *pnparm;
     int j, k;
@@ -218,7 +224,9 @@ static void PIPLIB_NAME(add_parm)(PIPLIB_NAME(Tableau) **pcontext, int nr, int *
     piplib_int_clear(x);
 }
 
-static int PIPLIB_NAME(has_cut)(PIPLIB_NAME(Tableau) *context, int nr, int nparm, int p, PIPLIB_NAME(piplib_int_t) *cut)
+static int PIPLIB_NAME(has_cut)(PIPLIB_NAME(Tableau) *context,
+                                int nr, int nparm, int p,
+                                PIPLIB_NAME(piplib_int_t) *cut)
 {
     int row, col;
 
@@ -243,7 +251,9 @@ static int PIPLIB_NAME(has_cut)(PIPLIB_NAME(Tableau) *context, int nr, int nparm
 }
 
 /* cut: constant parameters denominator */
-static int PIPLIB_NAME(find_parm)(PIPLIB_NAME(Tableau) *context, int nr, int nparm, PIPLIB_NAME(piplib_int_t) *cut)
+static int PIPLIB_NAME(find_parm)(PIPLIB_NAME(Tableau) *context,
+                                  int nr, int nparm,
+                                  PIPLIB_NAME(piplib_int_t)* cut)
 {
     int p;
     int col;
@@ -288,8 +298,10 @@ static int PIPLIB_NAME(find_parm)(PIPLIB_NAME(Tableau) *context, int nr, int npa
  * increases by 2.
  */
 
-int PIPLIB_NAME(integrer)(PIPLIB_NAME(Tableau)** ptp, PIPLIB_NAME(Tableau)** pcontext,
-             int* pnvar, int* pnparm, int* pni, int* pnc, int bigparm) {
+int PIPLIB_NAME(integrer)(
+  PIPLIB_NAME(Tableau)** ptp, PIPLIB_NAME(Tableau)** pcontext,
+  int* pnvar, int* pnparm, int* pni, int* pnc, int bigparm)
+{
   int ncol = *pnvar + *pnparm + 1;
   int nligne = *pnvar + *pni;
   int nparm = *pnparm;
@@ -313,8 +325,13 @@ int PIPLIB_NAME(integrer)(PIPLIB_NAME(Tableau)** ptp, PIPLIB_NAME(Tableau)** pco
  for(i=0; i<=ncol; i++)
    piplib_int_init(coupure[i]);
 
- piplib_int_init(x); piplib_int_init(d); piplib_int_init(D);
- piplib_int_init(t); piplib_int_init(delta); piplib_int_init(tau); piplib_int_init(lambda);
+ piplib_int_init(x);
+ piplib_int_init(d);
+ piplib_int_init(D);
+ piplib_int_init(t);
+ piplib_int_init(delta);
+ piplib_int_init(tau);
+ piplib_int_init(lambda);
 
 
 /* search for a non-integral row */
@@ -453,7 +470,9 @@ ok_var   ok_parm   ok_const
 		}
 		putc('\n', PIPLIB_NAME(dump));
 	      }
-	      if(PIPLIB_NAME(verbose) > 2) PIPLIB_NAME(tab_display)(*ptp, PIPLIB_NAME(dump));
+	      if(PIPLIB_NAME(verbose) > 2) {
+	        PIPLIB_NAME(tab_display)(*ptp, PIPLIB_NAME(dump));
+	      }
 	      goto clear;
               }
           else {                                         /*   case (b)    */
@@ -499,10 +518,14 @@ ok_var   ok_parm   ok_const
  /* The solution is integral.                              */
     nligne = 0;
 clear: 
-   for(i=0; i <= ncol; i++)
-	piplib_int_clear(coupure[i]);
-    piplib_int_clear(x); piplib_int_clear(d); piplib_int_clear(D);
-    piplib_int_clear(t); piplib_int_clear(tau); piplib_int_clear(lambda); piplib_int_clear(delta);
-    return nligne;
+   for(i=0; i <= ncol; i++) { piplib_int_clear(coupure[i]); }
+    piplib_int_clear(x);
+   piplib_int_clear(d);
+   piplib_int_clear(D);
+   piplib_int_clear(t);
+   piplib_int_clear(tau);
+   piplib_int_clear(lambda);
+   piplib_int_clear(delta);
+   return nligne;
 }
 

@@ -54,7 +54,8 @@ static int PIPLIB_NAME(sol_free);
 void PIPLIB_NAME(sol_init)(void)
 {
  PIPLIB_NAME(sol_free) = 0;
- PIPLIB_NAME(sol_space) = (struct PIPLIB_NAME(S) *)malloc(SOL_SIZE*sizeof(struct PIPLIB_NAME(S))) ;
+ PIPLIB_NAME(sol_space) = (struct PIPLIB_NAME(S) *)malloc(
+                            SOL_SIZE*sizeof(struct PIPLIB_NAME(S))) ;
 }
 
 void PIPLIB_NAME(sol_close)(void)
@@ -71,7 +72,8 @@ void PIPLIB_NAME(sol_reset)(p)
 int p;
 {int i;
  if(p<0 || p>=SOL_SIZE)
-     {fprintf(stderr, "Syserr : PIPLIB_NAME(sol_reset) : Memory allocation error\n");
+     {fprintf(stderr,
+              "Syserr : PIPLIB_NAME(sol_reset) : Memory allocation error\n");
       exit(40);
      }
  for(i=p; i<PIPLIB_NAME(sol_free); i++){
@@ -253,7 +255,8 @@ int PIPLIB_NAME(skip) (int i)
 	    i = PIPLIB_NAME(skip)(i);         /* sauter le diviseur */
 	    break;
  default : fprintf(stderr,
-	      "Syserr : PIPLIB_NAME(skip) : unknown %d\n", PIPLIB_NAME(sol_space)[i].flags);
+                   "Syserr : PIPLIB_NAME(skip) : unknown %d\n",
+                   PIPLIB_NAME(sol_space)[i].flags);
  }
  return PIPLIB_NAME(skip_New)(i);
 }
@@ -267,7 +270,8 @@ void PIPLIB_NAME(sol_simplify)(int i)
      k = PIPLIB_NAME(skip)(j);          /* k : debut de la partie fausse */
      PIPLIB_NAME(sol_simplify)(k);
      PIPLIB_NAME(sol_simplify)(j);
-     if(PIPLIB_NAME(sol_space)[j].flags == Nil && PIPLIB_NAME(sol_space)[k].flags == Nil) {
+     if (PIPLIB_NAME(sol_space)[j].flags == Nil &&
+         PIPLIB_NAME(sol_space)[k].flags == Nil) {
 	 PIPLIB_NAME(sol_space)[i].flags = Nil;
 	 if (k >= PIPLIB_NAME(sol_free) - 1) 
 	    PIPLIB_NAME(sol_reset)(i+1);
@@ -421,7 +425,8 @@ int PIPLIB_NAME(sol_edit)(FILE *foo, int i)
  * une structure de type PipVector contenant les informations de ce Vector.
  * Premiere version : Ced. 20 juillet 2001. 
  */
-PIPLIB_NAME(PipVector) * PIPLIB_NAME(sol_vector_edit)(int *i, int Bg, int Urs_p, int flags)
+PIPLIB_NAME(PipVector) * PIPLIB_NAME(sol_vector_edit)(int *i, int Bg,
+                                                      int Urs_p, int flags)
 { int j, k, n, unbounded  = 0, first_urs;
   struct PIPLIB_NAME(S) *p ;
   PIPLIB_NAME(piplib_int_t) N, D, d ;
@@ -443,12 +448,14 @@ PIPLIB_NAME(PipVector) * PIPLIB_NAME(sol_vector_edit)(int *i, int Bg, int Urs_p,
   n -= Urs_p;
   first_urs = Urs_p + (Bg >= 0);
   vector->nb_elements = n ;
-  vector->the_vector = (PIPLIB_NAME(piplib_int_t) *)malloc(sizeof(PIPLIB_NAME(piplib_int_t))*n) ;
+  vector->the_vector = (PIPLIB_NAME(piplib_int_t) *)malloc(
+                         sizeof(PIPLIB_NAME(piplib_int_t))*n) ;
   if (vector->the_vector == NULL)
   { fprintf(stderr, "Memory Overflow.\n") ;
     exit(1) ;
   }
-  vector->the_deno = (PIPLIB_NAME(piplib_int_t) *)malloc(sizeof(PIPLIB_NAME(piplib_int_t))*n) ;
+  vector->the_deno = (PIPLIB_NAME(piplib_int_t) *)malloc(
+                       sizeof(PIPLIB_NAME(piplib_int_t))*n) ;
   if (vector->the_deno == NULL)
   { fprintf(stderr, "Memory Overflow.\n") ;
     exit(1) ;
@@ -507,9 +514,12 @@ PIPLIB_NAME(PipVector) * PIPLIB_NAME(sol_vector_edit)(int *i, int Bg, int Urs_p,
  * une structure de type PipNewparm contenant les informations de ce Newparm.
  * Premiere version : Ced. 18 octobre 2001. 
  */
-PIPLIB_NAME(PipNewparm) * PIPLIB_NAME(sol_newparm_edit)(int *i, int Bg, int Urs_p, int flags)
+PIPLIB_NAME(PipNewparm) * PIPLIB_NAME(sol_newparm_edit)(int *i, int Bg,
+                                                        int Urs_p, int flags)
 { struct PIPLIB_NAME(S) * p ;
-  PIPLIB_NAME(PipNewparm) * newparm, * newparm_first = NULL, * newparm_now = NULL;
+  PIPLIB_NAME(PipNewparm) * newparm,
+                          * newparm_first = NULL,
+                          * newparm_now = NULL;
 
   /* On place p au lieu de lecture. */
   p = PIPLIB_NAME(sol_space) + (*i) ;
@@ -518,7 +528,8 @@ PIPLIB_NAME(PipNewparm) * PIPLIB_NAME(sol_newparm_edit)(int *i, int Bg, int Urs_
     /* On passe le New et le Div pour aller a Form et lire le VECTOR. */
     (*i) += 2 ;
 
-    newparm = (PIPLIB_NAME(PipNewparm) *)malloc(sizeof(PIPLIB_NAME(PipNewparm))) ;
+    newparm = (PIPLIB_NAME(PipNewparm) *)malloc(
+                sizeof(PIPLIB_NAME(PipNewparm)));
     if (newparm == NULL)
     { fprintf(stderr, "Memory Overflow.\n") ;
       exit(1) ;
@@ -568,7 +579,8 @@ PIPLIB_NAME(PipNewparm) * PIPLIB_NAME(sol_newparm_edit)(int *i, int Bg, int Urs_
  * Premiere version : Ced. 18 octobre 2001. 
  * 16 novembre 2005 : Ced. Prise en compte du cas 0 éléments, avant impossible.
  */
-PIPLIB_NAME(PipList) * PIPLIB_NAME(sol_list_edit)(int *i, int nb_elements, int Bg, int Urs_p, int flags)
+PIPLIB_NAME(PipList) * PIPLIB_NAME(sol_list_edit)(int *i, int nb_elements,
+                                                  int Bg, int Urs_p, int flags)
 { PIPLIB_NAME(PipList) * list, * list_new, * list_now ;
   
   /* Pour le premier element. */
@@ -640,7 +652,8 @@ PIPLIB_NAME(PipList) * PIPLIB_NAME(sol_list_edit)(int *i, int nb_elements, int B
  * 16 novembre 2005 : (debug) Même si une liste est vide il faut la créer pour
  *                    afficher plus tard le (list), repéré par Sven Verdoolaege.
  */
-PIPLIB_NAME(PipQuast) *PIPLIB_NAME(sol_quast_edit)(int *i, PIPLIB_NAME(PipQuast) *father, int Bg, int Urs_p, int flags)
+PIPLIB_NAME(PipQuast) *PIPLIB_NAME(sol_quast_edit)(
+  int *i, PIPLIB_NAME(PipQuast) *father, int Bg, int Urs_p, int flags)
 { int nb_elements ;
   struct PIPLIB_NAME(S) * p ;
   PIPLIB_NAME(PipQuast) * solution ;
@@ -669,7 +682,8 @@ PIPLIB_NAME(PipQuast) *PIPLIB_NAME(sol_quast_edit)(int *i, PIPLIB_NAME(PipQuast)
   
   /* On peut commencer par une chaine de nouveaux parametres... */
   if (p->flags == New)
-  { solution->newparm = PIPLIB_NAME(sol_newparm_edit)(i, Bg, Urs_p, flags & SOL_REMOVE);
+  { solution->newparm = PIPLIB_NAME(sol_newparm_edit)(i, Bg, Urs_p,
+                                                      flags & SOL_REMOVE);
     p = PIPLIB_NAME(sol_space) + (*i) ;
   }
   
@@ -678,9 +692,11 @@ PIPLIB_NAME(PipQuast) *PIPLIB_NAME(sol_quast_edit)(int *i, PIPLIB_NAME(PipQuast)
   switch (p->flags)
   { case List :
                 nb_elements = piplib_int_get_si(p->param1) ;
-                solution->list = PIPLIB_NAME(sol_list_edit)(i, nb_elements, Bg, Urs_p, flags);
+                solution->list = PIPLIB_NAME(sol_list_edit)(i, nb_elements,
+                                                            Bg, Urs_p, flags);
 		if (flags & SOL_DUAL)
-		    solution->next_then = PIPLIB_NAME(sol_quast_edit)(i, solution, Bg, Urs_p, 0);
+		    solution->next_then = PIPLIB_NAME(sol_quast_edit)(i, solution,
+                                                              Bg, Urs_p, 0);
 		break ;
     case Nil  : if (PIPLIB_NAME(verbose) > 0)
 		fprintf(PIPLIB_NAME(dump),"\n()") ;
@@ -689,10 +705,13 @@ PIPLIB_NAME(PipQuast) *PIPLIB_NAME(sol_quast_edit)(int *i, PIPLIB_NAME(PipQuast)
 			    PIPLIB_NAME(sol_vector_edit)(i, Bg, Urs_p, flags & SOL_REMOVE);
                 if (PIPLIB_NAME(verbose) > 0)
 		{ fprintf(PIPLIB_NAME(dump),"\n(if ") ;
-                  PIPLIB_NAME(pip_vector_print)(PIPLIB_NAME(dump),solution->condition) ;
+                  PIPLIB_NAME(pip_vector_print)(
+                    PIPLIB_NAME(dump),solution->condition) ;
                 }
-		solution->next_then = PIPLIB_NAME(sol_quast_edit)(i, solution, Bg, Urs_p, flags);
-                solution->next_else = PIPLIB_NAME(sol_quast_edit)(i, solution, Bg, Urs_p, flags);
+		solution->next_then = PIPLIB_NAME(sol_quast_edit)(i, solution,
+		                                                  Bg, Urs_p, flags);
+		solution->next_else = PIPLIB_NAME(sol_quast_edit)(i, solution,
+		                                                  Bg, Urs_p, flags);
                 if (PIPLIB_NAME(verbose) > 0)
 		fprintf(PIPLIB_NAME(dump),"\n)") ;
                 break ;

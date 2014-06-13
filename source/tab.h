@@ -83,7 +83,8 @@ struct PIPLIB_NAME(T)
 typedef struct PIPLIB_NAME(T) PIPLIB_NAME(Tableau);
 
 /* Ced : ajouts specifiques a la PipLib pour funcall. */
-PIPLIB_NAME(Tableau) * PIPLIB_NAME(tab_Matrix2Tableau)(PIPLIB_NAME(PipMatrix) *, int, int, int, int, int, int);
+PIPLIB_NAME(Tableau) * PIPLIB_NAME(tab_Matrix2Tableau)(
+  PIPLIB_NAME(PipMatrix) *, int, int, int, int, int, int);
 
 #if defined(__cplusplus)
   }

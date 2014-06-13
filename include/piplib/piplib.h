@@ -27,7 +27,11 @@
 /* Premiere version du 18 septembre 2002. */
 
 
-#if !defined(PIPLIB_INT_SP) && !defined(PIPLIB_INT_DP) && !defined(PIPLIB_INT_GMP) && !defined(PIPLIB_INT_OSL)
+#if \
+  !defined(PIPLIB_INT_SP) && \
+  !defined(PIPLIB_INT_DP) && \
+  !defined(PIPLIB_INT_GMP) && \
+  !defined(PIPLIB_INT_OSL)
   #error "Define of PIPLIB_INT_SP or PIPLIB_INT_DP or PIPLIB_INT_GMP or \
           PIPLIB_INT_OSL not found"
 #endif
@@ -98,31 +102,52 @@
   #define piplib_int_format "%d"
 
   #define piplib_int_init(i) (osl_int_init(PIPLIB_INT_OSL_PRECISION, &(i)))
-  #define piplib_int_init_set(i, v) (osl_int_init_set(PIPLIB_INT_OSL_PRECISION, &(i), v))
-  #define piplib_int_init_set_si(i, v) (osl_int_init_set_si(PIPLIB_INT_OSL_PRECISION, &(i), v))
-  #define piplib_int_assign(r, i) (osl_int_assign(PIPLIB_INT_OSL_PRECISION, &(r), i))
-  #define piplib_int_set_si(r, i) (osl_int_set_si(PIPLIB_INT_OSL_PRECISION, &(r), i))
-  #define piplib_int_clear(i) (osl_int_clear(PIPLIB_INT_OSL_PRECISION, &(i)))
-  #define piplib_int_print(file, i) (osl_int_print(file, PIPLIB_INT_OSL_PRECISION, i))
-  #define piplib_int_sscanf(string, i) (osl_int_sscanf(string, PIPLIB_INT_OSL_PRECISION, &(i)))
+  #define piplib_int_init_set(i, v) \
+    (osl_int_init_set(PIPLIB_INT_OSL_PRECISION, &(i), v))
+  #define piplib_int_init_set_si(i, v) \
+    (osl_int_init_set_si(PIPLIB_INT_OSL_PRECISION, &(i), v))
+  #define piplib_int_assign(r, i) \
+    (osl_int_assign(PIPLIB_INT_OSL_PRECISION, &(r), i))
+  #define piplib_int_set_si(r, i) \
+    (osl_int_set_si(PIPLIB_INT_OSL_PRECISION, &(r), i))
+  #define piplib_int_clear(i) \
+    (osl_int_clear(PIPLIB_INT_OSL_PRECISION, &(i)))
+  #define piplib_int_print(file, i) \
+    (osl_int_print(file, PIPLIB_INT_OSL_PRECISION, i))
+  #define piplib_int_sscanf(string, i) \
+    (osl_int_sscanf(string, PIPLIB_INT_OSL_PRECISION, &(i)))
 
   #define piplib_int_get_si(i) (osl_int_get_si(PIPLIB_INT_OSL_PRECISION, i))
   #define piplib_int_get_d(i) (osl_int_get_d(PIPLIB_INT_OSL_PRECISION, i))
 
-  #define piplib_int_add(r, a, b) (osl_int_add(PIPLIB_INT_OSL_PRECISION, &(r), a, b))
-  #define piplib_int_sub(r, a, b) (osl_int_sub(PIPLIB_INT_OSL_PRECISION, &(r), a, b))
-  #define piplib_int_increment(r, i) (osl_int_increment(PIPLIB_INT_OSL_PRECISION, &(r), i))
-  #define piplib_int_decrement(r, i) (osl_int_decrement(PIPLIB_INT_OSL_PRECISION, &(r), i))
-  #define piplib_int_mul(r, a, b) (osl_int_mul(PIPLIB_INT_OSL_PRECISION, &(r), a, b))
-  #define piplib_int_div_exact(q, a, b) (osl_int_div_exact(PIPLIB_INT_OSL_PRECISION, &(q), a, b))
-  #define piplib_int_floor_div_q(q, a, b) (osl_int_floor_div_q(PIPLIB_INT_OSL_PRECISION, &(q), a, b))
-  #define piplib_int_floor_div_r(r, a, b) (osl_int_floor_div_r(PIPLIB_INT_OSL_PRECISION, &(r), a, b))
-  #define piplib_int_floor_div_q_r(q, r, a, b) (osl_int_floor_div_q_r(PIPLIB_INT_OSL_PRECISION, &(q), &(r), a, b))
-  #define piplib_int_mod(mod, a, b) (osl_int_mod(PIPLIB_INT_OSL_PRECISION, &(mod), a, b))
-  #define piplib_int_gcd(gcd, a, b) (osl_int_gcd(PIPLIB_INT_OSL_PRECISION, &(gcd), a, b))
-  #define piplib_int_oppose(r, i) (osl_int_oppose(PIPLIB_INT_OSL_PRECISION, &(r), i))
-  #define piplib_int_size_in_base_2(i) (osl_int_size_in_base_2(PIPLIB_INT_OSL_PRECISION, i))
-  #define piplib_int_size_in_base_10(i) (osl_int_size_in_base_10(PIPLIB_INT_OSL_PRECISION, i))
+  #define piplib_int_add(r, a, b) \
+    (osl_int_add(PIPLIB_INT_OSL_PRECISION, &(r), a, b))
+  #define piplib_int_sub(r, a, b) \
+    (osl_int_sub(PIPLIB_INT_OSL_PRECISION, &(r), a, b))
+  #define piplib_int_increment(r, i) \
+    (osl_int_increment(PIPLIB_INT_OSL_PRECISION, &(r), i))
+  #define piplib_int_decrement(r, i) \
+    (osl_int_decrement(PIPLIB_INT_OSL_PRECISION, &(r), i))
+  #define piplib_int_mul(r, a, b) \
+    (osl_int_mul(PIPLIB_INT_OSL_PRECISION, &(r), a, b))
+  #define piplib_int_div_exact(q, a, b) \
+    (osl_int_div_exact(PIPLIB_INT_OSL_PRECISION, &(q), a, b))
+  #define piplib_int_floor_div_q(q, a, b) \
+    (osl_int_floor_div_q(PIPLIB_INT_OSL_PRECISION, &(q), a, b))
+  #define piplib_int_floor_div_r(r, a, b) \
+    (osl_int_floor_div_r(PIPLIB_INT_OSL_PRECISION, &(r), a, b))
+  #define piplib_int_floor_div_q_r(q, r, a, b) \
+    (osl_int_floor_div_q_r(PIPLIB_INT_OSL_PRECISION, &(q), &(r), a, b))
+  #define piplib_int_mod(mod, a, b) \
+    (osl_int_mod(PIPLIB_INT_OSL_PRECISION, &(mod), a, b))
+  #define piplib_int_gcd(gcd, a, b) \
+    (osl_int_gcd(PIPLIB_INT_OSL_PRECISION, &(gcd), a, b))
+  #define piplib_int_oppose(r, i) \
+    (osl_int_oppose(PIPLIB_INT_OSL_PRECISION, &(r), i))
+  #define piplib_int_size_in_base_2(i) \
+    (osl_int_size_in_base_2(PIPLIB_INT_OSL_PRECISION, i))
+  #define piplib_int_size_in_base_10(i) \
+    (osl_int_size_in_base_10(PIPLIB_INT_OSL_PRECISION, i))
 
   #define piplib_int_eq(a, b) (osl_int_eq(PIPLIB_INT_OSL_PRECISION, a, b))
   #define piplib_int_ne(a, b) (osl_int_ne(PIPLIB_INT_OSL_PRECISION, a, b))
@@ -155,11 +180,14 @@
 #if defined(PIPLIB_INT_SP) || defined(PIPLIB_INT_DP)
 
   // Copy from osl_int
-  long long int PIPLIB_NAME(piplib_llgcd)(long long int const, long long int const);
-  long long int PIPLIB_NAME(piplib_llgcd_llabs)(long long int const, long long int const);
+  long long int PIPLIB_NAME(piplib_llgcd)(long long int const,
+                                          long long int const);
+  long long int PIPLIB_NAME(piplib_llgcd_llabs)(long long int const,
+                                                long long int const);
   size_t PIPLIB_NAME(piplib_lllog2)(long long int);
   size_t PIPLIB_NAME(piplib_lllog10)(long long int);
-  long long int PIPLIB_NAME(piplib_llmod)(long long int const, long long int const);
+  long long int PIPLIB_NAME(piplib_llmod)(long long int const,
+                                          long long int const);
 
   #define piplib_int_init(i) (i = 0)
   #define piplib_int_init_set(i, v) (i = v)
@@ -180,12 +208,19 @@
   #define piplib_int_mul(r, a, b) (r = a * b)
   #define piplib_int_div_exact(q, a, b) (q = (a) / (b))
   //#define piplib_int_floor_div_q(q, a, b) (q = (PIPLIB_NAME(piplib_int_t))(piplib_ll_floor_div_q(a, b)))
-  #define piplib_int_floor_div_q(q, a, b) (q = (PIPLIB_NAME(piplib_int_t))((a - PIPLIB_NAME(piplib_llmod)(a, b)) / (b)))
-  #define piplib_int_floor_div_r(r, a, b) (r = (PIPLIB_NAME(piplib_int_t))PIPLIB_NAME(piplib_llmod)(a, b))
+  #define piplib_int_floor_div_q(q, a, b) \
+    (q = (PIPLIB_NAME(piplib_int_t))((a - PIPLIB_NAME(piplib_llmod)(a, b)) \
+    / (b)))
+  #define piplib_int_floor_div_r(r, a, b) \
+    (r = (PIPLIB_NAME(piplib_int_t))PIPLIB_NAME(piplib_llmod)(a, b))
   //#define piplib_int_floor_div_r(r, a, b) (r = (PIPLIB_NAME(piplib_int_t))(piplib_ll_floor_div_r(a, b)))
-  #define piplib_int_floor_div_q_r(q, r, a, b) do { piplib_int_floor_div_q(q, a, b); piplib_int_floor_div_r(r, a, b); } while (0)
-  #define piplib_int_mod(mod, a, b) (mod = (PIPLIB_NAME(piplib_int_t))(PIPLIB_NAME(piplib_llmod)(a, b)))
-  #define piplib_int_gcd(gcd, a, b) (gcd = (PIPLIB_NAME(piplib_int_t))(PIPLIB_NAME(piplib_llgcd_llabs)(a, b)))
+  #define piplib_int_floor_div_q_r(q, r, a, b) \
+    do { piplib_int_floor_div_q(q, a, b); piplib_int_floor_div_r(r, a, b); } \
+    while (0)
+  #define piplib_int_mod(mod, a, b) \
+    (mod = (PIPLIB_NAME(piplib_int_t))(PIPLIB_NAME(piplib_llmod)(a, b)))
+  #define piplib_int_gcd(gcd, a, b) \
+    (gcd = (PIPLIB_NAME(piplib_int_t))(PIPLIB_NAME(piplib_llgcd_llabs)(a, b)))
   #define piplib_int_oppose(r, i) (r = - (i))
   #define piplib_int_size_in_base_2(i) (PIPLIB_NAME(piplib_lllog2)(i))
   #define piplib_int_size_in_base_10(i) (PIPLIB_NAME(piplib_lllog10)(i))
@@ -367,7 +402,8 @@ void PIPLIB_NAME(pip_options_free)(PIPLIB_NAME(PipOptions)*);
 
 
 /* Fonctions d'acquisition de matrices de contraintes et options. */
-PIPLIB_NAME(PipMatrix)* PIPLIB_NAME(pip_matrix_alloc)(unsigned int, unsigned int);
+PIPLIB_NAME(PipMatrix)* PIPLIB_NAME(pip_matrix_alloc)(unsigned int,
+                                                      unsigned int);
 PIPLIB_NAME(PipMatrix)* PIPLIB_NAME(pip_matrix_read)(FILE*);
 PIPLIB_NAME(PipOptions)* PIPLIB_NAME(pip_options_init)(void);
 
@@ -380,22 +416,25 @@ void PIPLIB_NAME(pip_close)();
 /**
  * @brief Fonction de resolution
  * 
- * PIPLIB_NAME(pip_solve) resoud le probleme qu'on lui passe en parametre, suivant les
- * options elles aussi en parametre. Elle renvoie la solution sous forme
- * d'un arbre de PipQuast.
+ * PIPLIB_NAME(pip_solve) resoud le probleme qu'on lui passe en parametre,
+ * suivant les options elles aussi en parametre. Elle renvoie la solution sous
+ * forme d'un arbre de PipQuast.
  * 
  * @param[in] domain     Inequations definissant le domaine des inconnues
  * @param[in] parameters Inequations satisfaites par les parametres
  * @param[in] bignum     Column rank of the bignum, or negative value if there is no big parameter
  * @param[in] options    PipLib options
  */ 
-PIPLIB_NAME(PipQuast)* PIPLIB_NAME(pip_solve)(PIPLIB_NAME(PipMatrix)* domain, PIPLIB_NAME(PipMatrix)* parameters,
-                    int bignum, PIPLIB_NAME(PipOptions)* options);
+PIPLIB_NAME(PipQuast)* PIPLIB_NAME(pip_solve)(
+  PIPLIB_NAME(PipMatrix)* domain,
+  PIPLIB_NAME(PipMatrix)* parameters,
+  int bignum,
+  PIPLIB_NAME(PipOptions)* options);
 
 
 /** sol_quast_edit */
-PIPLIB_NAME(PipQuast)* PIPLIB_NAME(sol_quast_edit)(int* i, PIPLIB_NAME(PipQuast)* father,
-                         int Bg, int Urs_p, int flags);
+PIPLIB_NAME(PipQuast)* PIPLIB_NAME(sol_quast_edit)(
+  int* i, PIPLIB_NAME(PipQuast)* father, int Bg, int Urs_p, int flags);
 
 
 #if defined(__cplusplus)

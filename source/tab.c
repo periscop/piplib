@@ -144,7 +144,8 @@ void PIPLIB_NAME(tab_reset)(struct PIPLIB_NAME(high_water_mark) by_the_mark) {
      PIPLIB_NAME(tab_base)->free = PIPLIB_NAME(tab_free);
      }
  else {
-     fprintf(stderr, "Syserr: PIPLIB_NAME(tab_reset) : error in memory allocation\n");
+     fprintf(stderr,
+             "Syserr: PIPLIB_NAME(tab_reset) : error in memory allocation\n");
      exit(1);
      }
 }
@@ -159,7 +160,8 @@ PIPLIB_NAME(Tableau) * PIPLIB_NAME(tab_alloc)(int h, int w, int n)
  PIPLIB_NAME(piplib_int_t) *q;
  unsigned long taille;
  int i, j;
- taille = sizeof(PIPLIB_NAME(Tableau)) + (h+n-1) * sizeof (struct PIPLIB_NAME(L))
+ taille = sizeof(PIPLIB_NAME(Tableau))
+          + (h+n-1) * sizeof (struct PIPLIB_NAME(L))
 	  + h * w * sizeof (PIPLIB_NAME(piplib_int_t));
  if(PIPLIB_NAME(tab_free) + taille >= PIPLIB_NAME(tab_top))
      {struct PIPLIB_NAME(A) * g;
@@ -183,7 +185,8 @@ PIPLIB_NAME(Tableau) * PIPLIB_NAME(tab_alloc)(int h, int w, int n)
  PIPLIB_NAME(tab_free) += taille;
  PIPLIB_NAME(tab_base)->free = PIPLIB_NAME(tab_free);
  tp = (PIPLIB_NAME(Tableau) *)p;
- q = (PIPLIB_NAME(piplib_int_t) *)(p +  sizeof(PIPLIB_NAME(Tableau)) + (h+n-1) * sizeof (struct PIPLIB_NAME(L)));
+ q = (PIPLIB_NAME(piplib_int_t) *)(p +  sizeof(PIPLIB_NAME(Tableau))
+     + (h+n-1) * sizeof (struct PIPLIB_NAME(L)));
  #if defined(PIPLIB_ONE_DETERMINANT)
  piplib_int_init_set_si(tp->determinant,1);
  #else
@@ -281,7 +284,8 @@ int h, w, n;
  * 18 octobre 2003 : Mise en place de la possibilite de calculer le
  *                   maximum lexicographique (parties 'if (Max)').
  */
-PIPLIB_NAME(Tableau) * PIPLIB_NAME(tab_Matrix2Tableau)(matrix, Nineq, Nv, n, Shift, Bg, Urs_parms)
+PIPLIB_NAME(Tableau) * PIPLIB_NAME(tab_Matrix2Tableau)(matrix, Nineq, Nv, n,
+                                                       Shift, Bg, Urs_parms)
 PIPLIB_NAME(PipMatrix) * matrix ;
 int Nineq, Nv, n, Shift, Bg, Urs_parms;
 { PIPLIB_NAME(Tableau) * p ;
@@ -297,8 +301,12 @@ int Nineq, Nv, n, Shift, Bg, Urs_parms;
     n = 0;
   piplib_int_init(bignum);
   nb_columns = matrix->NbColumns - 1 ;
+  
   /* S'il faut un BigNum et qu'il n'existe pas, on lui reserve sa place. */
-  bignum_is_new = Shift && (Bg+ctx > 0) && ((unsigned int)(Bg+ctx) > (matrix->NbColumns - 2));
+  bignum_is_new = Shift
+  && (Bg+ctx > 0)
+  && ((unsigned int)(Bg+ctx) > (matrix->NbColumns - 2));
+  
   if (bignum_is_new)
     nb_columns++;
   if (ctx) {
@@ -424,7 +432,8 @@ PIPLIB_NAME(Tableau) *p;
  PIPLIB_NAME(piplib_int_t) d;
  piplib_int_init(d);
 
- fprintf(foo, "cross_product (%ld) /[%d * %d]\n", 0L/*cross_product*/, p->height, p->width);
+ fprintf(foo, "cross_product (%ld) /[%d * %d]\n", 0L/*cross_product*/,
+              p->height, p->width);
  for(i = 0; i<p->height; i++){
    fff = ff = p->row[i].flags;
    /* if(fff ==0) continue; */

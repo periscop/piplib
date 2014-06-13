@@ -51,8 +51,9 @@ int chercher(PIPLIB_NAME(Tableau) *p, int masque, int n)
    ni.
 */
 
-PIPLIB_NAME(Tableau) *PIPLIB_NAME(expanser)(PIPLIB_NAME(Tableau) *tp, int virt, int reel, int ncol, 
-                               int off, int dh, int dw)
+PIPLIB_NAME(Tableau) *PIPLIB_NAME(expanser)(
+  PIPLIB_NAME(Tableau) *tp, int virt, int reel,
+  int ncol, int off, int dh, int dw)
 {
  int i, j, ff;
  PIPLIB_NAME(piplib_int_t) *pq;
@@ -95,7 +96,8 @@ PIPLIB_NAME(Tableau) *PIPLIB_NAME(expanser)(PIPLIB_NAME(Tableau) *tp, int virt, 
  * We therefore check for signs determined by the coefficient
  * of the big parameter first.
  */
-int PIPLIB_NAME(exam_coef)(PIPLIB_NAME(Tableau) *tp, int nvar, int ncol, int bigparm)
+int PIPLIB_NAME(exam_coef)(PIPLIB_NAME(Tableau) *tp,
+                           int nvar, int ncol, int bigparm)
 {int i, j ;
  int ff, fff;
  PIPLIB_NAME(piplib_int_t) *p;
@@ -154,8 +156,9 @@ int PIPLIB_NAME(exam_coef)(PIPLIB_NAME(Tableau) *tp, int nvar, int ncol, int big
  return(i);
 }
 
-void PIPLIB_NAME(compa_test)(PIPLIB_NAME(Tableau) *tp, PIPLIB_NAME(Tableau) *context,
-		int ni, int nvar, int nparm, int nc)
+void PIPLIB_NAME(compa_test)(PIPLIB_NAME(Tableau) *tp,
+                             PIPLIB_NAME(Tableau) *context,
+                             int ni, int nvar, int nparm, int nc)
 {
  int i, j;
  int ff;
@@ -205,7 +208,7 @@ void PIPLIB_NAME(compa_test)(PIPLIB_NAME(Tableau) *tp, PIPLIB_NAME(Tableau) *con
 	   tMinus = PIPLIB_NAME(expanser)(context, nparm, nc, nparm+1, nparm, 1, 0);
 	   Flag(tMinus, nparm+nc) = Unknown;
 	   for (j = 0; j < nparm; j++)
-	       piplib_int_oppose(Index(tMinus, nparm+nc, j), Index(tp, i, j+nvar+1));
+	     piplib_int_oppose(Index(tMinus, nparm+nc, j), Index(tp, i, j+nvar+1));
 	   piplib_int_oppose(Index(tMinus, nparm+nc, nparm), Index(tp, i, nvar));
 	   piplib_int_decrement(Index(tMinus, nparm+nc, nparm),
 				Index(tMinus, nparm+nc, nparm));
@@ -236,7 +239,8 @@ void PIPLIB_NAME(compa_test)(PIPLIB_NAME(Tableau) *tp, PIPLIB_NAME(Tableau) *con
  return;
 }
 
-PIPLIB_NAME(piplib_int_t) *PIPLIB_NAME(valeur)(PIPLIB_NAME(Tableau) *tp, int i, int j, PIPLIB_NAME(piplib_int_t)* zero)
+PIPLIB_NAME(piplib_int_t) *PIPLIB_NAME(valeur)(
+  PIPLIB_NAME(Tableau) *tp, int i, int j, PIPLIB_NAME(piplib_int_t)* zero)
 {
  if(Flag(tp, i) & Unit)
      return(tp->row[i].objet.unit == j ? &Denom(tp,i) : zero);
@@ -261,7 +265,8 @@ void solution(PIPLIB_NAME(Tableau) *tp, int nvar, int nparm)
  piplib_int_clear(zero);
 }
 
-static void PIPLIB_NAME(solution_dual)(PIPLIB_NAME(Tableau) *tp, int nvar/*, int nparm*/, int *pos)
+static void PIPLIB_NAME(solution_dual)(
+  PIPLIB_NAME(Tableau) *tp, int nvar/*, int nparm*/, int *pos)
 {
     int i;
 
@@ -272,7 +277,9 @@ static void PIPLIB_NAME(solution_dual)(PIPLIB_NAME(Tableau) *tp, int nvar/*, int
     for (i = 0; i < tp->height - nvar; ++i) {
 	PIPLIB_NAME(sol_forme)(1);
 	if (Flag(tp, pos[i]) & Unit)
-	    PIPLIB_NAME(sol_val)(*PIPLIB_NAME(valeur)(tp, 0, tp->row[pos[i]].objet.unit, &zero), Denom(tp, 0));
+	    PIPLIB_NAME(sol_val)(
+	      *PIPLIB_NAME(valeur)(tp, 0, tp->row[pos[i]].objet.unit, &zero),
+	      Denom(tp, 0));
 	else
 	    PIPLIB_NAME(sol_val_zero_one)();
     }
@@ -280,7 +287,8 @@ static void PIPLIB_NAME(solution_dual)(PIPLIB_NAME(Tableau) *tp, int nvar/*, int
     piplib_int_clear(zero);
 }
 
-int PIPLIB_NAME(choisir_piv)(PIPLIB_NAME(Tableau) *tp, int pivi, int nvar, int nligne)
+int PIPLIB_NAME(choisir_piv)(
+  PIPLIB_NAME(Tableau) *tp, int pivi, int nvar, int nligne)
 {
  int j, k;
  PIPLIB_NAME(piplib_int_t) pivot, foo, x, y;
@@ -326,7 +334,9 @@ int PIPLIB_NAME(choisir_piv)(PIPLIB_NAME(Tableau) *tp, int pivi, int nvar, int n
 }
 
 
-int PIPLIB_NAME(pivoter)(PIPLIB_NAME(Tableau) *tp, int pivi, int nvar, int nparm, int ni) {
+int PIPLIB_NAME(pivoter)(
+  PIPLIB_NAME(Tableau) *tp, int pivi, int nvar, int nparm, int ni)
+{
  int pivj;
  int ncol = nvar + nparm + 1;
  int nligne = nvar + ni;
@@ -407,7 +417,9 @@ int PIPLIB_NAME(pivoter)(PIPLIB_NAME(Tableau) *tp, int pivi, int nvar, int nparm
  piplib_int_mul(tp->determinant, x, ppivot);
  #else
  for(i=0; i<tp->l_determinant; i++)
-     if(PIPLIB_NAME(piplib_lllog2)(tp->determinant[i]) + PIPLIB_NAME(piplib_lllog2)(ppivot) < 8*sizeof(PIPLIB_NAME(piplib_int_t))){
+     if(PIPLIB_NAME(piplib_lllog2)(tp->determinant[i])
+        + PIPLIB_NAME(piplib_lllog2)(ppivot)
+        < 8*sizeof(PIPLIB_NAME(piplib_int_t))){
 	 tp->determinant[i] *= ppivot;
 	 break;
 	 }
@@ -527,7 +539,8 @@ int PIPLIB_NAME(pivoter)(PIPLIB_NAME(Tableau) *tp, int pivi, int nvar, int nparm
  * and (if TRAITER_DUAL is set) return the new position of the
  * original constraints.
  */
-static int *PIPLIB_NAME(tab_sort_rows)(PIPLIB_NAME(Tableau) *tp, int nvar, int nligne, int flags)
+static int *PIPLIB_NAME(tab_sort_rows)(
+  PIPLIB_NAME(Tableau) *tp, int nvar, int nligne, int flags)
 {
     #define piplib_max(x,y) ((x) > (y)? (x) : (y))
 	
@@ -598,8 +611,9 @@ static int *PIPLIB_NAME(tab_sort_rows)(PIPLIB_NAME(Tableau) *tp, int nvar, int n
 /* dans cette version, "traiter" modifie ineq; par contre
    le contexte est immediatement recopie' */
 
-void PIPLIB_NAME(traiter)(PIPLIB_NAME(Tableau) *tp, PIPLIB_NAME(Tableau) *ctxt, int nvar, int nparm, int ni, int nc,
-	     int bigparm, int flags)
+void PIPLIB_NAME(traiter)(
+  PIPLIB_NAME(Tableau) *tp, PIPLIB_NAME(Tableau) *ctxt,
+  int nvar, int nparm, int ni, int nc, int bigparm, int flags)
 {
  static int profondeur = 1;
  int j;
@@ -696,13 +710,16 @@ void PIPLIB_NAME(traiter)(PIPLIB_NAME(Tableau) *tp, PIPLIB_NAME(Tableau) *ctxt, 
      if (!(flags & TRAITER_INT))
 	 piplib_int_gcd(com_dem, com_dem, Index(tp, pivi, nvar));
      for (j = 0; j < nparm; j++) {
-       piplib_int_div_exact(Index(context, nc, j), Index(tp, pivi, j + nvar + 1), com_dem);
+       piplib_int_div_exact(Index(context, nc, j),
+                            Index(tp, pivi, j + nvar + 1), com_dem);
        PIPLIB_NAME(sol_val_one)(Index(context, nc, j));
      }
      if (!(flags & TRAITER_INT))
-	 piplib_int_div_exact(Index(context, nc, nparm), Index(tp, pivi, nvar), com_dem);
+     piplib_int_div_exact(Index(context, nc, nparm),
+                          Index(tp, pivi, nvar), com_dem);
      else
-	 piplib_int_floor_div_q(Index(context, nc, nparm), Index(tp, pivi, nvar), com_dem);
+     piplib_int_floor_div_q(Index(context, nc, nparm),
+                            Index(tp, pivi, nvar), com_dem);
      PIPLIB_NAME(sol_val_one)(Index(context, nc, nparm));
      piplib_int_clear(com_dem);
      Flag(context, nc) = Unknown;
@@ -715,7 +732,8 @@ void PIPLIB_NAME(traiter)(PIPLIB_NAME(Tableau) *tp, PIPLIB_NAME(Tableau) *ctxt, 
      profondeur--;
      PIPLIB_NAME(tab_reset)(q);
      if(PIPLIB_NAME(verbose)>1)
-       fprintf(stdout, "descente %d %p\n", profondeur, PIPLIB_NAME(tab_hwm)().top);
+       fprintf(stdout,
+               "descente %d %p\n", profondeur, PIPLIB_NAME(tab_hwm)().top);
      for(j = 0; j<nparm; j++)
        piplib_int_oppose(Index(context, nc, j), Index(context, nc, j));
      piplib_int_increment(Index(context, nc, nparm), Index(context, nc, nparm));
@@ -733,7 +751,8 @@ void PIPLIB_NAME(traiter)(PIPLIB_NAME(Tableau) *tp, PIPLIB_NAME(Tableau) *ctxt, 
      break;
    }
 /* Yes we do! */
-   pivi = PIPLIB_NAME(integrer)(&tp, &context, &nvar, &nparm, &ni, &nc, bigparm);
+   pivi = PIPLIB_NAME(integrer)(
+            &tp, &context, &nvar, &nparm, &ni, &nc, bigparm);
    if(pivi > 0) goto pirouette;
 		    /* A cut has been inserted and is always negative */
 /* Here, either there is an integral solution, */
