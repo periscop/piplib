@@ -445,39 +445,166 @@ PIPLIB_NAME(PipQuast)* PIPLIB_NAME(sol_quast_edit)(int* i, PIPLIB_NAME(PipQuast)
 
 /* Old names (define) */
 
-#define piplib_int_t piplib_int_t_dp
-#define PipMatrix PipMatrix_dp
-#define PipVector PipVector_dp
-#define PipNewparm PipNewparm_dp
-#define PipList PipList_dp
-#define PipQuast PipQuast_dp
-#define PipOptions PipOptions_dp
-#define PipMatrix PipMatrix_dp
+#ifdef PIPLIB_INT_GMP
 
-#define pip_options_print pip_options_print_dp
+	#define piplib_int_t piplib_int_t_gmp
+	#define PipMatrix PipMatrix_gmp
+	#define PipVector PipVector_gmp
+	#define PipNewparm PipNewparm_gmp
+	#define PipList PipList_gmp
+	#define PipQuast PipQuast_gmp
+	#define PipOptions PipOptions_gmp
+	#define PipMatrix PipMatrix_gmp
 
-#define pip_matrix_print pip_matrix_print_dp
-#define pip_vector_print pip_vector_print_dp
-#define pip_newparm_print pip_newparm_print_dp
-#define pip_list_print pip_list_print_dp
-#define pip_quast_print pip_quast_print_dp
+	#define pip_options_print pip_options_print_gmp
 
-#define pip_matrix_free pip_matrix_free_dp
-#define pip_vector_free pip_vector_free_dp
-#define pip_newparm_free pip_newparm_free_dp
-#define pip_list_free pip_list_free_dp
-#define pip_quast_free pip_quast_free_dp
-#define pip_options_free pip_options_free_dp
+	#define pip_matrix_print pip_matrix_print_gmp
+	#define pip_vector_print pip_vector_print_gmp
+	#define pip_newparm_print pip_newparm_print_gmp
+	#define pip_list_print pip_list_print_gmp
+	#define pip_quast_print pip_quast_print_gmp
 
-#define pip_matrix_alloc pip_matrix_alloc_dp
-#define pip_matrix_read pip_matrix_read_dp
-#define pip_options_init pip_options_init_dp
+	#define pip_matrix_free pip_matrix_free_gmp
+	#define pip_vector_free pip_vector_free_gmp
+	#define pip_newparm_free pip_newparm_free_gmp
+	#define pip_list_free pip_list_free_gmp
+	#define pip_quast_free pip_quast_free_gmp
+	#define pip_options_free pip_options_free_gmp
 
-#define pip_init pip_init_dp
-#define pip_close pip_close_dp
+	#define pip_matrix_alloc pip_matrix_alloc_gmp
+	#define pip_matrix_read pip_matrix_read_gmp
+	#define pip_options_init pip_options_init_gmp
 
-#define pip_solve pip_solve_dp
+	#define pip_init pip_init_gmp
+	#define pip_close pip_close_gmp
 
-#define sol_quast_edit sol_quast_edit_dp
+	#define pip_solve pip_solve_gmp
 
-#define Entier piplib_int_t_dp
+	#define sol_quast_edit sol_quast_edit_gmp
+
+	#define Entier piplib_int_t_gmp
+
+#endif
+
+#ifdef PIPLIB_INT_OSL
+
+	#define piplib_int_t piplib_int_t_osl
+	#define PipMatrix PipMatrix_osl
+	#define PipVector PipVector_osl
+	#define PipNewparm PipNewparm_osl
+	#define PipList PipList_osl
+	#define PipQuast PipQuast_osl
+	#define PipOptions PipOptions_osl
+	#define PipMatrix PipMatrix_osl
+
+	#define pip_options_print pip_options_print_osl
+
+	#define pip_matrix_print pip_matrix_print_osl
+	#define pip_vector_print pip_vector_print_osl
+	#define pip_newparm_print pip_newparm_print_osl
+	#define pip_list_print pip_list_print_osl
+	#define pip_quast_print pip_quast_print_osl
+
+	#define pip_matrix_free pip_matrix_free_osl
+	#define pip_vector_free pip_vector_free_osl
+	#define pip_newparm_free pip_newparm_free_osl
+	#define pip_list_free pip_list_free_osl
+	#define pip_quast_free pip_quast_free_osl
+	#define pip_options_free pip_options_free_osl
+
+	#define pip_matrix_alloc pip_matrix_alloc_osl
+	#define pip_matrix_read pip_matrix_read_osl
+	#define pip_options_init pip_options_init_osl
+
+	#define pip_init pip_init_osl
+	#define pip_close pip_close_osl
+
+	#define pip_solve pip_solve_osl
+
+	#define sol_quast_edit sol_quast_edit_osl
+
+	#define Entier piplib_int_t_osl
+
+#endif
+
+#ifdef PIPLIB_INT_SP
+
+	#define piplib_int_t piplib_int_t_sp
+	#define PipMatrix PipMatrix_sp
+	#define PipVector PipVector_sp
+	#define PipNewparm PipNewparm_sp
+	#define PipList PipList_sp
+	#define PipQuast PipQuast_sp
+	#define PipOptions PipOptions_sp
+	#define PipMatrix PipMatrix_sp
+
+	#define pip_options_print pip_options_print_sp
+
+	#define pip_matrix_print pip_matrix_print_sp
+	#define pip_vector_print pip_vector_print_sp
+	#define pip_newparm_print pip_newparm_print_sp
+	#define pip_list_print pip_list_print_sp
+	#define pip_quast_print pip_quast_print_sp
+
+	#define pip_matrix_free pip_matrix_free_sp
+	#define pip_vector_free pip_vector_free_sp
+	#define pip_newparm_free pip_newparm_free_sp
+	#define pip_list_free pip_list_free_sp
+	#define pip_quast_free pip_quast_free_sp
+	#define pip_options_free pip_options_free_sp
+
+	#define pip_matrix_alloc pip_matrix_alloc_sp
+	#define pip_matrix_read pip_matrix_read_sp
+	#define pip_options_init pip_options_init_sp
+
+	#define pip_init pip_init_sp
+	#define pip_close pip_close_sp
+
+	#define pip_solve pip_solve_sp
+
+	#define sol_quast_edit sol_quast_edit_sp
+
+	#define Entier piplib_int_t_sp
+
+#endif
+
+#ifdef PIPLIB_INT_DP
+
+	#define piplib_int_t piplib_int_t_dp
+	#define PipMatrix PipMatrix_dp
+	#define PipVector PipVector_dp
+	#define PipNewparm PipNewparm_dp
+	#define PipList PipList_dp
+	#define PipQuast PipQuast_dp
+	#define PipOptions PipOptions_dp
+	#define PipMatrix PipMatrix_dp
+
+	#define pip_options_print pip_options_print_dp
+
+	#define pip_matrix_print pip_matrix_print_dp
+	#define pip_vector_print pip_vector_print_dp
+	#define pip_newparm_print pip_newparm_print_dp
+	#define pip_list_print pip_list_print_dp
+	#define pip_quast_print pip_quast_print_dp
+
+	#define pip_matrix_free pip_matrix_free_dp
+	#define pip_vector_free pip_vector_free_dp
+	#define pip_newparm_free pip_newparm_free_dp
+	#define pip_list_free pip_list_free_dp
+	#define pip_quast_free pip_quast_free_dp
+	#define pip_options_free pip_options_free_dp
+
+	#define pip_matrix_alloc pip_matrix_alloc_dp
+	#define pip_matrix_read pip_matrix_read_dp
+	#define pip_options_init pip_options_init_dp
+
+	#define pip_init pip_init_dp
+	#define pip_close pip_close_dp
+
+	#define pip_solve pip_solve_dp
+
+	#define sol_quast_edit sol_quast_edit_dp
+
+	#define Entier piplib_int_t_dp
+
+#endif
