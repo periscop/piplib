@@ -38,6 +38,12 @@
 
 #define PIPLIB_INT_SP 1
 
+// Compatibility with old version
+#undef LINEAR_VALUE_IS_LONG
+#undef LINEAR_VALUE_IS_LONGLONG
+#undef LINEAR_VALUE_IS_MP
+#define LINEAR_VALUE_IS_LONG 1
+
 #include <piplib/piplib.h>
 
 #endif
