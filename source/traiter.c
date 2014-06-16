@@ -35,7 +35,7 @@ extern int PIPLIB_NAME(verbose);
 extern FILE *PIPLIB_NAME(dump);
 /*extern int compa_count;*/
 
-int chercher(PIPLIB_NAME(Tableau) *p, int masque, int n)
+int PIPLIB_NAME(chercher)(PIPLIB_NAME(Tableau) *p, int masque, int n)
 {int i;
  for(i = 0; i<n; i++)
      if(p->row[i].flags & masque) break;
@@ -247,7 +247,7 @@ PIPLIB_NAME(piplib_int_t) *PIPLIB_NAME(valeur)(
  else return(&Index(tp, i, j));
 }
 
-void solution(PIPLIB_NAME(Tableau) *tp, int nvar, int nparm)
+void PIPLIB_NAME(solution)(PIPLIB_NAME(Tableau) *tp, int nvar, int nparm)
 {int i, j;
  int ncol = nvar + nparm + 1;
 
@@ -652,7 +652,7 @@ void PIPLIB_NAME(traiter)(
      fprintf(stdout, "Syserr : PIPLIB_NAME(traiter) : tableau too small\n");
      exit(1);
    }
-   pivi = chercher(tp, Minus, nligne);
+   pivi = PIPLIB_NAME(chercher)(tp, Minus, nligne);
    if(pivi < nligne) goto pirouette;	       /* There is a negative row   */
    
    pivi = PIPLIB_NAME(exam_coef)(tp, nvar, ncol, bigparm);
@@ -672,11 +672,11 @@ void PIPLIB_NAME(traiter)(
      fflush(PIPLIB_NAME(dump));
    }
 
-   pivi = chercher(tp, Minus, nligne);
+   pivi = PIPLIB_NAME(chercher)(tp, Minus, nligne);
    if(pivi < nligne) goto pirouette;
    /* The compatibility test has found a negative row */
-   pivi = chercher(tp, Critic, nligne);
-   if(pivi >= nligne)pivi = chercher(tp, Unknown, nligne);
+   pivi = PIPLIB_NAME(chercher)(tp, Critic, nligne);
+   if(pivi >= nligne)pivi = PIPLIB_NAME(chercher)(tp, Unknown, nligne);
    /* Here, the problem tree splits        */
    if(pivi < nligne) {
      PIPLIB_NAME(Tableau) * ntp;
@@ -745,7 +745,7 @@ void PIPLIB_NAME(traiter)(
    }
 /* Here, all rows are positive. Do we need an integral solution?      */
    if (!(flags & TRAITER_INT)) {
-     solution(tp, nvar, nparm);
+     PIPLIB_NAME(solution)(tp, nvar, nparm);
      if (flags & TRAITER_DUAL)
 	PIPLIB_NAME(solution_dual)(tp, nvar/*, nparm*/, pos);
      break;
@@ -756,7 +756,7 @@ void PIPLIB_NAME(traiter)(
    if(pivi > 0) goto pirouette;
 		    /* A cut has been inserted and is always negative */
 /* Here, either there is an integral solution, */
-   if(pivi == 0) solution(tp, nvar, nparm);
+   if(pivi == 0) PIPLIB_NAME(solution)(tp, nvar, nparm);
 /* or no solution exists */
    else PIPLIB_NAME(sol_nil)();
    break;
