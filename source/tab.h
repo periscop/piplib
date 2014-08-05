@@ -31,22 +31,26 @@ extern "C"
   {
 #endif 
 
-struct PIPLIB_NAME(A)
-    {struct PIPLIB_NAME(A) *precedent;
+#define A_xx PIPLIB_NAME(A)
+struct A_xx
+    {struct A_xx *precedent;
      char *bout;
      char *free;
     };
 
-struct PIPLIB_NAME(L)
+#define L_xx PIPLIB_NAME(L)
+struct L_xx
     {int flags;
-     PIPLIB_NAME(piplib_int_t) d;
+     piplib_int_t_xx d;
      float size;
      union { int unit;
-	     PIPLIB_NAME(piplib_int_t) * val;
+	     piplib_int_t_xx * val;
 	   } objet;
     };
 
-struct PIPLIB_NAME(high_water_mark) {
+
+#define high_water_mark_xx PIPLIB_NAME(high_water_mark)
+struct high_water_mark_xx {
     int chunk;
     void * top;
     };
@@ -65,26 +69,29 @@ struct PIPLIB_NAME(high_water_mark) {
 #define Denom(p,i)   (p)->row[i].d
 #define MAX_DETERMINANT 4
 
+#define T_xx PIPLIB_NAME(T)
 #if defined(PIPLIB_ONE_DETERMINANT)
-struct PIPLIB_NAME(T)
+struct T_xx
     {int height, width, taille;
-     PIPLIB_NAME(piplib_int_t) determinant;
-     struct PIPLIB_NAME(L) row[1];
+     piplib_int_t_xx determinant;
+     struct L_xx row[1];
     };
 #else
-struct PIPLIB_NAME(T)
+struct T_xx
     {int height, width;
-     PIPLIB_NAME(piplib_int_t) determinant[MAX_DETERMINANT];
+     piplib_int_t_xx determinant[MAX_DETERMINANT];
      int l_determinant;
-     struct PIPLIB_NAME(L) row[1];
+     struct L_xx row[1];
     };
 #endif
 
-typedef struct PIPLIB_NAME(T) PIPLIB_NAME(Tableau);
+#define Tableau_xx PIPLIB_NAME(Tableau)
+typedef struct T_xx Tableau_xx;
 
 /* Ced : ajouts specifiques a la PipLib pour funcall. */
-PIPLIB_NAME(Tableau) * PIPLIB_NAME(tab_Matrix2Tableau)(
-  PIPLIB_NAME(PipMatrix) *, int, int, int, int, int, int);
+#define tab_Matrix2Tableau_xx PIPLIB_NAME(tab_Matrix2Tableau)
+Tableau_xx * tab_Matrix2Tableau_xx(
+  PipMatrix_xx *, int, int, int, int, int, int);
 
 #if defined(__cplusplus)
   }

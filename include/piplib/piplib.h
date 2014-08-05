@@ -49,7 +49,8 @@
 
   #define PIPLIB_ONE_DETERMINANT
 
-  typedef mpz_t PIPLIB_NAME(piplib_int_t);
+  #define piplib_int_t_xx PIPLIB_NAME(piplib_int_t)
+  typedef mpz_t piplib_int_t_xx;
   #define piplib_int_format "%d"
 
   #define piplib_int_init(i) (mpz_init(i))
@@ -98,7 +99,8 @@
 
   extern int PIPLIB_INT_OSL_PRECISION;
 
-  typedef osl_int_t PIPLIB_NAME(piplib_int_t);
+  #define piplib_int_t_xx PIPLIB_NAME(piplib_int_t)
+  typedef osl_int_t piplib_int_t_xx;
   #define piplib_int_format "%d"
 
   #define piplib_int_init(i) (osl_int_init(PIPLIB_INT_OSL_PRECISION, &(i)))
@@ -162,7 +164,8 @@
 
   #define PIPLIB_NAME(name) name##_sp
 
-  typedef long int PIPLIB_NAME(piplib_int_t);
+  #define piplib_int_t_xx PIPLIB_NAME(piplib_int_t)
+  typedef long int piplib_int_t_xx;
   #define piplib_int_format "%ld"
 
 #endif
@@ -171,7 +174,8 @@
 
   #define PIPLIB_NAME(name) name##_dp
 
-  typedef long long int PIPLIB_NAME(piplib_int_t);
+  #define piplib_int_t_xx PIPLIB_NAME(piplib_int_t)
+  typedef long long int piplib_int_t_xx;
   #define piplib_int_format "%lld"
 
 #endif
@@ -180,20 +184,25 @@
 #if defined(PIPLIB_INT_SP) || defined(PIPLIB_INT_DP)
 
   // Copy from osl_int
-  long long int PIPLIB_NAME(piplib_llgcd)(long long int const,
+  #define piplib_llgcdxx PIPLIB_NAME(piplib_llgcd)
+  #define piplib_llgcd_llabs_xx PIPLIB_NAME(piplib_llgcd_llabs)
+  #define piplib_lllog2_xx PIPLIB_NAME(piplib_lllog2)
+  #define piplib_lllog10_xx PIPLIB_NAME(piplib_lllog10)
+  #define piplib_llmod_xx PIPLIB_NAME(piplib_llmod)
+  long long int piplib_llgcd_xx(long long int const,
                                           long long int const);
-  long long int PIPLIB_NAME(piplib_llgcd_llabs)(long long int const,
+  long long int piplib_llgcd_llabs_xx(long long int const,
                                                 long long int const);
-  size_t PIPLIB_NAME(piplib_lllog2)(long long int);
-  size_t PIPLIB_NAME(piplib_lllog10)(long long int);
-  long long int PIPLIB_NAME(piplib_llmod)(long long int const,
+  size_t piplib_lllog2_xx(long long int);
+  size_t piplib_lllog10_xx(long long int);
+  long long int piplib_llmod_xx(long long int const,
                                           long long int const);
 
   #define piplib_int_init(i) (i = 0)
   #define piplib_int_init_set(i, v) (i = v)
   #define piplib_int_init_set_si(i, v) (i = v)
   #define piplib_int_assign(r, i) (r = i)
-  #define piplib_int_set_si(r, i) (r = (PIPLIB_NAME(piplib_int_t))i)
+  #define piplib_int_set_si(r, i) (r = (piplib_int_t_xx)i)
   #define piplib_int_clear(i) do { } while (0)
   #define piplib_int_print(file, i) (fprintf(file, piplib_int_format, i))
   #define piplib_int_sscanf(string, i) (sscanf(string, piplib_int_format, &i))
@@ -207,23 +216,23 @@
   #define piplib_int_decrement(r, i) (r = i - 1)
   #define piplib_int_mul(r, a, b) (r = a * b)
   #define piplib_int_div_exact(q, a, b) (q = (a) / (b))
-  //#define piplib_int_floor_div_q(q, a, b) (q = (PIPLIB_NAME(piplib_int_t))(piplib_ll_floor_div_q(a, b)))
+  //#define piplib_int_floor_div_q(q, a, b) (q = (piplib_int_t_xx)(piplib_ll_floor_div_q(a, b)))
   #define piplib_int_floor_div_q(q, a, b) \
-    (q = (PIPLIB_NAME(piplib_int_t))((a - PIPLIB_NAME(piplib_llmod)(a, b)) \
+    (q = (piplib_int_t_xx)((a - piplib_llmod_xx(a, b)) \
     / (b)))
   #define piplib_int_floor_div_r(r, a, b) \
-    (r = (PIPLIB_NAME(piplib_int_t))PIPLIB_NAME(piplib_llmod)(a, b))
-  //#define piplib_int_floor_div_r(r, a, b) (r = (PIPLIB_NAME(piplib_int_t))(piplib_ll_floor_div_r(a, b)))
+    (r = (piplib_int_t_xx)piplib_llmod_xx(a, b))
+  //#define piplib_int_floor_div_r(r, a, b) (r = (piplib_int_t_xx)(piplib_ll_floor_div_r(a, b)))
   #define piplib_int_floor_div_q_r(q, r, a, b) \
     do { piplib_int_floor_div_q(q, a, b); piplib_int_floor_div_r(r, a, b); } \
     while (0)
   #define piplib_int_mod(mod, a, b) \
-    (mod = (PIPLIB_NAME(piplib_int_t))(PIPLIB_NAME(piplib_llmod)(a, b)))
+    (mod = (piplib_int_t_xx)(piplib_llmod_xx(a, b)))
   #define piplib_int_gcd(gcd, a, b) \
-    (gcd = (PIPLIB_NAME(piplib_int_t))(PIPLIB_NAME(piplib_llgcd_llabs)(a, b)))
+    (gcd = (piplib_int_t_xx)(piplib_llgcd_llabs_xx(a, b)))
   #define piplib_int_oppose(r, i) (r = - (i))
-  #define piplib_int_size_in_base_2(i) (PIPLIB_NAME(piplib_lllog2)(i))
-  #define piplib_int_size_in_base_10(i) (PIPLIB_NAME(piplib_lllog10)(i))
+  #define piplib_int_size_in_base_2(i) (piplib_lllog2_xx(i))
+  #define piplib_int_size_in_base_10(i) (piplib_lllog10_xx(i))
 
   #define piplib_int_eq(a, b) (a == b)
   #define piplib_int_ne(a, b) (a != b)
@@ -233,6 +242,11 @@
   #define piplib_int_neg(i) (i < 0)
 
 #endif
+
+// Some global variables
+#define verbose_xx PIPLIB_NAME(verbose)
+#define deepest_cut_xx PIPLIB_NAME(deepest_cut)
+#define dump_xx PIPLIB_NAME(dump)
 
 
 #if defined(__cplusplus)
@@ -253,8 +267,8 @@ extern "C"
 struct PIPLIB_NAME(pipmatrix) {
   unsigned int NbRows;    /**< Number of rows */
   unsigned int NbColumns; /**< Number of columns */
-  PIPLIB_NAME(piplib_int_t)** p;       /**< Data */
-  PIPLIB_NAME(piplib_int_t)* p_Init;   /**< Init */
+  piplib_int_t_xx** p;       /**< Data */
+  piplib_int_t_xx* p_Init;   /**< Init */
   int p_Init_size;        /**< Only for PolyLib compatibility under MP version:
                                PolyLib makes sometimes overestimates on the size
                                of the matrices, in order to go faster.
@@ -264,7 +278,8 @@ struct PIPLIB_NAME(pipmatrix) {
                                before freing, then we need to know the number of
                                allocated elements: p_Init_size. */
 };
-typedef struct PIPLIB_NAME(pipmatrix) PIPLIB_NAME(PipMatrix);
+#define PipMatrix_xx PIPLIB_NAME(PipMatrix)
+typedef struct PIPLIB_NAME(pipmatrix) PipMatrix_xx;
 
 
 /**
@@ -275,10 +290,11 @@ typedef struct PIPLIB_NAME(pipmatrix) PIPLIB_NAME(PipMatrix);
  */
 struct PIPLIB_NAME(pipvector) {
   int nb_elements;          /**< Nombre d'elements du vecteur. */
-  PIPLIB_NAME(piplib_int_t)* the_vector; /**< Numerateurs du vecteur. */
-  PIPLIB_NAME(piplib_int_t)* the_deno;   /**< Denominateurs du vecteur. */
+  piplib_int_t_xx* the_vector; /**< Numerateurs du vecteur. */
+  piplib_int_t_xx* the_deno;   /**< Denominateurs du vecteur. */
 };
-typedef struct PIPLIB_NAME(pipvector) PIPLIB_NAME(PipVector);
+#define PipVector_xx PIPLIB_NAME(PipVector)
+typedef struct PIPLIB_NAME(pipvector) PipVector_xx;
 
 
 /**
@@ -290,11 +306,12 @@ typedef struct PIPLIB_NAME(pipvector) PIPLIB_NAME(PipVector);
  */
 struct PIPLIB_NAME(pipnewparm) {
   int rank;                /**< Rang du 'newparm'. */
-  PIPLIB_NAME(PipVector)* vector;       /**< Le vector decrivant le newparm. */
-  PIPLIB_NAME(piplib_int_t) deno;       /**< Denominateur du 'newparm'. */
+  PipVector_xx* vector;       /**< Le vector decrivant le newparm. */
+  piplib_int_t_xx deno;       /**< Denominateur du 'newparm'. */
   struct PIPLIB_NAME(pipnewparm)* next; /**< Pointeur vers le newparm suivant. */
 };
-typedef struct PIPLIB_NAME(pipnewparm) PIPLIB_NAME(PipNewparm);
+#define PipNewparm_xx PIPLIB_NAME(PipNewparm)
+typedef struct PIPLIB_NAME(pipnewparm) PipNewparm_xx;
 
 
 /**
@@ -303,10 +320,11 @@ typedef struct PIPLIB_NAME(pipnewparm) PIPLIB_NAME(PipNewparm);
  * Liste chainee de Vector.
  */
 struct PIPLIB_NAME(piplist) {
-  PIPLIB_NAME(PipVector)* vector;    /**< Le vector contenant la partie de solution. */
+  PipVector_xx* vector;    /**< Le vector contenant la partie de solution. */
   struct PIPLIB_NAME(piplist)* next; /**< Pointeur vers l'element suivant. */
 };
-typedef struct PIPLIB_NAME(piplist) PIPLIB_NAME(PipList);
+#define PipList_xx PIPLIB_NAME(PipList)
+typedef struct PIPLIB_NAME(piplist) PipList_xx;
 
 
 /**
@@ -318,14 +336,15 @@ typedef struct PIPLIB_NAME(piplist) PIPLIB_NAME(PipList);
  * (alors le champ condition contient la condition).
  */
 struct PIPLIB_NAME(pipquast) {
-  PIPLIB_NAME(PipNewparm)* newparm;        /**< Les 'newparm'. */
-  PIPLIB_NAME(PipList)* list;              /**< La 'list' si pas de 'if'. */
-  PIPLIB_NAME(PipVector)* condition;       /**< La condition si 'if'. */
+  PipNewparm_xx* newparm;        /**< Les 'newparm'. */
+  PipList_xx* list;              /**< La 'list' si pas de 'if'. */
+  PipVector_xx* condition;       /**< La condition si 'if'. */
   struct PIPLIB_NAME(pipquast)* next_then; /**< Noeud si condition et si verifiee. */
   struct PIPLIB_NAME(pipquast)* next_else; /**< Noeud si condition et si non verifiee. */
   struct PIPLIB_NAME(pipquast)* father;    /**< Pointeur vers le quast pere. */
 };
-typedef struct PIPLIB_NAME(pipquast) PIPLIB_NAME(PipQuast);
+#define PipQuast_xx PIPLIB_NAME(PipQuast)
+typedef struct PIPLIB_NAME(pipquast) PipQuast_xx;
 
 
 /**
@@ -379,44 +398,62 @@ struct PIPLIB_NAME(pipoptions) {
   /** To compute the dual */
   int Compute_dual;
 };
-typedef struct PIPLIB_NAME(pipoptions) PIPLIB_NAME(PipOptions);
+#define PipOptions_xx PIPLIB_NAME(PipOptions)
+typedef struct PIPLIB_NAME(pipoptions) PipOptions_xx;
 
-void PIPLIB_NAME(pip_options_print)(FILE*, PIPLIB_NAME(PipOptions)*);
+#define pip_options_print_xx PIPLIB_NAME(pip_options_print)
+void pip_options_print_xx(FILE*, PipOptions_xx*);
 
 
 /* Fonctions d'affichages des structures de la PipLib. */
-void PIPLIB_NAME(pip_matrix_print)(FILE*, PIPLIB_NAME(PipMatrix)*);
-void PIPLIB_NAME(pip_vector_print)(FILE*, PIPLIB_NAME(PipVector)*);
-void PIPLIB_NAME(pip_newparm_print)(FILE*, PIPLIB_NAME(PipNewparm)*, int);
-void PIPLIB_NAME(pip_list_print)(FILE*, PIPLIB_NAME(PipList)*, int);
-void PIPLIB_NAME(pip_quast_print)(FILE*, PIPLIB_NAME(PipQuast)*, int);
+#define pip_matrix_print_xx PIPLIB_NAME(pip_matrix_print)
+#define pip_vector_print_xx PIPLIB_NAME(pip_vector_print)
+#define pip_newparm_print_xx PIPLIB_NAME(pip_newparm_print)
+#define pip_list_print_xx PIPLIB_NAME(pip_list_print)
+#define pip_quast_print_xx PIPLIB_NAME(pip_quast_print)
+void pip_matrix_print_xx(FILE*, PipMatrix_xx*);
+void pip_vector_print_xx(FILE*, PipVector_xx*);
+void pip_newparm_print_xx(FILE*, PipNewparm_xx*, int);
+void pip_list_print_xx(FILE*, PipList_xx*, int);
+void pip_quast_print_xx(FILE*, PipQuast_xx*, int);
 
 
 /* Fonctions de liberation memoire des structures de la PipLib.*/
-void PIPLIB_NAME(pip_matrix_free)(PIPLIB_NAME(PipMatrix)*);
-void PIPLIB_NAME(pip_vector_free)(PIPLIB_NAME(PipVector)*);
-void PIPLIB_NAME(pip_newparm_free)(PIPLIB_NAME(PipNewparm)*);
-void PIPLIB_NAME(pip_list_free)(PIPLIB_NAME(PipList)*);
-void PIPLIB_NAME(pip_quast_free)(PIPLIB_NAME(PipQuast)*);
-void PIPLIB_NAME(pip_options_free)(PIPLIB_NAME(PipOptions)*);
+#define pip_matrix_free_xx PIPLIB_NAME(pip_matrix_free)
+#define pip_vector_free_xx PIPLIB_NAME(pip_vector_free)
+#define pip_newparm_free_xx PIPLIB_NAME(pip_newparm_free)
+#define pip_list_free_xx PIPLIB_NAME(pip_list_free)
+#define pip_quast_free_xx PIPLIB_NAME(pip_quast_free)
+#define pip_options_free_xx PIPLIB_NAME(pip_options_free)
+void pip_matrix_free_xx(PipMatrix_xx*);
+void pip_vector_free_xx(PipVector_xx*);
+void pip_newparm_free_xx(PipNewparm_xx*);
+void pip_list_free_xx(PipList_xx*);
+void pip_quast_free_xx(PipQuast_xx*);
+void pip_options_free_xx(PipOptions_xx*);
 
 
 /* Fonctions d'acquisition de matrices de contraintes et options. */
-PIPLIB_NAME(PipMatrix)* PIPLIB_NAME(pip_matrix_alloc)(unsigned int,
-                                                      unsigned int);
-PIPLIB_NAME(PipMatrix)* PIPLIB_NAME(pip_matrix_read)(FILE*);
-PIPLIB_NAME(PipOptions)* PIPLIB_NAME(pip_options_init)(void);
+#define pip_matrix_alloc_xx PIPLIB_NAME(pip_matrix_alloc)
+#define pip_matrix_read_xx PIPLIB_NAME(pip_matrix_read)
+#define pip_options_init_xx PIPLIB_NAME(pip_options_init)
+PipMatrix_xx* pip_matrix_alloc_xx(unsigned int, unsigned int);
+PipMatrix_xx* pip_matrix_read_xx(FILE*);
+PipOptions_xx* pip_options_init_xx(void);
 
 
 /* initialization of pip library */
-void PIPLIB_NAME(pip_init)();
-void PIPLIB_NAME(pip_close)();
+#define pip_init_xx PIPLIB_NAME(pip_init)
+#define pip_close_xx PIPLIB_NAME(pip_close)
+void pip_init_xx();
+void pip_close_xx();
 
 
+#define pip_solve_xx PIPLIB_NAME(pip_solve)
 /**
  * @brief Fonction de resolution
  * 
- * PIPLIB_NAME(pip_solve) resoud le probleme qu'on lui passe en parametre,
+ * pip_solve_xx resoud le probleme qu'on lui passe en parametre,
  * suivant les options elles aussi en parametre. Elle renvoie la solution sous
  * forme d'un arbre de PipQuast.
  * 
@@ -425,16 +462,17 @@ void PIPLIB_NAME(pip_close)();
  * @param[in] bignum     Column rank of the bignum, or negative value if there is no big parameter
  * @param[in] options    PipLib options
  */ 
-PIPLIB_NAME(PipQuast)* PIPLIB_NAME(pip_solve)(
-  PIPLIB_NAME(PipMatrix)* domain,
-  PIPLIB_NAME(PipMatrix)* parameters,
+PipQuast_xx* pip_solve_xx(
+  PipMatrix_xx* domain,
+  PipMatrix_xx* parameters,
   int bignum,
-  PIPLIB_NAME(PipOptions)* options);
+  PipOptions_xx* options);
 
 
+#define sol_quast_edit_xx PIPLIB_NAME(sol_quast_edit)
 /** sol_quast_edit */
-PIPLIB_NAME(PipQuast)* PIPLIB_NAME(sol_quast_edit)(
-  int* i, PIPLIB_NAME(PipQuast)* father, int Bg, int Urs_p, int flags);
+PipQuast_xx* sol_quast_edit_xx(
+  int* i, PipQuast_xx* father, int Bg, int Urs_p, int flags);
 
 
 #if defined(__cplusplus)

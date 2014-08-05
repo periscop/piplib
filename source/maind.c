@@ -39,17 +39,18 @@
 
 
 /*extern long int cross_product ;*/
-extern int PIPLIB_NAME(verbose) ;
-extern FILE * PIPLIB_NAME(dump) ;
+extern int verbose_xx ;
+extern FILE * dump_xx ;
 /*extern int compa_count;*/
-extern int PIPLIB_NAME(deepest_cut);
+extern int deepest_cut_xx;
 
 
-void PIPLIB_NAME(balance)(FILE *foo, FILE *bar)
+#define balance_xx PIPLIB_NAME(balance)
+void balance_xx(FILE *foo, FILE *bar)
 {
  int level = 0;
  int c;
- while((c = PIPLIB_NAME(dgetc)(foo)) != EOF)
+ while((c = dgetc_xx(foo)) != EOF)
      {
       switch(c)
 	  {case '(' : level++; break;
@@ -59,9 +60,10 @@ void PIPLIB_NAME(balance)(FILE *foo, FILE *bar)
      }
 }
 
-void PIPLIB_NAME(escape)(FILE *foo, FILE *bar, int level)
+#define escape_xx PIPLIB_NAME(escape)
+void escape_xx(FILE *foo, FILE *bar, int level)
 {int c;
- while((c = PIPLIB_NAME(dgetc)(foo)) != EOF)
+ while((c = dgetc_xx(foo)) != EOF)
    switch(c)
      {case '(' : level ++; break;
      case ')' : if(--level == 0)
@@ -79,25 +81,25 @@ int main(int argc, char *argv[])
  #endif
 
  FILE *in, *out;
- PIPLIB_NAME(Tableau) *ineq, *context, *ctxt;
+ Tableau_xx *ineq, *context, *ctxt;
  int nvar, nparm, ni, nc, bigparm;
  int nq; char * g;
  int simple = 0;
- struct PIPLIB_NAME(high_water_mark) hq;
+ struct high_water_mark_xx hq;
  int c, non_vide;
  int p, q, xq;
- PIPLIB_NAME(piplib_int_t) x;
+ piplib_int_t_xx x;
  piplib_int_init(x);
  #if defined(PIPLIB_ONE_DETERMINANT)
  #else
- PIPLIB_NAME(piplib_int_t) i;
+ piplib_int_t_xx i;
  #endif
  
  in = stdin; out = stdout;
  p = 1;
  if(argc > 1)
  { if(strcmp(argv[1], "-s") == 0)
-	 { PIPLIB_NAME(verbose) = -1;
+	 { verbose_xx = -1;
 	   p = 2;
 	 }
    /* the number of 'v' in the verbose option control the amount of debug
@@ -105,22 +107,22 @@ int main(int argc, char *argv[])
     */
    else
 	 if(strncmp(argv[1], "-v", 2) == 0)
-   { PIPLIB_NAME(verbose) = 1;
+   { verbose_xx = 1;
      g = argv[1]+2;
-     while(*g++ == 'v') PIPLIB_NAME(verbose)++;
+     while(*g++ == 'v') verbose_xx++;
 	  
      p = 2;
-     PIPLIB_NAME(dump) = PIPLIB_NAME(pip_create_dump_file)();
-     if (!PIPLIB_NAME(dump))
-	PIPLIB_NAME(verbose) = 0;
+     dump_xx = pip_create_dump_file_xx();
+     if (!dump_xx)
+	verbose_xx = 0;
    }
    if(argc>p && strcmp(argv[p], "-d") == 0)
-   { PIPLIB_NAME(deepest_cut) = 1;
+   { deepest_cut_xx = 1;
      p++;
    }
  }
 	
- if(PIPLIB_NAME(verbose) >= 0) fprintf(stderr, "Version "PIPLIB_HEAD"\n");
+ if(verbose_xx >= 0) fprintf(stderr, "Version "PIPLIB_HEAD"\n");
  if(argc > p)
  { if(strcmp(argv[p], "-z") == 0)
    { simple = 1;
@@ -143,93 +145,93 @@ int main(int argc, char *argv[])
  }
  
  p++;
- PIPLIB_NAME(sol_init)();
- PIPLIB_NAME(tab_init)();
- while((c = PIPLIB_NAME(dgetc)(in)) != EOF)
+ sol_init_xx();
+ tab_init_xx();
+ while((c = dgetc_xx(in)) != EOF)
      {if(c != '(') continue;
       fprintf(out, "(");
-      PIPLIB_NAME(balance)(in, out);
-      if(PIPLIB_NAME(dscanf)(in, &x) < 0) {
-        PIPLIB_NAME(escape)(in, out, 1); continue;
+      balance_xx(in, out);
+      if(dscanf_xx(in, &x) < 0) {
+        escape_xx(in, out, 1); continue;
       } else 
         nvar = piplib_int_get_si(x);
-      if(PIPLIB_NAME(dscanf)(in, &x) < 0) {
-        PIPLIB_NAME(escape)(in, out, 1); continue;
+      if(dscanf_xx(in, &x) < 0) {
+        escape_xx(in, out, 1); continue;
       } else
         nparm = piplib_int_get_si(x);
-      if(PIPLIB_NAME(dscanf)(in, &x) < 0) {
-        PIPLIB_NAME(escape)(in, out, 1); continue;
+      if(dscanf_xx(in, &x) < 0) {
+        escape_xx(in, out, 1); continue;
       } else 
         ni = piplib_int_get_si(x);
-      if(PIPLIB_NAME(dscanf)(in, &x) < 0) {
-        PIPLIB_NAME(escape)(in, out, 1); continue;
+      if(dscanf_xx(in, &x) < 0) {
+        escape_xx(in, out, 1); continue;
       } else
         nc = piplib_int_get_si(x);
-      if(PIPLIB_NAME(dscanf)(in, &x) < 0) {
-        PIPLIB_NAME(escape)(in, out, 1); continue;
+      if(dscanf_xx(in, &x) < 0) {
+        escape_xx(in, out, 1); continue;
       } else 
         bigparm = piplib_int_get_si(x);
-      if(PIPLIB_NAME(dscanf)(in, &x) < 0) {
-        PIPLIB_NAME(escape)(in, out, 1); continue;
+      if(dscanf_xx(in, &x) < 0) {
+        escape_xx(in, out, 1); continue;
       } else 
         nq = piplib_int_get_si(x);
       
-      if(PIPLIB_NAME(verbose) > 0) {
-        fprintf(PIPLIB_NAME(dump), "%d %d %d %d %d %d\n",
+      if(verbose_xx > 0) {
+        fprintf(dump_xx, "%d %d %d %d %d %d\n",
                                     nvar, nparm, ni, nc, bigparm, nq);
-        fflush(PIPLIB_NAME(dump));
+        fflush(dump_xx);
       }
       /*cross_product = 0;*/
-      hq = PIPLIB_NAME(tab_hwm)();
-      if(PIPLIB_NAME(verbose) > 0) {fprintf(PIPLIB_NAME(dump), "hwm %p\n", g);
-                       fflush(PIPLIB_NAME(dump));
+      hq = tab_hwm_xx();
+      if(verbose_xx > 0) {fprintf(dump_xx, "hwm %p\n", g);
+                       fflush(dump_xx);
                       }
-      ineq = PIPLIB_NAME(tab_get)(in, ni, nvar+nparm+1, nvar);
+      ineq = tab_get_xx(in, ni, nvar+nparm+1, nvar);
       if (nq)
-	  PIPLIB_NAME(tab_simplify)(ineq, nvar);
-      if(ineq == NULL){PIPLIB_NAME(escape)(in, out, 2); continue;}
-      context = PIPLIB_NAME(tab_get)(in, nc, nparm+1, 0);
+	  tab_simplify_xx(ineq, nvar);
+      if(ineq == NULL){escape_xx(in, out, 2); continue;}
+      context = tab_get_xx(in, nc, nparm+1, 0);
       if (nq)
-	  PIPLIB_NAME(tab_simplify)(context, nparm);
-      if(context == NULL){PIPLIB_NAME(escape)(in, out, 2); continue;}
-      xq = p = PIPLIB_NAME(sol_hwm)();
+	  tab_simplify_xx(context, nparm);
+      if(context == NULL){escape_xx(in, out, 2); continue;}
+      xq = p = sol_hwm_xx();
 /* verification de la non-vacuite' du contexte */
       if(nc)
-      {ctxt = PIPLIB_NAME(expanser)(context, nparm, nc, nparm+1, nparm, 0, 0);
-       PIPLIB_NAME(traiter)(ctxt, NULL, nparm, 0, nc, 0, -1, TRAITER_INT);
-       non_vide = PIPLIB_NAME(is_not_Nil)(p);
-       PIPLIB_NAME(sol_reset)(p);
+      {ctxt = expanser_xx(context, nparm, nc, nparm+1, nparm, 0, 0);
+       traiter_xx(ctxt, NULL, nparm, 0, nc, 0, -1, TRAITER_INT);
+       non_vide = is_not_Nil_xx(p);
+       sol_reset_xx(p);
       }
       else non_vide = Pip_True;
       if(non_vide) {
        /*compa_count = 0;*/
-       PIPLIB_NAME(traiter)(
+       traiter_xx(
          ineq, context, nvar, nparm, ni, nc, bigparm, nq ? TRAITER_INT : 0);
-	if (PIPLIB_NAME(verbose) > 0) {
-	    fprintf(PIPLIB_NAME(dump), "det: ");
+	if (verbose_xx > 0) {
+	    fprintf(dump_xx, "det: ");
 #if defined(PIPLIB_ONE_DETERMINANT)
-	    piplib_int_print(PIPLIB_NAME(dump), ineq->determinant);
+	    piplib_int_print(dump_xx, ineq->determinant);
 #else
 	    for (i=0; i<ineq->l_determinant; i++) {
-		fprintf(PIPLIB_NAME(dump), piplib_int_format, ineq->determinant[i]);
-		fprintf(PIPLIB_NAME(dump), " ");
+		fprintf(dump_xx, piplib_int_format, ineq->determinant[i]);
+		fprintf(dump_xx, " ");
 	    }
 #endif
-	    fprintf(PIPLIB_NAME(dump), "\n");
+	    fprintf(dump_xx, "\n");
 	}
 	fputs(")\n",out);
-       if(simple) PIPLIB_NAME(sol_simplify)(xq);
-       q = PIPLIB_NAME(sol_hwm)();
-       while((xq = PIPLIB_NAME(sol_edit)(out, xq)) != q);
-       PIPLIB_NAME(sol_reset)(p);
+       if(simple) sol_simplify_xx(xq);
+       q = sol_hwm_xx();
+       while((xq = sol_edit_xx(out, xq)) != q);
+       sol_reset_xx(p);
       }
       else fprintf(out, "void\n");
-      PIPLIB_NAME(tab_reset)(hq);
-      if(PIPLIB_NAME(verbose) > 0) fflush(PIPLIB_NAME(dump));
+      tab_reset_xx(hq);
+      if(verbose_xx > 0) fflush(dump_xx);
       /* add a right parenthesis in order to keep the output in balance */
       fprintf(out, ")\n");
       fflush(out);
-      if(PIPLIB_NAME(verbose) >= 0) 
+      if(verbose_xx >= 0) 
        fprintf(stderr,"cross : (%ld), compa : (%d)\n\r",
                /*cross_product*/0L, /*compa_count*/0);
       #ifdef UNIX
@@ -243,7 +245,7 @@ int main(int argc, char *argv[])
 #endif
 
  piplib_int_clear(x);
- PIPLIB_NAME(pip_close)();
+ pip_close_xx();
  return 0;
 }
 

@@ -30,12 +30,13 @@
 
 #include "pip.h"
 
-extern int PIPLIB_NAME(verbose);
-extern FILE *PIPLIB_NAME(dump);
+extern int verbose_xx;
+extern FILE *dump_xx;
 
-struct PIPLIB_NAME(S)
+#define S_xx PIPLIB_NAME(S)
+struct S_xx
     {int flags;
-     PIPLIB_NAME(piplib_int_t) param1, param2;
+     piplib_int_t_xx param1, param2;
     };
 
 #define Free 0
@@ -48,249 +49,254 @@ struct PIPLIB_NAME(S)
 #define Val  7
 #define Error 8
 
-struct PIPLIB_NAME(S) * PIPLIB_NAME(sol_space);
-static int PIPLIB_NAME(sol_free);
+#define sol_space_xx PIPLIB_NAME(sol_space)
+#define sol_free_xx PIPLIB_NAME(sol_free)
+struct S_xx * sol_space_xx;
+static int sol_free_xx;
 
-void PIPLIB_NAME(sol_init)(void)
+void sol_init_xx(void)
 {
- PIPLIB_NAME(sol_free) = 0;
- PIPLIB_NAME(sol_space) = (struct PIPLIB_NAME(S) *)malloc(
-                            SOL_SIZE*sizeof(struct PIPLIB_NAME(S))) ;
+ sol_free_xx = 0;
+ sol_space_xx = (struct S_xx *)malloc(
+                            SOL_SIZE*sizeof(struct S_xx)) ;
 }
 
-void PIPLIB_NAME(sol_close)(void)
+void sol_close_xx(void)
 {
- free(PIPLIB_NAME(sol_space)) ;
+ free(sol_space_xx) ;
 }
 
-int PIPLIB_NAME(sol_hwm)()
+int sol_hwm_xx()
 {
- return(PIPLIB_NAME(sol_free));
+ return(sol_free_xx);
 }
 
-void PIPLIB_NAME(sol_reset)(p)
+void sol_reset_xx(p)
 int p;
 {int i;
  if(p<0 || p>=SOL_SIZE)
      {fprintf(stderr,
-              "Syserr : PIPLIB_NAME(sol_reset) : Memory allocation error\n");
+              "Syserr : sol_reset_xx : Memory allocation error\n");
       exit(40);
      }
- for(i=p; i<PIPLIB_NAME(sol_free); i++){
-   piplib_int_clear(PIPLIB_NAME(sol_space)[i].param1);
-   piplib_int_clear(PIPLIB_NAME(sol_space)[i].param2);
+ for(i=p; i<sol_free_xx; i++){
+   piplib_int_clear(sol_space_xx[i].param1);
+   piplib_int_clear(sol_space_xx[i].param2);
  }
- PIPLIB_NAME(sol_free) = p;
+ sol_free_xx = p;
 }
 
-struct PIPLIB_NAME(S) *PIPLIB_NAME(sol_alloc)(void)
-{struct PIPLIB_NAME(S) *r;
- r = PIPLIB_NAME(sol_space) + PIPLIB_NAME(sol_free);
+#define sol_alloc_xx PIPLIB_NAME(sol_alloc)
+struct S_xx *sol_alloc_xx(void)
+{struct S_xx *r;
+ r = sol_space_xx + sol_free_xx;
  r->flags = Free;
  piplib_int_init_set_si(r->param1,0);
  piplib_int_init_set_si(r->param2,0);
- PIPLIB_NAME(sol_free)++;
- if(PIPLIB_NAME(sol_free) >= SOL_SIZE)
+ sol_free_xx++;
+ if(sol_free_xx >= SOL_SIZE)
      {fprintf(stderr, "The solution is too complex! : sol\n");
       exit(26);
      }
      return(r);
 }
 
-void PIPLIB_NAME(sol_nil)(void)
+void sol_nil_xx(void)
 {
- struct PIPLIB_NAME(S) * r;
- r = PIPLIB_NAME(sol_alloc)();
+ struct S_xx * r;
+ r = sol_alloc_xx();
  r -> flags = Nil;
- if(PIPLIB_NAME(verbose) > 0)
-   {fprintf(PIPLIB_NAME(dump), "\nNil");
-    fflush(PIPLIB_NAME(dump));
+ if(verbose_xx > 0)
+   {fprintf(dump_xx, "\nNil");
+    fflush(dump_xx);
   }
 }
 
-void PIPLIB_NAME(sol_error)(int c)
+void sol_error_xx(int c)
 {
- struct PIPLIB_NAME(S) *r;
- r = PIPLIB_NAME(sol_alloc)();
+ struct S_xx *r;
+ r = sol_alloc_xx();
  r->flags = Nil;
  piplib_int_set_si(r->param1, c);
- if(PIPLIB_NAME(verbose) > 0) {
-     fprintf(PIPLIB_NAME(dump), "Erreur %d\n", c);
-     fflush(PIPLIB_NAME(dump));
+ if(verbose_xx > 0) {
+     fprintf(dump_xx, "Erreur %d\n", c);
+     fflush(dump_xx);
      }
 }
 
-int PIPLIB_NAME(is_not_Nil)(p)
+int is_not_Nil_xx(p)
 int p;
 {
- return(PIPLIB_NAME(sol_space)[p].flags != Nil);
+ return(sol_space_xx[p].flags != Nil);
 }
 
-void PIPLIB_NAME(sol_if)(void)
+void sol_if_xx(void)
 {
- struct PIPLIB_NAME(S) *r;
- r = PIPLIB_NAME(sol_alloc)();
+ struct S_xx *r;
+ r = sol_alloc_xx();
  r -> flags = If;
- if(PIPLIB_NAME(verbose) > 0) {
-     fprintf(PIPLIB_NAME(dump), "\nIf ");
-     fflush(PIPLIB_NAME(dump));
+ if(verbose_xx > 0) {
+     fprintf(dump_xx, "\nIf ");
+     fflush(dump_xx);
    }
 }
 
-void PIPLIB_NAME(sol_list)(n)
+void sol_list_xx(n)
 int n;
-{struct PIPLIB_NAME(S) * r;
- r = PIPLIB_NAME(sol_alloc)();
+{struct S_xx * r;
+ r = sol_alloc_xx();
  r->flags = List;
  piplib_int_set_si(r->param1, n);
- if(PIPLIB_NAME(verbose) > 0) {
-     fprintf(PIPLIB_NAME(dump), "\nList %d ", n);
-     fflush(PIPLIB_NAME(dump));
+ if(verbose_xx > 0) {
+     fprintf(dump_xx, "\nList %d ", n);
+     fflush(dump_xx);
 }
 }
 
-void PIPLIB_NAME(sol_forme)(l)
+void sol_forme_xx(l)
 int l;
 {
- struct PIPLIB_NAME(S) *r;
- r = PIPLIB_NAME(sol_alloc)();
+ struct S_xx *r;
+ r = sol_alloc_xx();
  r -> flags = Form;
  piplib_int_set_si(r -> param1, l);
- if(PIPLIB_NAME(verbose) > 0) {
-     fprintf(PIPLIB_NAME(dump), "\nForme %d ", l);
-     fflush(PIPLIB_NAME(dump));
+ if(verbose_xx > 0) {
+     fprintf(dump_xx, "\nForme %d ", l);
+     fflush(dump_xx);
    }
 }
 
-void PIPLIB_NAME(sol_new)(k)
+void sol_new_xx(k)
 int k;
 {
- struct PIPLIB_NAME(S) *r;
- r = PIPLIB_NAME(sol_alloc)();
+ struct S_xx *r;
+ r = sol_alloc_xx();
  r -> flags = New;
  piplib_int_set_si(r -> param1, k);
- if(PIPLIB_NAME(verbose) > 0) {
-     fprintf(PIPLIB_NAME(dump), "New %d ", k);
-     fflush(PIPLIB_NAME(dump));
+ if(verbose_xx > 0) {
+     fprintf(dump_xx, "New %d ", k);
+     fflush(dump_xx);
    }
 }
 
-void PIPLIB_NAME(sol_div)()
+void sol_div_xx()
 {
- struct PIPLIB_NAME(S) *r;
- r = PIPLIB_NAME(sol_alloc)();
+ struct S_xx *r;
+ r = sol_alloc_xx();
  r -> flags = Div;
- if(PIPLIB_NAME(verbose) > 0) {
-     fprintf(PIPLIB_NAME(dump), "Div ");
-     fflush(PIPLIB_NAME(dump));
+ if(verbose_xx > 0) {
+     fprintf(dump_xx, "Div ");
+     fflush(dump_xx);
    }
 }
 
-void PIPLIB_NAME(sol_val)(n, d)
-PIPLIB_NAME(piplib_int_t) n, d;
+void sol_val_xx(n, d)
+piplib_int_t_xx n, d;
 {
- struct PIPLIB_NAME(S) *r;
- r = PIPLIB_NAME(sol_alloc)();
+ struct S_xx *r;
+ r = sol_alloc_xx();
  r -> flags = Val;
  piplib_int_assign(r->param1, n);
  piplib_int_assign(r->param2, d);
- if(PIPLIB_NAME(verbose) > 0) {
-   fprintf(PIPLIB_NAME(dump), "val(");
-   piplib_int_print(PIPLIB_NAME(dump), n);
-   fprintf(PIPLIB_NAME(dump), "/");
-   piplib_int_print(PIPLIB_NAME(dump), d);
-   fprintf(PIPLIB_NAME(dump), ") ");
-   fflush(PIPLIB_NAME(dump));
+ if(verbose_xx > 0) {
+   fprintf(dump_xx, "val(");
+   piplib_int_print(dump_xx, n);
+   fprintf(dump_xx, "/");
+   piplib_int_print(dump_xx, d);
+   fprintf(dump_xx, ") ");
+   fflush(dump_xx);
   }
 }
 
-void PIPLIB_NAME(sol_val_one)(PIPLIB_NAME(piplib_int_t) n) {
-  PIPLIB_NAME(piplib_int_t) one;
+void sol_val_one_xx(piplib_int_t_xx n) {
+  piplib_int_t_xx one;
   piplib_int_init_set_si(one, 1);
-  PIPLIB_NAME(sol_val)(n, one);
+  sol_val_xx(n, one);
   piplib_int_clear(one);
 }
 
-void PIPLIB_NAME(sol_val_zero_one)() {
-  PIPLIB_NAME(piplib_int_t) zero;
-  PIPLIB_NAME(piplib_int_t) one;
+void sol_val_zero_one_xx() {
+  piplib_int_t_xx zero;
+  piplib_int_t_xx one;
   piplib_int_init_set_si(zero, 0);
   piplib_int_init_set_si(one, 1);
-  PIPLIB_NAME(sol_val)(zero, one);
+  sol_val_xx(zero, one);
   piplib_int_clear(one);
   piplib_int_clear(zero);
 }
 
-int PIPLIB_NAME(skip)(int);
+#define skip_xx PIPLIB_NAME(skip)
+int skip_xx(int);
 
 /* a` partir d'un point de la solution, sauter un objet
 bien forme' ainsi qu'un e'ventuel New et pointer sur l'objet
 suivant */
 
-int PIPLIB_NAME(skip_New) (int i)
+#define skip_New_xx PIPLIB_NAME(skip_New)
+int skip_New_xx (int i)
 {
- if(PIPLIB_NAME(sol_space)[i].flags != New) return i;
- i = PIPLIB_NAME(skip)(i+1);      /* sauter le Div */
+ if(sol_space_xx[i].flags != New) return i;
+ i = skip_xx(i+1);      /* sauter le Div */
  return i;
 }
 /* au lancement, i indexe une cellule qui est la te^te d'un objet.
    la valeur retourne'e est la te^te de l'objet qui suit. Les
    objets de type New sont e'limine's                                */
 
-int PIPLIB_NAME(skip) (int i)
+int skip_xx (int i)
 {int n, f;
- while((f = PIPLIB_NAME(sol_space)[i].flags) == Free || f == Error) i++;
- switch (PIPLIB_NAME(sol_space)[i].flags) {
+ while((f = sol_space_xx[i].flags) == Free || f == Error) i++;
+ switch (sol_space_xx[i].flags) {
  case Nil : case Val : i++; break;
- case New : i = PIPLIB_NAME(skip_New)(i); break;
- case If : i = PIPLIB_NAME(skip)(i+1);        /* sauter le pre'dicat */
-	   i = PIPLIB_NAME(skip)(i);          /* sauter le vrai */
-	   i = PIPLIB_NAME(skip)(i); break;   /* sauter le faux */
+ case New : i = skip_New_xx(i); break;
+ case If : i = skip_xx(i+1);        /* sauter le pre'dicat */
+	   i = skip_xx(i);          /* sauter le vrai */
+	   i = skip_xx(i); break;   /* sauter le faux */
  case List : case Form :
-           n = piplib_int_get_si(PIPLIB_NAME(sol_space)[i].param1);
+           n = piplib_int_get_si(sol_space_xx[i].param1);
 	   i++;
-	   while(n--) i = PIPLIB_NAME(skip)(i);
+	   while(n--) i = skip_xx(i);
 	   break;
- case Div : i = PIPLIB_NAME(skip)(i+1);       /* sauter la forme */
-	    i = PIPLIB_NAME(skip)(i);         /* sauter le diviseur */
+ case Div : i = skip_xx(i+1);       /* sauter la forme */
+	    i = skip_xx(i);         /* sauter le diviseur */
 	    break;
  default : fprintf(stderr,
-                   "Syserr : PIPLIB_NAME(skip) : unknown %d\n",
-                   PIPLIB_NAME(sol_space)[i].flags);
+                   "Syserr : skip_xx : unknown %d\n",
+                   sol_space_xx[i].flags);
  }
- return PIPLIB_NAME(skip_New)(i);
+ return skip_New_xx(i);
 }
 /* simplification de la solution : e'limination des constructions
    (if p () ()). N'est en service qu'en pre'sence de l'option -z */
 
-void PIPLIB_NAME(sol_simplify)(int i)
+void sol_simplify_xx(int i)
 {int j, k, l;
- if(PIPLIB_NAME(sol_space)[i].flags == If) {
-     j = PIPLIB_NAME(skip)(i+1);        /* j : debut de la partie vraie */
-     k = PIPLIB_NAME(skip)(j);          /* k : debut de la partie fausse */
-     PIPLIB_NAME(sol_simplify)(k);
-     PIPLIB_NAME(sol_simplify)(j);
-     if (PIPLIB_NAME(sol_space)[j].flags == Nil &&
-         PIPLIB_NAME(sol_space)[k].flags == Nil) {
-	 PIPLIB_NAME(sol_space)[i].flags = Nil;
-	 if (k >= PIPLIB_NAME(sol_free) - 1) 
-	    PIPLIB_NAME(sol_reset)(i+1);
-	 else for(l = i+1; l<=k; l++) PIPLIB_NAME(sol_space)[l].flags = Free;
+ if(sol_space_xx[i].flags == If) {
+     j = skip_xx(i+1);        /* j : debut de la partie vraie */
+     k = skip_xx(j);          /* k : debut de la partie fausse */
+     sol_simplify_xx(k);
+     sol_simplify_xx(j);
+     if (sol_space_xx[j].flags == Nil &&
+         sol_space_xx[k].flags == Nil) {
+	 sol_space_xx[i].flags = Nil;
+	 if (k >= sol_free_xx - 1) 
+	    sol_reset_xx(i+1);
+	 else for(l = i+1; l<=k; l++) sol_space_xx[l].flags = Free;
        }
    }
 
 }
 /* e'dition de la solution */
 
-int PIPLIB_NAME(sol_edit)(FILE *foo, int i)
+int sol_edit_xx(FILE *foo, int i)
 {int j, n;
- struct PIPLIB_NAME(S) *p;
- PIPLIB_NAME(piplib_int_t) N, D, d;
+ struct S_xx *p;
+ piplib_int_t_xx N, D, d;
  piplib_int_init(N);
  piplib_int_init(D);
  piplib_int_init(d);
  
- p = PIPLIB_NAME(sol_space) + i;
+ p = sol_space_xx + i;
  for(;;) {
    if(p->flags == Free) {
      p++;
@@ -300,42 +306,42 @@ int PIPLIB_NAME(sol_edit)(FILE *foo, int i)
    if(p->flags == New) {
      n = piplib_int_get_si(p->param1);
      fprintf(foo, "(newparm %d ", n);
-     if(PIPLIB_NAME(verbose)>0)fprintf(PIPLIB_NAME(dump), "(newparm %d ", n);
-     i = PIPLIB_NAME(sol_edit)(foo, ++i);
-     p = PIPLIB_NAME(sol_space) +i;
+     if(verbose_xx>0)fprintf(dump_xx, "(newparm %d ", n);
+     i = sol_edit_xx(foo, ++i);
+     p = sol_space_xx +i;
      fprintf(foo, ")\n");
-     if(PIPLIB_NAME(verbose)>0)fprintf(PIPLIB_NAME(dump), ")\n");
+     if(verbose_xx>0)fprintf(dump_xx, ")\n");
      continue;
    }
    break;
  }
  switch(p->flags){
  case Nil : fprintf(foo, "()\n");
-   if(PIPLIB_NAME(verbose)>0)fprintf(PIPLIB_NAME(dump), "()\n");
+   if(verbose_xx>0)fprintf(dump_xx, "()\n");
    i++; break;
  case Error :
    fprintf(foo, "Error %d\n", piplib_int_get_si(p->param1));
-   if(PIPLIB_NAME(verbose)>0)
-   fprintf(PIPLIB_NAME(dump), "Error %d\n", piplib_int_get_si(p->param1));
+   if(verbose_xx>0)
+   fprintf(dump_xx, "Error %d\n", piplib_int_get_si(p->param1));
    i++; break;
  case If  : fprintf(foo, "(if ");
-   if(PIPLIB_NAME(verbose)>0)fprintf(PIPLIB_NAME(dump), "(if ");
-   i = PIPLIB_NAME(sol_edit)(foo, ++i);
-   i = PIPLIB_NAME(sol_edit)(foo, i);
-   i = PIPLIB_NAME(sol_edit)(foo, i);
+   if(verbose_xx>0)fprintf(dump_xx, "(if ");
+   i = sol_edit_xx(foo, ++i);
+   i = sol_edit_xx(foo, i);
+   i = sol_edit_xx(foo, i);
    fprintf(foo, ")\n");
-   if(PIPLIB_NAME(verbose)>0)fprintf(PIPLIB_NAME(dump), ")\n");
+   if(verbose_xx>0)fprintf(dump_xx, ")\n");
    break;
  case List: fprintf(foo, "(list ");
-   if(PIPLIB_NAME(verbose)>0)fprintf(PIPLIB_NAME(dump), "(list ");
+   if(verbose_xx>0)fprintf(dump_xx, "(list ");
    n = piplib_int_get_si(p->param1);
    i++;
-   while(n--) i = PIPLIB_NAME(sol_edit)(foo, i);
+   while(n--) i = sol_edit_xx(foo, i);
    fprintf(foo, ")\n");
-   if(PIPLIB_NAME(verbose)>0)fprintf(PIPLIB_NAME(dump), ")\n");
+   if(verbose_xx>0)fprintf(dump_xx, ")\n");
    break;
  case Form: fprintf(foo, "#[");
-   if(PIPLIB_NAME(verbose)>0)fprintf(PIPLIB_NAME(dump), "#[");
+   if(verbose_xx>0)fprintf(dump_xx, "#[");
    n = piplib_int_get_si(p->param1);
    for(j = 0; j<n; j++){
      i++; p++;
@@ -346,9 +352,9 @@ int PIPLIB_NAME(sol_edit)(FILE *foo, int i)
        putc(' ', foo);
        piplib_int_div_exact(N, N, d);
        piplib_int_print(foo, N);
-       if(PIPLIB_NAME(verbose)>0){
-         putc(' ', PIPLIB_NAME(dump));
-         piplib_int_print(PIPLIB_NAME(dump), N);
+       if(verbose_xx>0){
+         putc(' ', dump_xx);
+         piplib_int_print(dump_xx, N);
        }
      }
      else{
@@ -358,24 +364,24 @@ int PIPLIB_NAME(sol_edit)(FILE *foo, int i)
        piplib_int_print(foo, N);
        putc('/', foo);
        piplib_int_print(foo, D);
-       if(PIPLIB_NAME(verbose)>0){
-         putc(' ', PIPLIB_NAME(dump));
-         piplib_int_print(PIPLIB_NAME(dump), N);
-         putc('/', PIPLIB_NAME(dump));
-         piplib_int_print(PIPLIB_NAME(dump), D);
+       if(verbose_xx>0){
+         putc(' ', dump_xx);
+         piplib_int_print(dump_xx, N);
+         putc('/', dump_xx);
+         piplib_int_print(dump_xx, D);
        }
      }
    }
    fprintf(foo, "]\n");
-   if(PIPLIB_NAME(verbose)>0)fprintf(PIPLIB_NAME(dump), "]\n");
+   if(verbose_xx>0)fprintf(dump_xx, "]\n");
    i++;
    break;
  case Div : fprintf(foo, "(div ");
-   if(PIPLIB_NAME(verbose)>0)fprintf(PIPLIB_NAME(dump), "(div ");
-   i = PIPLIB_NAME(sol_edit)(foo, ++i);
-   i = PIPLIB_NAME(sol_edit)(foo, i);
+   if(verbose_xx>0)fprintf(dump_xx, "(div ");
+   i = sol_edit_xx(foo, ++i);
+   i = sol_edit_xx(foo, i);
    fprintf(foo, ")\n");
-   if(PIPLIB_NAME(verbose)>0)fprintf(PIPLIB_NAME(dump), ")\n");
+   if(verbose_xx>0)fprintf(dump_xx, ")\n");
    break;
  case Val :
    piplib_int_assign(N, p->param1);
@@ -385,9 +391,9 @@ int PIPLIB_NAME(sol_edit)(FILE *foo, int i)
      piplib_int_div_exact(N, N, d);
      putc(' ', foo);
      piplib_int_print(foo, N);
-     if(PIPLIB_NAME(verbose)>0){
-       putc(' ', PIPLIB_NAME(dump));
-       piplib_int_print(PIPLIB_NAME(dump), N);
+     if(verbose_xx>0){
+       putc(' ', dump_xx);
+       piplib_int_print(dump_xx, N);
      }
    }
    else{
@@ -397,17 +403,17 @@ int PIPLIB_NAME(sol_edit)(FILE *foo, int i)
      piplib_int_print(foo, N);
      fprintf(foo, "/");
      piplib_int_print(foo, D);
-     if(PIPLIB_NAME(verbose)>0){
-       putc(' ', PIPLIB_NAME(dump));
-       piplib_int_print(PIPLIB_NAME(dump), N);
-       fprintf(PIPLIB_NAME(dump), "/");
-       piplib_int_print(PIPLIB_NAME(dump), D);
+     if(verbose_xx>0){
+       putc(' ', dump_xx);
+       piplib_int_print(dump_xx, N);
+       fprintf(dump_xx, "/");
+       piplib_int_print(dump_xx, D);
      }
    }
    i++;
    break;
  default  : fprintf(foo, "Inconnu : sol\n");
-   if(PIPLIB_NAME(verbose)>0)fprintf(PIPLIB_NAME(dump), "Inconnu : sol\n");
+   if(verbose_xx>0)fprintf(dump_xx, "Inconnu : sol\n");
  }
  piplib_int_clear(d);
  piplib_int_clear(D);
@@ -425,37 +431,38 @@ int PIPLIB_NAME(sol_edit)(FILE *foo, int i)
  * une structure de type PipVector contenant les informations de ce Vector.
  * Premiere version : Ced. 20 juillet 2001. 
  */
-PIPLIB_NAME(PipVector) * PIPLIB_NAME(sol_vector_edit)(int *i, int Bg,
+#define sol_vector_edit_xx PIPLIB_NAME(sol_vector_edit)
+PipVector_xx * sol_vector_edit_xx(int *i, int Bg,
                                                       int Urs_p, int flags)
 { int j, k, n, unbounded  = 0, first_urs;
-  struct PIPLIB_NAME(S) *p ;
-  PIPLIB_NAME(piplib_int_t) N, D, d ;
-  PIPLIB_NAME(PipVector) * vector ;
+  struct S_xx *p ;
+  piplib_int_t_xx N, D, d ;
+  PipVector_xx * vector ;
 
   piplib_int_init(N);
   piplib_int_init(D);
   piplib_int_init(d);
   
-  vector = (PIPLIB_NAME(PipVector) *)malloc(sizeof(PIPLIB_NAME(PipVector))) ;
+  vector = (PipVector_xx *)malloc(sizeof(PipVector_xx)) ;
   if (vector == NULL)
   { fprintf(stderr, "Memory Overflow.\n") ;
     exit(1) ;
   }
-  p = PIPLIB_NAME(sol_space) + (*i) ;
+  p = sol_space_xx + (*i) ;
   n = piplib_int_get_si(p->param1);
   if (flags & SOL_REMOVE)
     --n;
   n -= Urs_p;
   first_urs = Urs_p + (Bg >= 0);
   vector->nb_elements = n ;
-  vector->the_vector = (PIPLIB_NAME(piplib_int_t) *)malloc(
-                         sizeof(PIPLIB_NAME(piplib_int_t))*n) ;
+  vector->the_vector = (piplib_int_t_xx *)malloc(
+                         sizeof(piplib_int_t_xx)*n) ;
   if (vector->the_vector == NULL)
   { fprintf(stderr, "Memory Overflow.\n") ;
     exit(1) ;
   }
-  vector->the_deno = (PIPLIB_NAME(piplib_int_t) *)malloc(
-                       sizeof(PIPLIB_NAME(piplib_int_t))*n) ;
+  vector->the_deno = (piplib_int_t_xx *)malloc(
+                       sizeof(piplib_int_t_xx)*n) ;
   if (vector->the_deno == NULL)
   { fprintf(stderr, "Memory Overflow.\n") ;
     exit(1) ;
@@ -514,30 +521,31 @@ PIPLIB_NAME(PipVector) * PIPLIB_NAME(sol_vector_edit)(int *i, int Bg,
  * une structure de type PipNewparm contenant les informations de ce Newparm.
  * Premiere version : Ced. 18 octobre 2001. 
  */
-PIPLIB_NAME(PipNewparm) * PIPLIB_NAME(sol_newparm_edit)(int *i, int Bg,
+#define sol_newparm_edit_xx PIPLIB_NAME(sol_newparm_edit)
+PipNewparm_xx * sol_newparm_edit_xx(int *i, int Bg,
                                                         int Urs_p, int flags)
-{ struct PIPLIB_NAME(S) * p ;
-  PIPLIB_NAME(PipNewparm) * newparm,
+{ struct S_xx * p ;
+  PipNewparm_xx * newparm,
                           * newparm_first = NULL,
                           * newparm_now = NULL;
 
   /* On place p au lieu de lecture. */
-  p = PIPLIB_NAME(sol_space) + (*i) ;
+  p = sol_space_xx + (*i) ;
 
   do {
     /* On passe le New et le Div pour aller a Form et lire le VECTOR. */
     (*i) += 2 ;
 
-    newparm = (PIPLIB_NAME(PipNewparm) *)malloc(
-                sizeof(PIPLIB_NAME(PipNewparm)));
+    newparm = (PipNewparm_xx *)malloc(
+                sizeof(PipNewparm_xx));
     if (newparm == NULL)
     { fprintf(stderr, "Memory Overflow.\n") ;
       exit(1) ;
     }
-    newparm->vector = PIPLIB_NAME(sol_vector_edit)(i, Bg, Urs_p, flags);
+    newparm->vector = sol_vector_edit_xx(i, Bg, Urs_p, flags);
     newparm->rank = piplib_int_get_si(p->param1);
     /* On met p a jour pour lire le denominateur (un Val de param2 1). */
-    p = PIPLIB_NAME(sol_space) + (*i) ;
+    p = sol_space_xx + (*i) ;
     piplib_int_init(newparm->deno);
     piplib_int_assign(newparm->deno, p->param1);
     if (flags & SOL_REMOVE)
@@ -550,19 +558,19 @@ PIPLIB_NAME(PipNewparm) * PIPLIB_NAME(sol_newparm_edit)(int *i, int Bg,
     else
       newparm_first = newparm;
     newparm_now = newparm ;
-    if (PIPLIB_NAME(verbose) > 0)
-    { fprintf(PIPLIB_NAME(dump),"\n(newparm ") ;
-      fprintf(PIPLIB_NAME(dump), "%i", newparm->rank) ;
-      fprintf(PIPLIB_NAME(dump)," (div ") ;
-      PIPLIB_NAME(pip_vector_print)(PIPLIB_NAME(dump),newparm->vector) ;
-      fprintf(PIPLIB_NAME(dump)," ") ;
-      piplib_int_print(PIPLIB_NAME(dump), newparm->deno);
-      fprintf(PIPLIB_NAME(dump),"))") ;
+    if (verbose_xx > 0)
+    { fprintf(dump_xx,"\n(newparm ") ;
+      fprintf(dump_xx, "%i", newparm->rank) ;
+      fprintf(dump_xx," (div ") ;
+      pip_vector_print_xx(dump_xx,newparm->vector) ;
+      fprintf(dump_xx," ") ;
+      piplib_int_print(dump_xx, newparm->deno);
+      fprintf(dump_xx,"))") ;
     }
   
     /* On passe aux elements suivants. */
     (*i) ++ ;
-    p = PIPLIB_NAME(sol_space) + (*i) ;
+    p = sol_space_xx + (*i) ;
   } while (p->flags == New);
 
   return newparm_first;
@@ -579,12 +587,13 @@ PIPLIB_NAME(PipNewparm) * PIPLIB_NAME(sol_newparm_edit)(int *i, int Bg,
  * Premiere version : Ced. 18 octobre 2001. 
  * 16 novembre 2005 : Ced. Prise en compte du cas 0 éléments, avant impossible.
  */
-PIPLIB_NAME(PipList) * PIPLIB_NAME(sol_list_edit)(int *i, int nb_elements,
+#define sol_list_edit_xx PIPLIB_NAME(sol_list_edit)
+PipList_xx * sol_list_edit_xx(int *i, int nb_elements,
                                                   int Bg, int Urs_p, int flags)
-{ PIPLIB_NAME(PipList) * list, * list_new, * list_now ;
+{ PipList_xx * list, * list_new, * list_now ;
   
   /* Pour le premier element. */
-  list = (PIPLIB_NAME(PipList) *)malloc(sizeof(PIPLIB_NAME(PipList))) ;
+  list = (PipList_xx *)malloc(sizeof(PipList_xx)) ;
   if (list == NULL)
   { fprintf(stderr, "Memory Overflow.\n") ;
     exit(1) ;
@@ -596,34 +605,34 @@ PIPLIB_NAME(PipList) * PIPLIB_NAME(sol_list_edit)(int *i, int nb_elements,
     return(list) ;
   }
   
-  list->vector = PIPLIB_NAME(sol_vector_edit)(i, Bg, Urs_p, flags);
+  list->vector = sol_vector_edit_xx(i, Bg, Urs_p, flags);
 
   list_now = list ;
-  if (PIPLIB_NAME(verbose) > 0)
-  { fprintf(PIPLIB_NAME(dump),"\n(list ") ;
-    PIPLIB_NAME(pip_vector_print)(PIPLIB_NAME(dump),list->vector) ;
+  if (verbose_xx > 0)
+  { fprintf(dump_xx,"\n(list ") ;
+    pip_vector_print_xx(dump_xx,list->vector) ;
   }
   nb_elements-- ;
 
   /* Pour les elements suivants. */
   while (nb_elements--)
-  { list_new = (PIPLIB_NAME(PipList) *)malloc(sizeof(PIPLIB_NAME(PipList))) ;
+  { list_new = (PipList_xx *)malloc(sizeof(PipList_xx)) ;
     if (list_new == NULL)
     { fprintf(stderr, "Memory Overflow.\n") ;
       exit(1) ;
     }
-    list_new->vector = PIPLIB_NAME(sol_vector_edit)(i, Bg, Urs_p, flags);
+    list_new->vector = sol_vector_edit_xx(i, Bg, Urs_p, flags);
     list_new->next = NULL ;
 		    
-    if (PIPLIB_NAME(verbose) > 0)
-    { fprintf(PIPLIB_NAME(dump),"\n") ;
-      PIPLIB_NAME(pip_vector_print)(PIPLIB_NAME(dump),list_new->vector) ;
+    if (verbose_xx > 0)
+    { fprintf(dump_xx,"\n") ;
+      pip_vector_print_xx(dump_xx,list_new->vector) ;
     }
     list_now->next = list_new ;
     list_now = list_now->next ;
   }
-  if (PIPLIB_NAME(verbose) > 0)
-  fprintf(PIPLIB_NAME(dump),"\n)") ;
+  if (verbose_xx > 0)
+  fprintf(dump_xx,"\n)") ;
   
   return(list) ;
 }
@@ -652,14 +661,14 @@ PIPLIB_NAME(PipList) * PIPLIB_NAME(sol_list_edit)(int *i, int nb_elements,
  * 16 novembre 2005 : (debug) Même si une liste est vide il faut la créer pour
  *                    afficher plus tard le (list), repéré par Sven Verdoolaege.
  */
-PIPLIB_NAME(PipQuast) *PIPLIB_NAME(sol_quast_edit)(
-  int *i, PIPLIB_NAME(PipQuast) *father, int Bg, int Urs_p, int flags)
+PipQuast_xx *sol_quast_edit_xx(
+  int *i, PipQuast_xx *father, int Bg, int Urs_p, int flags)
 { int nb_elements ;
-  struct PIPLIB_NAME(S) * p ;
-  PIPLIB_NAME(PipQuast) * solution ;
+  struct S_xx * p ;
+  PipQuast_xx * solution ;
     
   /* On place p au lieu de lecture. */
-  p = PIPLIB_NAME(sol_space) + (*i) ;
+  p = sol_space_xx + (*i) ;
   /* En cas d'utilisation de l'option de simplification, une plage de
    * structures S peut avoir les flags a Free. On doit alors les passer.
    */
@@ -668,7 +677,7 @@ PIPLIB_NAME(PipQuast) *PIPLIB_NAME(sol_quast_edit)(
     (*i) ++ ;
   }
   
-  solution = (PIPLIB_NAME(PipQuast) *)malloc(sizeof(PIPLIB_NAME(PipQuast))) ;
+  solution = (PipQuast_xx *)malloc(sizeof(PipQuast_xx)) ;
   if (solution == NULL)
   { fprintf(stderr, "Memory Overflow.\n") ;
     exit(1) ;
@@ -682,9 +691,9 @@ PIPLIB_NAME(PipQuast) *PIPLIB_NAME(sol_quast_edit)(
   
   /* On peut commencer par une chaine de nouveaux parametres... */
   if (p->flags == New)
-  { solution->newparm = PIPLIB_NAME(sol_newparm_edit)(i, Bg, Urs_p,
+  { solution->newparm = sol_newparm_edit_xx(i, Bg, Urs_p,
                                                       flags & SOL_REMOVE);
-    p = PIPLIB_NAME(sol_space) + (*i) ;
+    p = sol_space_xx + (*i) ;
   }
   
   /* ...ensuite soit par une liste (vide ou non) soit par un if. */
@@ -692,32 +701,32 @@ PIPLIB_NAME(PipQuast) *PIPLIB_NAME(sol_quast_edit)(
   switch (p->flags)
   { case List :
                 nb_elements = piplib_int_get_si(p->param1) ;
-                solution->list = PIPLIB_NAME(sol_list_edit)(i, nb_elements,
+                solution->list = sol_list_edit_xx(i, nb_elements,
                                                             Bg, Urs_p, flags);
 		if (flags & SOL_DUAL)
-		    solution->next_then = PIPLIB_NAME(sol_quast_edit)(i, solution,
+		    solution->next_then = sol_quast_edit_xx(i, solution,
                                                               Bg, Urs_p, 0);
 		break ;
-    case Nil  : if (PIPLIB_NAME(verbose) > 0)
-		fprintf(PIPLIB_NAME(dump),"\n()") ;
+    case Nil  : if (verbose_xx > 0)
+		fprintf(dump_xx,"\n()") ;
                 break ;
     case If   : solution->condition = 
-			    PIPLIB_NAME(sol_vector_edit)(i, Bg, Urs_p, flags & SOL_REMOVE);
-                if (PIPLIB_NAME(verbose) > 0)
-		{ fprintf(PIPLIB_NAME(dump),"\n(if ") ;
-                  PIPLIB_NAME(pip_vector_print)(
-                    PIPLIB_NAME(dump),solution->condition) ;
+			    sol_vector_edit_xx(i, Bg, Urs_p, flags & SOL_REMOVE);
+                if (verbose_xx > 0)
+		{ fprintf(dump_xx,"\n(if ") ;
+                  pip_vector_print_xx(
+                    dump_xx,solution->condition) ;
                 }
-		solution->next_then = PIPLIB_NAME(sol_quast_edit)(i, solution,
+		solution->next_then = sol_quast_edit_xx(i, solution,
 		                                                  Bg, Urs_p, flags);
-		solution->next_else = PIPLIB_NAME(sol_quast_edit)(i, solution,
+		solution->next_else = sol_quast_edit_xx(i, solution,
 		                                                  Bg, Urs_p, flags);
-                if (PIPLIB_NAME(verbose) > 0)
-		fprintf(PIPLIB_NAME(dump),"\n)") ;
+                if (verbose_xx > 0)
+		fprintf(dump_xx,"\n)") ;
                 break ;
     default   : fprintf(stderr,"\nAie !!! Flag %d inattendu.\n",p->flags) ;
-                if (PIPLIB_NAME(verbose) > 0)
-		fprintf(PIPLIB_NAME(dump),"\nAie !!! Flag %d inattendu.\n",p->flags) ;
+                if (verbose_xx > 0)
+		fprintf(dump_xx,"\nAie !!! Flag %d inattendu.\n",p->flags) ;
                 exit(1) ;
   }
   

@@ -48,18 +48,18 @@ extern "C"
 #define SOL_DUAL   (1 << 3)
 
 
-void PIPLIB_NAME(sol_init)(void);
-int PIPLIB_NAME(sol_hwm)(void);
-void PIPLIB_NAME(sol_reset)(int);
-void PIPLIB_NAME(sol_nil)(void);
-void PIPLIB_NAME(sol_if)(void);
-void PIPLIB_NAME(sol_list)(int);
-void PIPLIB_NAME(sol_new)(int);
-void PIPLIB_NAME(sol_div)(void);
-void PIPLIB_NAME(sol_val)(PIPLIB_NAME(piplib_int_t), PIPLIB_NAME(piplib_int_t));
-int PIPLIB_NAME(sol_edit)(FILE *, int);
-int PIPLIB_NAME(is_not_Nil)(int);
-void PIPLIB_NAME(sol_simplify)(int);
+void sol_init_xx(void);
+int sol_hwm_xx(void);
+void sol_reset_xx(int);
+void sol_nil_xx(void);
+void sol_if_xx(void);
+void sol_list_xx(int);
+void sol_new_xx(int);
+void sol_div_xx(void);
+void sol_val_xx(piplib_int_t_xx, piplib_int_t_xx);
+int sol_edit_xx(FILE *, int);
+int is_not_Nil_xx(int);
+void sol_simplify_xx(int);
 
 #if defined(__cplusplus)
   }

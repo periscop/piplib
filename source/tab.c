@@ -30,59 +30,64 @@
 
 #include "pip.h"
 
-#define TAB_CHUNK 4096*sizeof(PIPLIB_NAME(piplib_int_t))
+#define TAB_CHUNK 4096*sizeof(piplib_int_t_xx)
 
-static char *PIPLIB_NAME(tab_free), *PIPLIB_NAME(tab_top);
-static struct PIPLIB_NAME(A) *PIPLIB_NAME(tab_base);
+#define tab_free_xx PIPLIB_NAME(tab_free)
+#define tab_top_xx PIPLIB_NAME(tab_top)
+#define tab_base_xx PIPLIB_NAME(tab_base)
+static char *tab_free_xx, *tab_top_xx;
+static struct A_xx *tab_base_xx;
 
 /*extern long int cross_product;*/
-static int PIPLIB_NAME(chunk_count);
+#define chunk_count_xx PIPLIB_NAME(chunk_count)
+static int chunk_count_xx;
 
-int PIPLIB_NAME(dgetc)(FILE *);
+int dgetc_xx(FILE *);
 
-extern FILE * PIPLIB_NAME(dump);
+extern FILE * dump_xx;
 
-#define sizeof_struct_A ((sizeof(struct PIPLIB_NAME(A)) % sizeof(PIPLIB_NAME(piplib_int_t))) ?		    \
-			 (sizeof(struct PIPLIB_NAME(A)) + sizeof(PIPLIB_NAME(piplib_int_t))		    \
-				- (sizeof(struct PIPLIB_NAME(A)) % sizeof(PIPLIB_NAME(piplib_int_t)))) :    \
-			  sizeof(struct PIPLIB_NAME(A)))
+#define sizeof_struct_A ((sizeof(struct A_xx) % sizeof(piplib_int_t_xx)) ?		    \
+			 (sizeof(struct A_xx) + sizeof(piplib_int_t_xx)		    \
+				- (sizeof(struct A_xx) % sizeof(piplib_int_t_xx))) :    \
+			  sizeof(struct A_xx))
 
-void PIPLIB_NAME(tab_init)(void)
+void tab_init_xx(void)
 {
- PIPLIB_NAME(tab_free) = malloc(sizeof_struct_A);
- if(PIPLIB_NAME(tab_free) == NULL)
+ tab_free_xx = malloc(sizeof_struct_A);
+ if(tab_free_xx == NULL)
      {fprintf(stderr, "Your computer doesn't have enough memory\n");
       exit(1);
      }
- PIPLIB_NAME(tab_top) = PIPLIB_NAME(tab_free) + sizeof_struct_A;
- PIPLIB_NAME(tab_base) = (struct PIPLIB_NAME(A) *)PIPLIB_NAME(tab_free);
- PIPLIB_NAME(tab_free) += sizeof_struct_A;
- PIPLIB_NAME(tab_base)->precedent = NULL;
- PIPLIB_NAME(tab_base)->bout = PIPLIB_NAME(tab_top);
- PIPLIB_NAME(tab_base)->free = PIPLIB_NAME(tab_free);
- PIPLIB_NAME(chunk_count) = 1;
+ tab_top_xx = tab_free_xx + sizeof_struct_A;
+ tab_base_xx = (struct A_xx *)tab_free_xx;
+ tab_free_xx += sizeof_struct_A;
+ tab_base_xx->precedent = NULL;
+ tab_base_xx->bout = tab_top_xx;
+ tab_base_xx->free = tab_free_xx;
+ chunk_count_xx = 1;
 }
  
  
-void PIPLIB_NAME(tab_close)(void)
+void tab_close_xx(void)
 {
-  if (PIPLIB_NAME(tab_base)) free(PIPLIB_NAME(tab_base));
+  if (tab_base_xx) free(tab_base_xx);
 }
 
 
-struct PIPLIB_NAME(high_water_mark) PIPLIB_NAME(tab_hwm)(void)
-{struct PIPLIB_NAME(high_water_mark) p;
- p.chunk = PIPLIB_NAME(chunk_count);
- p.top = PIPLIB_NAME(tab_free);
+struct high_water_mark_xx tab_hwm_xx(void)
+{struct high_water_mark_xx p;
+ p.chunk = chunk_count_xx;
+ p.top = tab_free_xx;
  return p;
 }
 
 
 #if defined(PIPLIB_ONE_DETERMINANT)
 /* the clear_tab routine clears the GMP objects which may be referenced
-   in the given PIPLIB_NAME(Tableau).
+   in the given Tableau_xx.
 */
-void PIPLIB_NAME(tab_clear)(PIPLIB_NAME(Tableau) *tp)
+#define tab_clear_xx PIPLIB_NAME(tab_clear)
+void tab_clear_xx(Tableau_xx *tp)
 {
   int i, j;
   /* clear the determinant */
@@ -98,99 +103,99 @@ void PIPLIB_NAME(tab_clear)(PIPLIB_NAME(Tableau) *tp)
 }
 #endif
 
-void PIPLIB_NAME(tab_reset)(struct PIPLIB_NAME(high_water_mark) by_the_mark) {
- struct PIPLIB_NAME(A) *g;
+void tab_reset_xx(struct high_water_mark_xx by_the_mark) {
+ struct A_xx *g;
  #if defined(PIPLIB_ONE_DETERMINANT)
   char *p;
  #endif
- while(PIPLIB_NAME(chunk_count) > by_the_mark.chunk)
+ while(chunk_count_xx > by_the_mark.chunk)
      {
-      g = PIPLIB_NAME(tab_base)->precedent;
+      g = tab_base_xx->precedent;
       
       #if defined(PIPLIB_ONE_DETERMINANT)
       /* Before actually freeing the memory, one has to clear the
-       * included PIPLIB_NAME(Tableau)x. If this is not done, the GMP objects
-       * referenced in the PIPLIB_NAME(Tableau)x will be orphaned.
+       * included Tableau_xxx. If this is not done, the GMP objects
+       * referenced in the Tableau_xxx will be orphaned.
        */
 
       /* Enumerate the included tableaux. */
-      p = (char *)PIPLIB_NAME(tab_base) + sizeof_struct_A;
-      while(p < PIPLIB_NAME(tab_base)->free){
-        PIPLIB_NAME(Tableau) *pt;
-        pt = (PIPLIB_NAME(Tableau) *) p;
-	PIPLIB_NAME(tab_clear)(pt);
+      p = (char *)tab_base_xx + sizeof_struct_A;
+      while(p < tab_base_xx->free){
+        Tableau_xx *pt;
+        pt = (Tableau_xx *) p;
+	tab_clear_xx(pt);
         p += pt->taille;
       } 
       #endif
       
-      free(PIPLIB_NAME(tab_base));
-      PIPLIB_NAME(tab_base) = g;
-      PIPLIB_NAME(tab_top) = PIPLIB_NAME(tab_base)->bout;
-      PIPLIB_NAME(chunk_count)--;
+      free(tab_base_xx);
+      tab_base_xx = g;
+      tab_top_xx = tab_base_xx->bout;
+      chunk_count_xx--;
      }
- if(PIPLIB_NAME(chunk_count) > 0) {
+ if(chunk_count_xx > 0) {
      #if defined(PIPLIB_ONE_DETERMINANT)
      /* Do not forget to clear the tables in the current chunk above the
         high water mark */
      p = (char *)by_the_mark.top;
-     while(p < PIPLIB_NAME(tab_base)->free) {
-        PIPLIB_NAME(Tableau) *pt;
-        pt = (PIPLIB_NAME(Tableau) *) p;
-        PIPLIB_NAME(tab_clear)(pt);
+     while(p < tab_base_xx->free) {
+        Tableau_xx *pt;
+        pt = (Tableau_xx *) p;
+        tab_clear_xx(pt);
         p += pt->taille;
         } 
      #endif   
-     PIPLIB_NAME(tab_free) = by_the_mark.top;
-     PIPLIB_NAME(tab_base)->free = PIPLIB_NAME(tab_free);
+     tab_free_xx = by_the_mark.top;
+     tab_base_xx->free = tab_free_xx;
      }
  else {
      fprintf(stderr,
-             "Syserr: PIPLIB_NAME(tab_reset) : error in memory allocation\n");
+             "Syserr: tab_reset_xx : error in memory allocation\n");
      exit(1);
      }
 }
 
-PIPLIB_NAME(Tableau) * PIPLIB_NAME(tab_alloc)(int h, int w, int n)
+Tableau_xx * tab_alloc_xx(int h, int w, int n)
 
 /* h : le nombre de ligne reelles;
    n : le nombre de lignes virtuelles
 */
 {
- char *p; PIPLIB_NAME(Tableau) *tp;
- PIPLIB_NAME(piplib_int_t) *q;
+ char *p; Tableau_xx *tp;
+ piplib_int_t_xx *q;
  unsigned long taille;
  int i, j;
- taille = sizeof(PIPLIB_NAME(Tableau))
-          + (h+n-1) * sizeof (struct PIPLIB_NAME(L))
-	  + h * w * sizeof (PIPLIB_NAME(piplib_int_t));
- if(PIPLIB_NAME(tab_free) + taille >= PIPLIB_NAME(tab_top))
-     {struct PIPLIB_NAME(A) * g;
+ taille = sizeof(Tableau_xx)
+          + (h+n-1) * sizeof (struct L_xx)
+	  + h * w * sizeof (piplib_int_t_xx);
+ if(tab_free_xx + taille >= tab_top_xx)
+     {struct A_xx * g;
       unsigned long d;
       d = taille + sizeof_struct_A;
       if(d < TAB_CHUNK) d = TAB_CHUNK;
-      PIPLIB_NAME(tab_free) = malloc(d);
-      if(PIPLIB_NAME(tab_free) == NULL)
+      tab_free_xx = malloc(d);
+      if(tab_free_xx == NULL)
 	  {printf("Memory overflow\n");
 	   exit(23);
 	  }
-      PIPLIB_NAME(chunk_count)++;
-      g = (struct PIPLIB_NAME(A) *)PIPLIB_NAME(tab_free);
-      g->precedent = PIPLIB_NAME(tab_base);
-      PIPLIB_NAME(tab_top) = PIPLIB_NAME(tab_free) + d;
-      PIPLIB_NAME(tab_free) += sizeof_struct_A;
-      PIPLIB_NAME(tab_base) = g;
-      g->bout = PIPLIB_NAME(tab_top);
+      chunk_count_xx++;
+      g = (struct A_xx *)tab_free_xx;
+      g->precedent = tab_base_xx;
+      tab_top_xx = tab_free_xx + d;
+      tab_free_xx += sizeof_struct_A;
+      tab_base_xx = g;
+      g->bout = tab_top_xx;
      }
- p = PIPLIB_NAME(tab_free);
- PIPLIB_NAME(tab_free) += taille;
- PIPLIB_NAME(tab_base)->free = PIPLIB_NAME(tab_free);
- tp = (PIPLIB_NAME(Tableau) *)p;
- q = (PIPLIB_NAME(piplib_int_t) *)(p +  sizeof(PIPLIB_NAME(Tableau))
-     + (h+n-1) * sizeof (struct PIPLIB_NAME(L)));
+ p = tab_free_xx;
+ tab_free_xx += taille;
+ tab_base_xx->free = tab_free_xx;
+ tp = (Tableau_xx *)p;
+ q = (piplib_int_t_xx *)(p +  sizeof(Tableau_xx)
+     + (h+n-1) * sizeof (struct L_xx));
  #if defined(PIPLIB_ONE_DETERMINANT)
  piplib_int_init_set_si(tp->determinant,1);
  #else
- tp->determinant[0] = (PIPLIB_NAME(piplib_int_t)) 1;
+ tp->determinant[0] = (piplib_int_t_xx) 1;
  tp->l_determinant = 1;
  #endif
  for(i = 0; i<n; i++){
@@ -214,28 +219,28 @@ PIPLIB_NAME(Tableau) * PIPLIB_NAME(tab_alloc)(int h, int w, int n)
  return(tp);
 }
 
-PIPLIB_NAME(Tableau) * PIPLIB_NAME(tab_get)(foo, h, w, n)
+Tableau_xx * tab_get_xx(foo, h, w, n)
 FILE * foo;
 int h, w, n;
 {
- PIPLIB_NAME(Tableau) *p;
+ Tableau_xx *p;
  int i, j, c;
- PIPLIB_NAME(piplib_int_t) x;
+ piplib_int_t_xx x;
  piplib_int_init(x);
  
- p = PIPLIB_NAME(tab_alloc)(h, w, n);
- while((c = PIPLIB_NAME(dgetc)(foo)) != EOF)
+ p = tab_alloc_xx(h, w, n);
+ while((c = dgetc_xx(foo)) != EOF)
       if(c == '(')break;
  for(i = n; i<h+n; i++)
      {p->row[i].flags = Unknown;
       piplib_int_set_si(Denom(p, i), 1);
-      while((c = PIPLIB_NAME(dgetc)(foo)) != EOF)if(c == '[')break;
+      while((c = dgetc_xx(foo)) != EOF)if(c == '[')break;
       for(j = 0; j<w; j++){
-        if(PIPLIB_NAME(dscanf)(foo, &x) < 0) return NULL;
+        if(dscanf_xx(foo, &x) < 0) return NULL;
         else piplib_int_assign(p->row[i].objet.val[j], x);
         }
       } 
-      while((c = PIPLIB_NAME(dgetc)(foo)) != EOF)if(c == ']')break;
+      while((c = dgetc_xx(foo)) != EOF)if(c == ']')break;
  
  piplib_int_clear(x);
      
@@ -284,16 +289,16 @@ int h, w, n;
  * 18 octobre 2003 : Mise en place de la possibilite de calculer le
  *                   maximum lexicographique (parties 'if (Max)').
  */
-PIPLIB_NAME(Tableau) * PIPLIB_NAME(tab_Matrix2Tableau)(matrix, Nineq, Nv, n,
+Tableau_xx * tab_Matrix2Tableau_xx(matrix, Nineq, Nv, n,
                                                        Shift, Bg, Urs_parms)
-PIPLIB_NAME(PipMatrix) * matrix ;
+PipMatrix_xx * matrix ;
 int Nineq, Nv, n, Shift, Bg, Urs_parms;
-{ PIPLIB_NAME(Tableau) * p ;
+{ Tableau_xx * p ;
   unsigned i, k, current, new, nb_columns, decal=0, bignum_is_new;
   int j;
   unsigned cst;
   int inequality, ctx;
-  PIPLIB_NAME(piplib_int_t) bignum;
+  piplib_int_t_xx bignum;
 
   /* Are we dealing with the context? */
   ctx = n == -1;
@@ -315,7 +320,7 @@ int Nineq, Nv, n, Shift, Bg, Urs_parms;
   } else
     cst = Nv;
 
-  p = PIPLIB_NAME(tab_alloc)(Nineq,nb_columns+Urs_parms,n) ;
+  p = tab_alloc_xx(Nineq,nb_columns+Urs_parms,n) ;
     
   /* La variable decal sert a prendre en compte les lignes supplementaires
    * issues des egalites.
@@ -388,10 +393,10 @@ int Nineq, Nv, n, Shift, Bg, Urs_parms;
 }
 
 
-int PIPLIB_NAME(tab_simplify)(PIPLIB_NAME(Tableau) *tp, int cst)
+int tab_simplify_xx(Tableau_xx *tp, int cst)
 {
     int i, j;
-    PIPLIB_NAME(piplib_int_t) gcd;
+    piplib_int_t_xx gcd;
 
     piplib_int_init(gcd);
     for (i = 0; i < tp->height; ++i) {
@@ -422,14 +427,14 @@ int PIPLIB_NAME(tab_simplify)(PIPLIB_NAME(Tableau) *tp, int cst)
 }
 
 
-void PIPLIB_NAME(tab_display)(p, foo)
+void tab_display_xx(p, foo)
 FILE *foo;
-PIPLIB_NAME(Tableau) *p;
+Tableau_xx *p;
 {
  char const * const Attr[] = {"Unit", "+", "-", "0", "*", "?"};
 
  int i, j, ff, fff, n;
- PIPLIB_NAME(piplib_int_t) d;
+ piplib_int_t_xx d;
  piplib_int_init(d);
 
  fprintf(foo, "cross_product (%ld) /[%d * %d]\n", 0L/*cross_product*/,

@@ -5,4 +5,5 @@
 #include "tab.h"
 #include "funcall.h"
 
-int PIPLIB_NAME(dscanf)(FILE*, PIPLIB_NAME(piplib_int_t)*);
+#define dscanf_xx PIPLIB_NAME(dscanf)
+int dscanf_xx(FILE*, piplib_int_t_xx*);
