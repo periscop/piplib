@@ -30,10 +30,8 @@
 #if \
   !defined(PIPLIB_INT_SP) && \
   !defined(PIPLIB_INT_DP) && \
-  !defined(PIPLIB_INT_GMP) && \
-  !defined(PIPLIB_INT_OSL)
-  #error "Define of PIPLIB_INT_SP or PIPLIB_INT_DP or PIPLIB_INT_GMP or \
-          PIPLIB_INT_OSL not found"
+  !defined(PIPLIB_INT_GMP)
+  #error "Define of PIPLIB_INT_SP or PIPLIB_INT_DP or PIPLIB_INT_GMP not found"
 #endif
 
 
@@ -86,77 +84,6 @@
   #define piplib_int_one(i) (mpz_cmp_si(i, 1) == 0)
   #define piplib_int_pos(i) (mpz_sgn(i) > 0)
   #define piplib_int_neg(i) (mpz_sgn(i) < 0)
-
-#endif
-
-#ifdef PIPLIB_INT_OSL
-
-  #include <osl/int.h>
-
-  #define PIPLIB_NAME(name) name##_osl
-
-  #define PIPLIB_ONE_DETERMINANT
-
-  extern int PIPLIB_INT_OSL_PRECISION;
-
-  #define piplib_int_t_xx PIPLIB_NAME(piplib_int_t)
-  typedef osl_int_t piplib_int_t_xx;
-  #define piplib_int_format "%d"
-
-  #define piplib_int_init(i) (osl_int_init(PIPLIB_INT_OSL_PRECISION, &(i)))
-  #define piplib_int_init_set(i, v) \
-    (osl_int_init_set(PIPLIB_INT_OSL_PRECISION, &(i), v))
-  #define piplib_int_init_set_si(i, v) \
-    (osl_int_init_set_si(PIPLIB_INT_OSL_PRECISION, &(i), v))
-  #define piplib_int_assign(r, i) \
-    (osl_int_assign(PIPLIB_INT_OSL_PRECISION, &(r), i))
-  #define piplib_int_set_si(r, i) \
-    (osl_int_set_si(PIPLIB_INT_OSL_PRECISION, &(r), i))
-  #define piplib_int_clear(i) \
-    (osl_int_clear(PIPLIB_INT_OSL_PRECISION, &(i)))
-  #define piplib_int_print(file, i) \
-    (osl_int_print(file, PIPLIB_INT_OSL_PRECISION, i))
-  #define piplib_int_sscanf(string, i) \
-    (osl_int_sscanf(string, PIPLIB_INT_OSL_PRECISION, &(i)))
-
-  #define piplib_int_get_si(i) (osl_int_get_si(PIPLIB_INT_OSL_PRECISION, i))
-  #define piplib_int_get_d(i) (osl_int_get_d(PIPLIB_INT_OSL_PRECISION, i))
-
-  #define piplib_int_add(r, a, b) \
-    (osl_int_add(PIPLIB_INT_OSL_PRECISION, &(r), a, b))
-  #define piplib_int_sub(r, a, b) \
-    (osl_int_sub(PIPLIB_INT_OSL_PRECISION, &(r), a, b))
-  #define piplib_int_increment(r, i) \
-    (osl_int_increment(PIPLIB_INT_OSL_PRECISION, &(r), i))
-  #define piplib_int_decrement(r, i) \
-    (osl_int_decrement(PIPLIB_INT_OSL_PRECISION, &(r), i))
-  #define piplib_int_mul(r, a, b) \
-    (osl_int_mul(PIPLIB_INT_OSL_PRECISION, &(r), a, b))
-  #define piplib_int_div_exact(q, a, b) \
-    (osl_int_div_exact(PIPLIB_INT_OSL_PRECISION, &(q), a, b))
-  #define piplib_int_floor_div_q(q, a, b) \
-    (osl_int_floor_div_q(PIPLIB_INT_OSL_PRECISION, &(q), a, b))
-  #define piplib_int_floor_div_r(r, a, b) \
-    (osl_int_floor_div_r(PIPLIB_INT_OSL_PRECISION, &(r), a, b))
-  #define piplib_int_floor_div_q_r(q, r, a, b) \
-    (osl_int_floor_div_q_r(PIPLIB_INT_OSL_PRECISION, &(q), &(r), a, b))
-  #define piplib_int_mod(mod, a, b) \
-    (osl_int_mod(PIPLIB_INT_OSL_PRECISION, &(mod), a, b))
-  #define piplib_int_gcd(gcd, a, b) \
-    (osl_int_gcd(PIPLIB_INT_OSL_PRECISION, &(gcd), a, b))
-  #define piplib_int_oppose(r, i) \
-    (osl_int_oppose(PIPLIB_INT_OSL_PRECISION, &(r), i))
-  #define piplib_int_size_in_base_2(i) \
-    (osl_int_size_in_base_2(PIPLIB_INT_OSL_PRECISION, i))
-  #define piplib_int_size_in_base_10(i) \
-    (osl_int_size_in_base_10(PIPLIB_INT_OSL_PRECISION, i))
-
-  #define piplib_int_eq(a, b) (osl_int_eq(PIPLIB_INT_OSL_PRECISION, a, b))
-  #define piplib_int_ne(a, b) (osl_int_ne(PIPLIB_INT_OSL_PRECISION, a, b))
-  #define piplib_int_zero(i) (osl_int_zero(PIPLIB_INT_OSL_PRECISION, i))
-  #define piplib_int_one(i) (osl_int_one(PIPLIB_INT_OSL_PRECISION, i))
-  #define piplib_int_pos(i) (osl_int_pos(PIPLIB_INT_OSL_PRECISION, i))
-  #define piplib_int_neg(i) (osl_int_neg(PIPLIB_INT_OSL_PRECISION, i))
 
 #endif
 
@@ -560,47 +487,6 @@ PipQuast_xx* sol_quast_edit_xx(
 	#define sol_quast_edit sol_quast_edit_gmp
 
 	#define Entier piplib_int_t_gmp
-
-#endif
-
-#ifdef PIPLIB_INT_OSL
-
-	#define piplib_int_t piplib_int_t_osl
-	#define PipMatrix PipMatrix_osl
-	#define PipVector PipVector_osl
-	#define PipNewparm PipNewparm_osl
-	#define PipList PipList_osl
-	#define PipQuast PipQuast_osl
-	#define PipOptions PipOptions_osl
-	#define PipMatrix PipMatrix_osl
-
-	#define pip_options_print pip_options_print_osl
-
-	#define pip_matrix_print pip_matrix_print_osl
-	#define pip_vector_print pip_vector_print_osl
-	#define pip_newparm_print pip_newparm_print_osl
-	#define pip_list_print pip_list_print_osl
-	#define pip_quast_print pip_quast_print_osl
-
-	#define pip_matrix_free pip_matrix_free_osl
-	#define pip_vector_free pip_vector_free_osl
-	#define pip_newparm_free pip_newparm_free_osl
-	#define pip_list_free pip_list_free_osl
-	#define pip_quast_free pip_quast_free_osl
-	#define pip_options_free pip_options_free_osl
-
-	#define pip_matrix_alloc pip_matrix_alloc_osl
-	#define pip_matrix_read pip_matrix_read_osl
-	#define pip_options_init pip_options_init_osl
-
-	#define pip_init pip_init_osl
-	#define pip_close pip_close_osl
-
-	#define pip_solve pip_solve_osl
-
-	#define sol_quast_edit sol_quast_edit_osl
-
-	#define Entier piplib_int_t_osl
 
 #endif
 
