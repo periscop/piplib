@@ -28,5 +28,22 @@
  * utilisateurs de la PipLib. Premiere version du 29 juillet 2001.
  */ 
 
+#ifndef PIPLIB_DP_H
+#define PIPLIB_DP_H
 
-#include <piplib/piplib_dp.h>
+#undef PIPLIB_INT_SP
+#undef PIPLIB_INT_DP
+#undef PIPLIB_INT_GMP
+#undef PIPLIB_INT_OSL
+
+#define PIPLIB_INT_DP 1
+
+// Compatibility with old version
+#undef LINEAR_VALUE_IS_LONG
+#undef LINEAR_VALUE_IS_LONGLONG
+#undef LINEAR_VALUE_IS_MP
+#define LINEAR_VALUE_IS_LONGLONG 1
+
+#include <piplib/piplib.h>
+
+#endif

@@ -1,15 +1,18 @@
 noinst_PROGRAMS = @examples@
-EXTRA_PROGRAMS = example32 example64 exampleMP
+EXTRA_PROGRAMS = example_sp example_dp example_gmp example_osl
 
-example32_SOURCES = example.c
-example32_CPPFLAGS = @DFLAGS32@ -I$(top_srcdir)/include
-example32_LDADD = ../libpiplib32.la
-example64_SOURCES = example.c
-example64_CPPFLAGS = @DFLAGS64@ -I$(top_srcdir)/include
-example64_LDADD = ../libpiplib64.la
-exampleMP_SOURCES = example.c
-exampleMP_CPPFLAGS = @MP_DFLAGS@ -I$(top_srcdir)/include
-exampleMP_LDADD = ../libpiplibMP.la @EXTRA_LIBS@
+example_sp_SOURCES = example.c
+example_sp_CPPFLAGS = @SP_DFLAGS@ -I$(top_srcdir)/include
+example_sp_LDADD = ../libpiplib_sp.la
+example_dp_SOURCES = example.c
+example_dp_CPPFLAGS = @DP_DFLAGS@ -I$(top_srcdir)/include
+example_dp_LDADD = ../libpiplib_dp.la
+example_gmp_SOURCES = example.c
+example_gmp_CPPFLAGS = @MP_DFLAGS@ -I$(top_srcdir)/include
+example_gmp_LDADD = ../libpiplib_gmp.la @EXTRA_LIBS@
+example_osl_SOURCES = example.c
+example_osl_CPPFLAGS = @OSL_DFLAGS@ -I$(top_srcdir)/include
+example_osl_LDADD = ../libpiplib_osl.la @EXTRA_LIBS@
 
 PIPTEST = \
 	big \

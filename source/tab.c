@@ -30,242 +30,219 @@
 
 #include "pip.h"
 
-#define TAB_CHUNK 4096*sizeof(Entier)
+#define TAB_CHUNK 4096*sizeof(piplib_int_t_xx)
 
-static char *tab_free, *tab_top;
-static struct A *tab_base;
+#define tab_free_xx PIPLIB_NAME(tab_free)
+#define tab_top_xx PIPLIB_NAME(tab_top)
+#define tab_base_xx PIPLIB_NAME(tab_base)
+static char *tab_free_xx, *tab_top_xx;
+static struct A_xx *tab_base_xx;
 
-extern int allocation;
-extern long int cross_product, limit;
-static int chunk_count;
+/*extern long int cross_product;*/
+#define chunk_count_xx PIPLIB_NAME(chunk_count)
+static int chunk_count_xx;
 
-int dgetc(FILE *);
-#if defined(LINEAR_VALUE_IS_MP)
-int dscanf(FILE *, Entier);
-#else
-int dscanf(FILE *, Entier *);
-#endif
+int dgetc_xx(FILE *);
 
-extern FILE * dump;
+extern FILE * dump_xx;
 
-#define sizeof_struct_A ((sizeof(struct A) % sizeof(Entier)) ?		    \
-			 (sizeof(struct A) + sizeof(Entier)		    \
-				- (sizeof(struct A) % sizeof(Entier))) :    \
-			  sizeof(struct A))
+#define sizeof_struct_A ((sizeof(struct A_xx) % sizeof(piplib_int_t_xx)) ?		    \
+			 (sizeof(struct A_xx) + sizeof(piplib_int_t_xx)		    \
+				- (sizeof(struct A_xx) % sizeof(piplib_int_t_xx))) :    \
+			  sizeof(struct A_xx))
 
-void tab_init(void)
+void tab_init_xx(void)
 {
- tab_free = malloc(sizeof_struct_A);
- if(tab_free == NULL)
+ tab_free_xx = malloc(sizeof_struct_A);
+ if(tab_free_xx == NULL)
      {fprintf(stderr, "Your computer doesn't have enough memory\n");
       exit(1);
      }
- allocation = 1;
- tab_top = tab_free + sizeof_struct_A;
- tab_base = (struct A *)tab_free;
- tab_free += sizeof_struct_A;
- tab_base->precedent = NULL;
- tab_base->bout = tab_top;
- tab_base->free = tab_free;
- chunk_count = 1;
+ tab_top_xx = tab_free_xx + sizeof_struct_A;
+ tab_base_xx = (struct A_xx *)tab_free_xx;
+ tab_free_xx += sizeof_struct_A;
+ tab_base_xx->precedent = NULL;
+ tab_base_xx->bout = tab_top_xx;
+ tab_base_xx->free = tab_free_xx;
+ chunk_count_xx = 1;
 }
  
  
-void tab_close(void)
+void tab_close_xx(void)
 {
-  if (tab_base) free(tab_base);
+  if (tab_base_xx) free(tab_base_xx);
 }
 
 
-struct high_water_mark tab_hwm(void)
-{struct high_water_mark p;
- p.chunk = chunk_count;
- p.top = tab_free;
+struct high_water_mark_xx tab_hwm_xx(void)
+{struct high_water_mark_xx p;
+ p.chunk = chunk_count_xx;
+ p.top = tab_free_xx;
  return p;
 }
 
 
-#if defined(LINEAR_VALUE_IS_MP)
+#if defined(PIPLIB_ONE_DETERMINANT)
 /* the clear_tab routine clears the GMP objects which may be referenced
-   in the given Tableau.
+   in the given Tableau_xx.
 */
-void tab_clear(Tableau *tp)
+#define tab_clear_xx PIPLIB_NAME(tab_clear)
+void tab_clear_xx(Tableau_xx *tp)
 {
   int i, j;
   /* clear the determinant */
-  mpz_clear(tp->determinant);
+  piplib_int_clear(tp->determinant);
 
   for(i=0; i<tp->height; i++){
     /* clear the denominator */
-    mpz_clear(Denom(tp, i));
+    piplib_int_clear(Denom(tp, i));
     if((Flag(tp, i) & Unit) == 0)
       for(j=0; j<tp->width; j++)
-        mpz_clear(Index(tp,i,j));
+        piplib_int_clear(Index(tp,i,j));
   }
 }
 #endif
 
-void tab_reset(struct high_water_mark by_the_mark)
-
-{struct A *g;
- char *p;
- while(chunk_count > by_the_mark.chunk)
+void tab_reset_xx(struct high_water_mark_xx by_the_mark) {
+ struct A_xx *g;
+ #if defined(PIPLIB_ONE_DETERMINANT)
+  char *p;
+ #endif
+ while(chunk_count_xx > by_the_mark.chunk)
      {
-      g = tab_base->precedent;
+      g = tab_base_xx->precedent;
       
-      #if defined(LINEAR_VALUE_IS_MP)
+      #if defined(PIPLIB_ONE_DETERMINANT)
       /* Before actually freeing the memory, one has to clear the
-       * included Tableaux. If this is not done, the GMP objects
-       * referenced in the Tableaux will be orphaned.
+       * included Tableau_xxx. If this is not done, the GMP objects
+       * referenced in the Tableau_xxx will be orphaned.
        */
 
       /* Enumerate the included tableaux. */
-      p = (char *)tab_base + sizeof_struct_A;
-      while(p < tab_base->free){
-        Tableau *pt;
-        pt = (Tableau *) p;
-	tab_clear(pt);
+      p = (char *)tab_base_xx + sizeof_struct_A;
+      while(p < tab_base_xx->free){
+        Tableau_xx *pt;
+        pt = (Tableau_xx *) p;
+	tab_clear_xx(pt);
         p += pt->taille;
       } 
       #endif
       
-      free(tab_base);
-      tab_base = g;
-      tab_top = tab_base->bout;
-      chunk_count--;
+      free(tab_base_xx);
+      tab_base_xx = g;
+      tab_top_xx = tab_base_xx->bout;
+      chunk_count_xx--;
      }
- if(chunk_count > 0) {
-     #if defined(LINEAR_VALUE_IS_MP)
+ if(chunk_count_xx > 0) {
+     #if defined(PIPLIB_ONE_DETERMINANT)
      /* Do not forget to clear the tables in the current chunk above the
         high water mark */
      p = (char *)by_the_mark.top;
-     while(p < tab_base->free) {
-        Tableau *pt;
-        pt = (Tableau *) p;
-        tab_clear(pt);
+     while(p < tab_base_xx->free) {
+        Tableau_xx *pt;
+        pt = (Tableau_xx *) p;
+        tab_clear_xx(pt);
         p += pt->taille;
         } 
      #endif   
-     tab_free = by_the_mark.top;
-     tab_base->free = tab_free;
+     tab_free_xx = by_the_mark.top;
+     tab_base_xx->free = tab_free_xx;
      }
  else {
-     fprintf(stderr, "Syserr: tab_reset : error in memory allocation\n");
+     fprintf(stderr,
+             "Syserr: tab_reset_xx : error in memory allocation\n");
      exit(1);
      }
 }
 
-Tableau * tab_alloc(int h, int w, int n)
+Tableau_xx * tab_alloc_xx(int h, int w, int n)
 
 /* h : le nombre de ligne reelles;
    n : le nombre de lignes virtuelles
 */
 {
- char *p; Tableau *tp;
- Entier *q;
+ char *p; Tableau_xx *tp;
+ piplib_int_t_xx *q;
  unsigned long taille;
  int i, j;
- taille = sizeof(struct T) + (h+n-1) * sizeof (struct L)
-	  + h * w * sizeof (Entier);
- if(tab_free + taille >= tab_top)
-     {struct A * g;
+ taille = sizeof(Tableau_xx)
+          + (h+n-1) * sizeof (struct L_xx)
+	  + h * w * sizeof (piplib_int_t_xx);
+ if(tab_free_xx + taille >= tab_top_xx)
+     {struct A_xx * g;
       unsigned long d;
       d = taille + sizeof_struct_A;
       if(d < TAB_CHUNK) d = TAB_CHUNK;
-      tab_free = malloc(d);
-      if(tab_free == NULL)
+      tab_free_xx = malloc(d);
+      if(tab_free_xx == NULL)
 	  {printf("Memory overflow\n");
 	   exit(23);
 	  }
-      chunk_count++;
-      g = (struct A *)tab_free;
-      g->precedent = tab_base;
-      tab_top = tab_free + d;
-      tab_free += sizeof_struct_A;
-      tab_base = g;
-      g->bout = tab_top;
+      chunk_count_xx++;
+      g = (struct A_xx *)tab_free_xx;
+      g->precedent = tab_base_xx;
+      tab_top_xx = tab_free_xx + d;
+      tab_free_xx += sizeof_struct_A;
+      tab_base_xx = g;
+      g->bout = tab_top_xx;
      }
- p = tab_free;
- tab_free += taille;
- tab_base->free = tab_free;
- tp = (Tableau *)p;
- q = (Entier *)(p +  sizeof(struct T) + (h+n-1) * sizeof (struct L));
- #if defined(LINEAR_VALUE_IS_MP)
- mpz_init_set_ui(tp->determinant,1);
+ p = tab_free_xx;
+ tab_free_xx += taille;
+ tab_base_xx->free = tab_free_xx;
+ tp = (Tableau_xx *)p;
+ q = (piplib_int_t_xx *)(p +  sizeof(Tableau_xx)
+     + (h+n-1) * sizeof (struct L_xx));
+ #if defined(PIPLIB_ONE_DETERMINANT)
+ piplib_int_init_set_si(tp->determinant,1);
  #else
- tp->determinant[0] = (Entier) 1;
+ tp->determinant[0] = (piplib_int_t_xx) 1;
  tp->l_determinant = 1;
  #endif
- for(i = 0; i<n ; i++){
+ for(i = 0; i<n; i++){
    tp->row[i].flags = Unit;
    tp->row[i].objet.unit = i;
-   #if defined(LINEAR_VALUE_IS_MP)
-   mpz_init_set_ui(Denom(tp, i), 1);
-   #else
-   Denom(tp, i) = UN ;
-   #endif
+   piplib_int_init_set_si(Denom(tp, i), 1);
  }
  for(i = n; i < (h+n); i++){
    tp->row[i].flags = 0;
    tp->row[i].objet.val = q;
+   tp->row[i].size = 0;
    for(j = 0; j < w; j++)
-   #if defined(LINEAR_VALUE_IS_MP)
-   mpz_init_set_ui(*q++, 0); /* loop body. */
-   mpz_init_set_ui(Denom(tp, i), 0);
-   #else
-   *q++ = 0;                 /* loop body. */
-   Denom(tp, i) = ZERO ;
-   #endif
+   piplib_int_init_set_si(*q++, 0); /* loop body. */
+   piplib_int_init_set_si(Denom(tp, i), 0);
  }
  tp->height = h + n; tp->width = w;
- #if defined(LINEAR_VALUE_IS_MP)
+ #if defined(PIPLIB_ONE_DETERMINANT)
  tp->taille = taille ;
  #endif
  
  return(tp);
 }
 
-Tableau * tab_get(foo, h, w, n)
+Tableau_xx * tab_get_xx(foo, h, w, n)
 FILE * foo;
 int h, w, n;
 {
- Tableau *p;
+ Tableau_xx *p;
  int i, j, c;
- Entier x;
- #if defined(LINEAR_VALUE_IS_MP)
- mpz_init(x);
- #endif
+ piplib_int_t_xx x;
+ piplib_int_init(x);
  
- p = tab_alloc(h, w, n);
- while((c = dgetc(foo)) != EOF)
+ p = tab_alloc_xx(h, w, n);
+ while((c = dgetc_xx(foo)) != EOF)
       if(c == '(')break;
  for(i = n; i<h+n; i++)
      {p->row[i].flags = Unknown;
-      #if defined(LINEAR_VALUE_IS_MP)
-      mpz_set_ui(Denom(p, i), 1);
-      #else
-      Denom(p, i) = UN;
-      #endif
-      while((c = dgetc(foo)) != EOF)if(c == '[')break;
+      piplib_int_set_si(Denom(p, i), 1);
+      while((c = dgetc_xx(foo)) != EOF)if(c == '[')break;
       for(j = 0; j<w; j++){
-        #if defined(LINEAR_VALUE_IS_MP)
-	if(dscanf(foo, x) < 0)
-          return NULL;
-        else
-	  mpz_set(p->row[i].objet.val[j], x);
-        #else
-	if(dscanf(foo, &x) < 0)
-          return NULL;
-        else
-	  p->row[i].objet.val[j] = x;
-        #endif
+        if(dscanf_xx(foo, &x) < 0) return NULL;
+        else piplib_int_assign(p->row[i].objet.val[j], x);
         }
       } 
-      while((c = dgetc(foo)) != EOF)if(c == ']')break;
+      while((c = dgetc_xx(foo)) != EOF)if(c == ']')break;
  
- #if defined(LINEAR_VALUE_IS_MP)
- mpz_clear(x);
- #endif
+ piplib_int_clear(x);
      
  return(p);
 }
@@ -312,23 +289,29 @@ int h, w, n;
  * 18 octobre 2003 : Mise en place de la possibilite de calculer le
  *                   maximum lexicographique (parties 'if (Max)').
  */
-Tableau * tab_Matrix2Tableau(matrix, Nineq, Nv, n, Shift, Bg, Urs_parms)
-PipMatrix * matrix ;
+Tableau_xx * tab_Matrix2Tableau_xx(matrix, Nineq, Nv, n,
+                                                       Shift, Bg, Urs_parms)
+PipMatrix_xx * matrix ;
 int Nineq, Nv, n, Shift, Bg, Urs_parms;
-{ Tableau * p ;
-  unsigned i, j, k, current, new, nb_columns, decal=0, bignum_is_new ;
+{ Tableau_xx * p ;
+  unsigned i, k, current, new, nb_columns, decal=0, bignum_is_new;
+  int j;
   unsigned cst;
   int inequality, ctx;
-  Entier bignum;
+  piplib_int_t_xx bignum;
 
   /* Are we dealing with the context? */
   ctx = n == -1;
   if (ctx)
     n = 0;
-  entier_init(bignum);
+  piplib_int_init(bignum);
   nb_columns = matrix->NbColumns - 1 ;
+  
   /* S'il faut un BigNum et qu'il n'existe pas, on lui reserve sa place. */
-  bignum_is_new = Shift && (Bg+ctx > (matrix->NbColumns - 2));
+  bignum_is_new = Shift
+  && (Bg+ctx > 0)
+  && ((unsigned int)(Bg+ctx) > (matrix->NbColumns - 2));
+  
   if (bignum_is_new)
     nb_columns++;
   if (ctx) {
@@ -337,7 +320,7 @@ int Nineq, Nv, n, Shift, Bg, Urs_parms;
   } else
     cst = Nv;
 
-  p = tab_alloc(Nineq,nb_columns+Urs_parms,n) ;
+  p = tab_alloc_xx(Nineq,nb_columns+Urs_parms,n) ;
     
   /* La variable decal sert a prendre en compte les lignes supplementaires
    * issues des egalites.
@@ -345,11 +328,11 @@ int Nineq, Nv, n, Shift, Bg, Urs_parms;
   for (i = 0; i < matrix->NbRows; i++) {
     current = i + n + decal;
     Flag(p,current) = Unknown ;
-    entier_set_si(Denom(p,current), 1);
+    piplib_int_set_si(Denom(p,current), 1);
     if (Shift)
-      entier_set_si(bignum, 0);
+      piplib_int_set_si(bignum, 0);
     /* Pour passer l'indicateur d'egalite/inegalite. */
-    inequality = entier_notzero_p(matrix->p[i][0]);
+    inequality = (piplib_int_zero(matrix->p[i][0]) == 0);
          
     /* Dans le format de la polylib, l'element constant est place en
      * dernier. Dans le format de Pip, il se trouve apres la premiere
@@ -360,35 +343,36 @@ int Nineq, Nv, n, Shift, Bg, Urs_parms;
       if (bignum_is_new && j == Bg)
 	continue;
       if (Shift)
-	entier_addto(bignum, bignum, matrix->p[i][1+j]);
+	piplib_int_add(bignum, bignum, matrix->p[i][1+j]);
       if (Shift > 0)
-	entier_oppose(p->row[current].objet.val[j], matrix->p[i][1+j]);
+	piplib_int_oppose(p->row[current].objet.val[j], matrix->p[i][1+j]);
       else
-	entier_assign(p->row[current].objet.val[j], matrix->p[i][1+j]);
+	piplib_int_assign(p->row[current].objet.val[j], matrix->p[i][1+j]);
     }
-    for (k=j=Nv+1;j<nb_columns;j++) {
+    for (k=j=Nv+1;(unsigned int)j<nb_columns;j++) {
 	if (bignum_is_new && j == Bg)
 	  continue;
-	entier_assign(p->row[current].objet.val[j], matrix->p[i][k++]);
+	piplib_int_assign(p->row[current].objet.val[j], matrix->p[i][k]);
+	k++;
     }
     for (j=0; j < Urs_parms; ++j) {
 	int pos_n = nb_columns - ctx + j;
 	int pos = pos_n - Urs_parms;
 	if (pos <= Bg)
 	    --pos;
-	entier_oppose(p->row[current].objet.val[pos_n],
+	piplib_int_oppose(p->row[current].objet.val[pos_n],
 		     p->row[current].objet.val[pos]);
     }
-    entier_assign(p->row[current].objet.val[cst], 
+    piplib_int_assign(p->row[current].objet.val[cst], 
 		 matrix->p[i][matrix->NbColumns-1]);
     if (Shift) {
       if (Shift < 0)
-	entier_oppose(bignum, bignum);
+	piplib_int_oppose(bignum, bignum);
 
       if (bignum_is_new)
-	entier_assign(p->row[current].objet.val[Bg], bignum);
+	piplib_int_assign(p->row[current].objet.val[Bg], bignum);
       else
-	entier_addto(p->row[current].objet.val[Bg], 
+	piplib_int_add(p->row[current].objet.val[Bg], 
 		    p->row[current].objet.val[Bg], bignum);
     }
     
@@ -397,74 +381,68 @@ int Nineq, Nv, n, Shift, Bg, Urs_parms;
       decal ++ ;
       new = current + 1 ;
       Flag(p,new)= Unknown ;
-      entier_set_si(Denom(p,new), 1);
+      piplib_int_set_si(Denom(p,new), 1);
       
-      for (j=0;j<nb_columns+Urs_parms;j++)
-	entier_oppose(p->row[new].objet.val[j], p->row[current].objet.val[j]);
+      for (j=0;(unsigned int)j<nb_columns+Urs_parms;j++)
+	piplib_int_oppose(p->row[new].objet.val[j], p->row[current].objet.val[j]);
     }
   }
-  entier_clear(bignum);
+  piplib_int_clear(bignum);
 
   return(p);
 }
 
 
-int tab_simplify(Tableau *tp, int cst)
+int tab_simplify_xx(Tableau_xx *tp, int cst)
 {
     int i, j;
-    Entier gcd;
+    piplib_int_t_xx gcd;
 
-    entier_init(gcd);
+    piplib_int_init(gcd);
     for (i = 0; i < tp->height; ++i) {
 	if (Flag(tp, i) & Unit)
 	    continue;
-	entier_set_si(gcd, 0);
+	piplib_int_set_si(gcd, 0);
 	for (j = 0; j < tp->width; ++j) {
 	    if (j == cst)
 		continue;
-	    entier_gcd(gcd, gcd, Index(tp, i, j));
-	    if (entier_one_p(gcd))
+	    piplib_int_gcd(gcd, gcd, Index(tp, i, j));
+	    if (piplib_int_one(gcd))
 		break;
 	}
-	if (entier_zero_p(gcd))
+	if (piplib_int_zero(gcd))
 	    continue;
-	if (entier_one_p(gcd))
+	if (piplib_int_one(gcd))
 	    continue;
 	for (j = 0; j < tp->width; ++j) {
 	    if (j == cst)
-		entier_pdivision(Index(tp, i, j), Index(tp, i, j), gcd);
+		piplib_int_floor_div_q(Index(tp, i, j), Index(tp, i, j), gcd);
 	    else
-		entier_divexact(Index(tp, i, j), Index(tp, i, j), gcd);
+		piplib_int_div_exact(Index(tp, i, j), Index(tp, i, j), gcd);
 	}
     }
-    entier_clear(gcd);
+    piplib_int_clear(gcd);
 
     return 0;
 }
 
 
-char *Attr[] = {"Unit", "+", "-", "0", "*", "?"};
-
-void tab_display(p, foo)
+void tab_display_xx(p, foo)
 FILE *foo;
-Tableau *p;
+Tableau_xx *p;
 {
+ char const * const Attr[] = {"Unit", "+", "-", "0", "*", "?"};
 
  int i, j, ff, fff, n;
- Entier x, d;
- #if defined(LINEAR_VALUE_IS_MP)
- mpz_init(d);
- #endif
+ piplib_int_t_xx d;
+ piplib_int_init(d);
 
- fprintf(foo, "%ld/[%d * %d]\n", cross_product, p->height, p->width);
+ fprintf(foo, "cross_product (%ld) /[%d * %d]\n", 0L/*cross_product*/,
+              p->height, p->width);
  for(i = 0; i<p->height; i++){
    fff = ff = p->row[i].flags;
    /* if(fff ==0) continue; */
-   #if defined(LINEAR_VALUE_IS_MP)
-   mpz_set(d, Denom(p, i));
-   #else
-   d = Denom(p, i);
-   #endif
+   piplib_int_assign(d, Denom(p, i));
    n = 0;
    while(fff){
      if(fff & 1) fprintf(foo, "%s ",Attr[n]);
@@ -476,24 +454,12 @@ Tableau *p;
        fprintf(foo, " /%d/",(j == p->row[i].objet.unit)? 1: 0);
    else
      for(j = 0; j<p->width; j++){
-       #if defined(LINEAR_VALUE_IS_MP)
-       mpz_out_str(foo, 10, Index(p, i, j));
+       piplib_int_print(foo, Index(p, i, j));
        putc(' ', foo);
-       #else
-       x = Index(p,i,j);
-       fprintf(foo, FORMAT, x);
-       fprintf(foo, " ");
-       #endif
      }
    fprintf(foo, "]/");
-   #if defined(LINEAR_VALUE_IS_MP)
-   mpz_out_str(foo, 10, d);
-   #else
-   fprintf(foo, "%d", (int)d);
-   #endif
+   piplib_int_print(foo, d);
    putc('\n', foo);
  }
- #if defined(LINEAR_VALUE_IS_MP)
- mpz_clear(d);
- #endif
+ piplib_int_clear(d);
 }

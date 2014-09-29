@@ -11,7 +11,7 @@ if (PIPLIB32_INCLUDE_DIR AND PIPLIB32_LIBRARY)
 endif()
 
 find_path(PIPLIB32_INCLUDE_DIR NAMES piplib/piplib32.h)
-find_library(PIPLIB32_LIBRARY NAMES piplib32)
+find_library(PIPLIB32_LIBRARY NAMES piplib_sp)
 
 if (PIPLIB32_LIBRARY AND PIPLIB32_INCLUDE_DIR)
 	message(STATUS "Library piplib32 found =) ${PIPLIB32_LIBRARY}")

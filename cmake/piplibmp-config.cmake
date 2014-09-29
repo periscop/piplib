@@ -11,7 +11,7 @@ if (PIPLIBMP_INCLUDE_DIR AND PIPLIBMP_LIBRARY)
 endif()
 
 find_path(PIPLIBMP_INCLUDE_DIR NAMES piplib/piplibMP.h)
-find_library(PIPLIBMP_LIBRARY NAMES piplibMP)
+find_library(PIPLIBMP_LIBRARY NAMES piplib_gmp)
 
 if (PIPLIBMP_LIBRARY AND PIPLIBMP_INCLUDE_DIR)
 	message(STATUS "Library piplibMP found =) ${PIPLIBMP_LIBRARY}")

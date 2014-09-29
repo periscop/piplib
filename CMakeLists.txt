@@ -48,7 +48,7 @@ set(VERSION "1.4.0")
 
 # Include directories (to use #include <> instead of #include "")
 
-	# include/osl/scop.h
+	# ./include/piplib/version.h
 	configure_file("./include/piplib/version.h.in" "./include/piplib/version.h")
 	include_directories("${CMAKE_CURRENT_BINARY_DIR}/include/piplib")
 	# piplib
@@ -79,62 +79,62 @@ set(VERSION "1.4.0")
 
 	message(STATUS "---")
 
-	# 32
-	message(STATUS "Add library piplib32 (shared)")
+	# sp
+	message(STATUS "Add library piplib_sp (shared)")
 	add_library(
-		piplib32
+		piplib_sp
 		SHARED
 		${sources}
 	)
-	set_target_properties(piplib32 PROPERTIES COMPILE_DEFINITIONS LINEAR_VALUE_IS_INT)
+	set_target_properties(piplib_sp PROPERTIES COMPILE_DEFINITIONS PIPLIB_INT_SP)
 
-	message(STATUS "Add library piplib32 (static)")
+	message(STATUS "Add library piplib_sp (static)")
 	add_library(
-		piplib32_static
+		piplib_sp_static
 		STATIC
 		${sources}
 	)
-	set_target_properties(piplib32_static PROPERTIES OUTPUT_NAME piplib32)
-	set_target_properties(piplib32_static PROPERTIES COMPILE_DEFINITIONS LINEAR_VALUE_IS_INT)
+	set_target_properties(piplib_sp_static PROPERTIES OUTPUT_NAME piplib_sp)
+	set_target_properties(piplib_sp_static PROPERTIES COMPILE_DEFINITIONS PIPLIB_INT_SP)
 	
-	# 64
-	message(STATUS "Add library piplib64 (shared)")
+	# dp
+	message(STATUS "Add library piplib_dp (shared)")
 	add_library(
-		piplib64
+		piplib_dp
 		SHARED
 		${sources}
 	)
-	set_target_properties(piplib64 PROPERTIES COMPILE_DEFINITIONS LINEAR_VALUE_IS_LONGLONG)
+	set_target_properties(piplib_dp PROPERTIES COMPILE_DEFINITIONS PIPLIB_INT_DP)
 
-	message(STATUS "Add library piplib64 (static)")
+	message(STATUS "Add library piplib_dp (static)")
 	add_library(
-		piplib64_static
+		piplib_dp_static
 		STATIC
 		${sources}
 	)
-	set_target_properties(piplib64_static PROPERTIES OUTPUT_NAME piplib64)
-	set_target_properties(piplib64_static PROPERTIES COMPILE_DEFINITIONS LINEAR_VALUE_IS_LONGLONG)
+	set_target_properties(piplib_dp_static PROPERTIES OUTPUT_NAME piplib_dp)
+	set_target_properties(piplib_dp_static PROPERTIES COMPILE_DEFINITIONS PIPLIB_INT_DP)
 
 	# GMP
 	if (gmp_LIB)
-		message(STATUS "Add library piplibMP (shared)")
+		message(STATUS "Add library piplib_gmp (shared)")
 		add_library(
-			piplibMP
+			piplib_gmp
 			SHARED
 			${sources}
 		)
-		set_target_properties(piplibMP PROPERTIES COMPILE_DEFINITIONS LINEAR_VALUE_IS_MP)
-		target_link_libraries(piplibMP ${gmp_LIB})
+		set_target_properties(piplib_gmp PROPERTIES COMPILE_DEFINITIONS PIPLIB_INT_GMP)
+		target_link_libraries(piplib_gmp ${gmp_LIB})
 
-		message(STATUS "Add library piplibMP (static)")
+		message(STATUS "Add library piplib_gmp (static)")
 		add_library(
-			piplibMP_static
+			piplib_gmp_static
 			STATIC
 			${sources}
 		)
-		set_target_properties(piplibMP_static PROPERTIES OUTPUT_NAME piplibMP)
-		set_target_properties(piplibMP_static PROPERTIES COMPILE_DEFINITIONS LINEAR_VALUE_IS_MP)
-		target_link_libraries(piplibMP_static ${gmp_LIB})
+		set_target_properties(piplib_gmp_static PROPERTIES OUTPUT_NAME piplib_gmp)
+		set_target_properties(piplib_gmp_static PROPERTIES COMPILE_DEFINITIONS PIPLIB_INT_GMP)
+		target_link_libraries(piplib_gmp_static ${gmp_LIB})
 	endif()
 
 
@@ -142,44 +142,44 @@ set(VERSION "1.4.0")
 
 	message(STATUS "---")
 
-	set(exe "pip32")
+	set(exe "pip_sp")
 	message(STATUS "Add executable ${exe}")
 	add_executable(${exe} "source/maind.c")
-	set_target_properties(${exe} PROPERTIES COMPILE_DEFINITIONS LINEAR_VALUE_IS_INT)
-	target_link_libraries(${exe} piplib32_static)
+	set_target_properties(${exe} PROPERTIES COMPILE_DEFINITIONS PIPLIB_INT_SP)
+	target_link_libraries(${exe} piplib_sp_static)
 
-	set(exe "pip64")
+	set(exe "pip_dp")
 	message(STATUS "Add executable ${exe}")
 	add_executable(${exe} "source/maind.c")
-	set_target_properties(${exe} PROPERTIES COMPILE_DEFINITIONS LINEAR_VALUE_IS_LONGLONG)
-	target_link_libraries(${exe} piplib64_static)
+	set_target_properties(${exe} PROPERTIES COMPILE_DEFINITIONS PIPLIB_INT_DP)
+	target_link_libraries(${exe} piplib_dp_static)
 
 	if(gmp_LIB)
-		set(exe "pipMP")
+		set(exe "pip_gmp")
 		message(STATUS "Add executable ${exe}")
 		add_executable(${exe} "source/maind.c")
-		set_target_properties(${exe} PROPERTIES COMPILE_DEFINITIONS LINEAR_VALUE_IS_MP)
-		target_link_libraries(${exe} piplibMP_static)
+		set_target_properties(${exe} PROPERTIES COMPILE_DEFINITIONS PIPLIB_INT_GMP)
+		target_link_libraries(${exe} piplib_gmp_static)
 	endif()
 
-	set(exe "exemple32")
+	set(exe "exemple_sp")
 	message(STATUS "Add executable ${exe}")
 	add_executable(${exe} "example/example.c")
-	set_target_properties(${exe} PROPERTIES COMPILE_DEFINITIONS LINEAR_VALUE_IS_INT)
-	target_link_libraries(${exe} piplib32_static)
+	set_target_properties(${exe} PROPERTIES COMPILE_DEFINITIONS PIPLIB_INT_SP)
+	target_link_libraries(${exe} piplib_sp_static)
 
-	set(exe "exemple64")
+	set(exe "exemple_dp")
 	message(STATUS "Add executable ${exe}")
 	add_executable(${exe} "example/example.c")
-	set_target_properties(${exe} PROPERTIES COMPILE_DEFINITIONS LINEAR_VALUE_IS_LONGLONG)
-	target_link_libraries(${exe} piplib64_static)
+	set_target_properties(${exe} PROPERTIES COMPILE_DEFINITIONS PIPLIB_INT_DP)
+	target_link_libraries(${exe} piplib_dp_static)
 
 	if(gmp_LIB)
-		set(exe "exempleMP")
+		set(exe "exemple_gmp")
 		message(STATUS "Add executable ${exe}")
 		add_executable(${exe} "example/example.c")
-		set_target_properties(${exe} PROPERTIES COMPILE_DEFINITIONS LINEAR_VALUE_IS_MP)
-		target_link_libraries(${exe} piplibMP_static)
+		set_target_properties(${exe} PROPERTIES COMPILE_DEFINITIONS PIPLIB_INT_GMP)
+		target_link_libraries(${exe} piplib_gmp_static)
 	endif()
 
 	# Test
@@ -198,26 +198,26 @@ set(VERSION "1.4.0")
 			message(STATUS "Add Test ${test}")
 			STRING(REPLACE ".pip" ".ll" test_output "${test}")
 			add_test(
-				"${test}_pip32"
+				"${test}_pip_sp"
 				"${CMAKE_CURRENT_SOURCE_DIR}/example/check_source_result.py"
 				"${test}"
 				"${test_output}"
-				"${CMAKE_CURRENT_BINARY_DIR}/exemple32"
+				"${CMAKE_CURRENT_BINARY_DIR}/exemple_sp"
 			)
 			add_test(
-				"${test}_pip64"
+				"${test}_pip_dp"
 				"${CMAKE_CURRENT_SOURCE_DIR}/example/check_source_result.py"
 				"${test}"
 				"${test_output}"
-				"${CMAKE_CURRENT_BINARY_DIR}/exemple64"
+				"${CMAKE_CURRENT_BINARY_DIR}/exemple_dp"
 			)
 			if(gmp_LIB)
 				add_test(
-					"${test}_pipMP"
+					"${test}_pip_gmp"
 					"${CMAKE_CURRENT_SOURCE_DIR}/example/check_source_result.py"
 					"${test}"
 					"${test_output}"
-					"${CMAKE_CURRENT_BINARY_DIR}/exempleMP"
+					"${CMAKE_CURRENT_BINARY_DIR}/exemple_gmp"
 				)
 			endif()
 		endforeach()
@@ -227,24 +227,31 @@ set(VERSION "1.4.0")
 
 # Install
 
-	install(TARGETS piplib32 LIBRARY DESTINATION lib)
-	install(TARGETS piplib64 LIBRARY DESTINATION lib)
-	install(TARGETS piplibMP LIBRARY DESTINATION lib)
-	install(TARGETS piplib32_static ARCHIVE DESTINATION lib)
-	install(TARGETS piplib64_static ARCHIVE DESTINATION lib)
-	install(TARGETS piplibMP_static ARCHIVE DESTINATION lib)
+	# .h
 	install(DIRECTORY include/ DESTINATION include FILES_MATCHING PATTERN "*.h")
 	install(DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/include/" DESTINATION include FILES_MATCHING PATTERN "*.h")
-	install(FILES piplib32-config.cmake DESTINATION lib/piplib32)
-	install(FILES piplib64-config.cmake DESTINATION lib/piplib64)
-	install(FILES piplibmp-config.cmake DESTINATION lib/piplibMP)
+	# Libraries
+	install(TARGETS piplib_sp LIBRARY DESTINATION lib)
+	install(TARGETS piplib_dp LIBRARY DESTINATION lib)
+	install(TARGETS piplib_gmp LIBRARY DESTINATION lib)
+	install(TARGETS piplib_sp_static ARCHIVE DESTINATION lib)
+	install(TARGETS piplib_dp_static ARCHIVE DESTINATION lib)
+	install(TARGETS piplib_gmp_static ARCHIVE DESTINATION lib)
+	# .cmake
+	install(DIRECTORY include/ DESTINATION include FILES_MATCHING PATTERN "*.h")
+	install(FILES cmake/piplib32-config.cmake DESTINATION lib/piplib32)
+	install(FILES cmake/piplib32-config.cmake DESTINATION lib/piplib64)
+	install(FILES cmake/piplibmp-config.cmake DESTINATION lib/piplibmp)
+	install(FILES cmake/piplib_sp-config.cmake DESTINATION lib/piplib_sp)
+	install(FILES cmake/piplib_dp-config.cmake DESTINATION lib/piplib_dp)
+	install(FILES cmake/piplib_gmp-config.cmake DESTINATION lib/piplib_gmp)
 
 
 # Little help
 
 	message(STATUS "---")
 	message(STATUS "You can execute:")
-	message(STATUS "    make         # To compile osl library")
+	message(STATUS "    make         # To compile all PipLib libraries")
 	if (PYTHONINTERP_FOUND)
 		message(STATUS "    make test    # To execute tests")
 	endif()

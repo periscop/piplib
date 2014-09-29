@@ -16,9 +16,9 @@ SUBDIRS = . example doc test
 ACLOCAL_AMFLAGS = -I m4
 
 bin_PROGRAMS = @pips@
-EXTRA_PROGRAMS = pip32 pip64 pipMP
+EXTRA_PROGRAMS = pip_sp pip_dp pip_gmp
 lib_LTLIBRARIES = @piplibs@
-EXTRA_LTLIBRARIES = libpiplib32.la libpiplib64.la libpiplibMP.la
+EXTRA_LTLIBRARIES = libpiplib_sp.la libpiplib_dp.la libpiplib_gmp.la
 
 LIBRARY_FILES = \
 	source/integrer.c \
@@ -34,29 +34,32 @@ LIBRARY_FILES = \
 
 pkginclude_HEADERS = \
 	include/piplib/piplib.h \
+	include/piplib/piplib_sp.h \
+	include/piplib/piplib_dp.h \
+	include/piplib/piplib_gmp.h \
 	include/piplib/piplib32.h \
 	include/piplib/piplib64.h \
 	include/piplib/piplibMP.h
 
-libpiplib32_la_SOURCES = $(LIBRARY_FILES)
-libpiplib32_la_CPPFLAGS = @DFLAGS32@ -I$(srcdir)/include
-libpiplib32_la_LDFLAGS = -rpath $(libdir) -version-info @versioninfo@
-libpiplib64_la_SOURCES = $(LIBRARY_FILES)
-libpiplib64_la_CPPFLAGS = @DFLAGS64@ -I$(srcdir)/include
-libpiplib64_la_LDFLAGS = -rpath $(libdir) -version-info @versioninfo@
-libpiplibMP_la_SOURCES = $(LIBRARY_FILES)
-libpiplibMP_la_CPPFLAGS = @MP_DFLAGS@ -I$(srcdir)/include
-libpiplibMP_la_LDFLAGS = @EXTRA_LIBS@ -rpath $(libdir) -version-info @versioninfo@
+libpiplib_sp_la_SOURCES = $(LIBRARY_FILES)
+libpiplib_sp_la_CPPFLAGS = @SP_DFLAGS@ -I$(srcdir)/include
+libpiplib_sp_la_LDFLAGS = -rpath $(libdir) -version-info @versioninfo@
+libpiplib_dp_la_SOURCES = $(LIBRARY_FILES)
+libpiplib_dp_la_CPPFLAGS = @DP_DFLAGS@ -I$(srcdir)/include
+libpiplib_dp_la_LDFLAGS = -rpath $(libdir) -version-info @versioninfo@
+libpiplib_gmp_la_SOURCES = $(LIBRARY_FILES)
+libpiplib_gmp_la_CPPFLAGS = @MP_DFLAGS@ -I$(srcdir)/include
+libpiplib_gmp_la_LDFLAGS = @EXTRA_LIBS@ -rpath $(libdir) -version-info @versioninfo@
 
-pip32_SOURCES = source/maind.c
-pip32_CPPFLAGS = @DFLAGS32@ -I$(srcdir)/include
-pip32_LDADD = libpiplib32.la
-pip64_SOURCES = source/maind.c
-pip64_CPPFLAGS = @DFLAGS64@ -I$(srcdir)/include
-pip64_LDADD = libpiplib64.la
-pipMP_SOURCES = source/maind.c
-pipMP_CPPFLAGS = @MP_DFLAGS@ -I$(srcdir)/include
-pipMP_LDADD = libpiplibMP.la @EXTRA_LIBS@
+pip_sp_SOURCES = source/maind.c
+pip_sp_CPPFLAGS = @SP_DFLAGS@ -I$(srcdir)/include
+pip_sp_LDADD = libpiplib_sp.la
+pip_dp_SOURCES = source/maind.c
+pip_dp_CPPFLAGS = @DP_DFLAGS@ -I$(srcdir)/include
+pip_dp_LDADD = libpiplib_dp.la
+pip_gmp_SOURCES = source/maind.c
+pip_gmp_CPPFLAGS = @MP_DFLAGS@ -I$(srcdir)/include
+pip_gmp_LDADD = libpiplib_gmp.la @EXTRA_LIBS@
 
 version.h: @GIT_INDEX@
 	echo '#define PIPLIB_HEAD "'`$(top_builddir)/genversion.sh`'"' > $@

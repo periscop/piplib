@@ -31,19 +31,35 @@ extern "C"
   {
 #endif 
 
-void sol_init(void);
-int sol_hwm(void);
-void sol_reset(int);
-void sol_nil(void);
-void sol_if(void);
-void sol_list(int);
-void sol_form(int);
-void sol_new(int);
-void sol_div(void);
-void sol_val(Entier, Entier);
-int sol_edit(FILE *, int);
-int is_not_Nil(int);
-void sol_simplify(int);
+
+/**< Shift solution over -bigparam */
+#define SOL_SHIFT  (1 << 0)
+
+/**< Negate solution */
+#define SOL_NEGATE (1 << 1)
+
+/**< Remove big parameter */
+#define SOL_REMOVE (1 << 2)
+
+/**< Maximum was computed */
+#define SOL_MAX    (SOL_SHIFT | SOL_NEGATE)
+
+/**< Create dual leaf */
+#define SOL_DUAL   (1 << 3)
+
+
+void sol_init_xx(void);
+int sol_hwm_xx(void);
+void sol_reset_xx(int);
+void sol_nil_xx(void);
+void sol_if_xx(void);
+void sol_list_xx(int);
+void sol_new_xx(int);
+void sol_div_xx(void);
+void sol_val_xx(piplib_int_t_xx, piplib_int_t_xx);
+int sol_edit_xx(FILE *, int);
+int is_not_Nil_xx(int);
+void sol_simplify_xx(int);
 
 #if defined(__cplusplus)
   }
