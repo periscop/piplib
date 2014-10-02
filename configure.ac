@@ -16,10 +16,10 @@ dnl 	chmod +x configure
 
 
 AC_PREREQ(2.13)
-AC_INIT(source/piplib.c)
+AC_INIT(source/piplib.c, [1.4.0], [cedric.bastoul@inria.fr])
 AC_CONFIG_AUX_DIR(autoconf)
 AC_CONFIG_MACRO_DIR([m4])
-AM_INIT_AUTOMAKE(piplib, 1.4.0)
+AM_INIT_AUTOMAKE([foreign])
 AC_SUBST(versioninfo)
 versioninfo=3:0:1
 
