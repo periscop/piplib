@@ -196,6 +196,16 @@ for tb in $TO_BUILD; do
 	pips="$pips pip$tb\$(EXEEXT)"
     fi
     examples="$examples example$tb\$(EXEEXT)"
+
+    cmakeconfigs="$cmakeconfigs piplib$tb"
+    case "$tb" in
+    _sp) cmakeconfigs="$cmakeconfigs piplib32"
+         ;;
+    _dp) cmakeconfigs="$cmakeconfigs piplib64"
+         ;;
+    _gmp) cmakeconfigs="$cmakeconfigs piplibMP"
+         ;;
+    esac;
 done
 
 AC_SUBST(GIT_INDEX)
@@ -212,6 +222,7 @@ dnl Substitutions to do in Makefile.in.
 AC_SUBST(examples)
 AC_SUBST(piplibs)
 AC_SUBST(pips)
+AC_SUBST(cmakeconfigs)
 AC_SUBST(EXTRA_LIBS)
 
 dnl compilation flags

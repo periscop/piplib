@@ -11,6 +11,7 @@
 # makefile, you must run the 'configure' shellscript to generate the Makefile
 # thanks to this file. 
 
+AUTOMAKE_OPTIONS = subdir-objects
 SUBDIRS = . example doc test
 
 ACLOCAL_AMFLAGS = -I m4
@@ -65,7 +66,24 @@ version.h: @GIT_INDEX@
 	echo '#define PIPLIB_HEAD "'`$(top_builddir)/genversion.sh`'"' > $@
 
 EXTRA_DIST = \
-	autogen.sh
+	autogen.sh \
+	cmake/piplib32-config.cmake \
+	cmake/piplib64-config.cmake \
+	cmake/piplibMP-config.cmake \
+	cmake/piplib_sp-config.cmake \
+	cmake/piplib_dp-config.cmake \
+	cmake/piplib_mp-config.cmake
+
+install-data-local:
+	@for conf in @cmakeconfigs@; do \
+	  if [ ! -e "$(DESTDIR)$(libdir)/$$conf" ]; then $(mkdir_p) "$(DESTDIR)$(libdir)/$$conf"; fi;\
+	  $(INSTALL_DATA) "$(top_srcdir)/cmake/$$conf-config.cmake" "$(DESTDIR)$(libdir)/$$conf/"; \
+	done
+
+uninstall-local:
+	@for conf in @cmakeconfigs@; do \
+	  rm -f "$(DESTDIR)$(libdir)/$$conf/$$conf-config.cmake"; \
+	done
 
 dist-hook:
 	(cd doc; make piplib.pdf) && cp doc/piplib.pdf $(distdir)/doc/
