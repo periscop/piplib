@@ -14,43 +14,39 @@ dnl for older versions of autoconf use -l instead
 dnl 	autoconf -l autoconf autoconf/configure.in > configure
 dnl 	chmod +x configure
 
+m4_define([version_major], [1])
+m4_define([version_minor], [4])
+m4_define([version_revision], [0])
 
-AC_PREREQ(2.13)
-AC_INIT(source/piplib.c, [1.4.0], [cedric.bastoul@inria.fr])
+AC_PREREQ(2.53)
+AC_INIT([piplib], [version_major.version_minor.version_revision],
+        [piplib-development@googlegroups.com])
 AC_CONFIG_AUX_DIR(autoconf)
+AC_CONFIG_SRCDIR([include/piplib/piplib.h])
 AC_CONFIG_MACRO_DIR([m4])
 AM_INIT_AUTOMAKE([foreign])
+m4_ifdef([AM_SILENT_RULES],[AM_SILENT_RULES([yes])])
+
 AC_SUBST(versioninfo)
 versioninfo=3:0:1
+
 
 dnl /**************************************************************************
 dnl  *                              Checking                                  *
 dnl  **************************************************************************/
 
 
-if test "x$prefix" != "xNONE"; then
-    prefix_wd=`cd $prefix && pwd`
-    srcdir_wd=`cd $srcdir && pwd`
-    wd=`pwd`
-    if test "x$prefix_wd" = "x$srcdir_wd"; then
-	AC_MSG_ERROR(Installation in source directory not supported)
-    fi
-    if test "x$prefix_wd" = "x$wd"; then
-	AC_MSG_ERROR(Installation in build directory not supported)
-    fi
-fi
-
 dnl Checks for programs.
 AC_PROG_CC
 AC_PROG_LN_S
 AC_PROG_MAKE_SET
 AC_CHECK_PROG(CD, cd)
-dnl Configure needs an empty install.sh file with this, i HATE that...
 AC_PROG_INSTALL
-AC_CANONICAL_HOST
 AC_PROG_LIBTOOL
-AC_CHECK_PROG(TEXI2DVI, texi2dvi, texi2dvi, [])
-AM_CONDITIONAL(HAVE_TEXI2DVI, test -n "$TEXI2DVI")
+
+AC_CHECK_PROG(DOXYGEN, doxygen, doxygen, [])
+AC_CHECK_PROG(TEXI2PDF, texi2pdf, texi2pdf, [])
+AM_CONDITIONAL(HAVE_TEXI2DVI, test -n "$TEXI2PDF" -a -n "$DOXYGEN")
 
 AX_CC_MAXOPT
 
@@ -58,15 +54,9 @@ dnl Checks for typedefs, structures, and compiler characteristics.
 AC_C_CONST
 AC_TYPE_SIZE_T
 
-
-dnl Checks for libraries.
-dnl Replace `main' with a function in -lc:
-dnl AC_CHECK_LIB(c, main)
-
-
 dnl Checks for header files.
 AC_HEADER_STDC
-
+AC_CHECK_HEADERS([errno.h stddef.h stdlib.h string.h strings.h unistd.h])
 
 dnl Checks sizeof the two supported cases.
 AC_CHECK_SIZEOF(int,1)
