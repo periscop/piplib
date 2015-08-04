@@ -580,7 +580,7 @@ static int *tab_sort_rows_xx(
 	d = piplib_int_get_d(Denom(tp, i));
 	for (j = 0; j < nvar; j++) {
 	    t = piplib_int_get_d(Index(tp,i,j))/d;
-	    s = piplib_max(s, abs(t));
+	    s = piplib_max(s, abs((int)t)); // NdCed: or fabs(t) ?
 	}
 	tp->row[i].size = s;
 	smax = piplib_max(s, smax);
