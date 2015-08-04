@@ -87,7 +87,10 @@ GNU Free Documentation License, write to the Free Software Foundation, Inc.,
 @subtitle A Solver for Parametric Integer Programming Problems
 @subtitle Edition @value{EDITION}, for PIP/PipLib @value{VERSION}
 @subtitle @value{UPDATED}
-@author Paul Feautrier, Jean-Fran@,{c}ois Collard, C@'edric Bastoul
+@author Paul Feautrier
+@author Jean-Fran@,{c}ois Collard
+@author C@'edric Bastoul
+@author Sven Verdoolaege
      
 @c The following two commands start the copyright page.
 @page
@@ -169,11 +172,11 @@ parameters (the symbolic constants).
 @noindent It is defined by the following set of constraints:
 @tex
 $$
-\left\{\eqalign{2i + 3j - 8 &\geq 0\cr
-                 4i - j - 4 &\geq 0\cr
-                     -i + n &\geq 0\cr
-                          j &\geq 0\cr
-                     -j + m &\geq 0}\right.
+\hbox{$ \cases{2i + 3j - 8 &$\geq 0$\cr
+               4i -  j - 4 &$\geq 0$\cr
+                    -i + n &$\geq 0$\cr
+                         j &$\geq 0$\cr
+                    -j + m &$\geq 0$}$}
 $$
 @end tex
 @ifnottex
@@ -443,11 +446,11 @@ parameters (the symbolic constants),
 defined by the following set of constraints:
 @tex
 $$
-\left\{\eqalign{2i + 3j - 8 &\geq 0\cr
-                 4i - j - 4 &\geq 0\cr
-                     -i + n &\geq 0\cr
-                          j &\geq 0\cr
-                     -j + m &\geq 0}\right.
+\hbox{$ \cases{2i + 3j - 8 &$\geq 0$\cr
+               4i -  j - 4 &$\geq 0$\cr
+                    -i + n &$\geq 0$\cr
+                         j &$\geq 0$\cr
+                    -j + m &$\geq 0$}$}
 $$
 @end tex
 @ifnottex
@@ -1151,10 +1154,10 @@ These cases can be handled systematically in the following way. Suppose that
 we are asked for the integer maximum of the polyhedron:
 @tex
 $$
-\left\{\eqalign{x  &\geq 0\cr
-                y  &\geq 0\cr
-                3y &\leq x + 12\cr
-                y  &\geq 2x - 3\cr}\right.
+\hbox{$ \cases{ x  &$\geq 0$\cr
+                y  &$\geq 0$\cr
+                3y &$\leq$ x + 12\cr
+                y  &$\geq$ 2x - 3\cr}$}
 $$
 @end tex
 @ifnottex
@@ -1177,10 +1180,10 @@ $$ x'= B - x, \;\; y' = B - y ,$$
 where @math{B} is the big parameter. The system translates to:
 @tex
 $$
-\left\{\eqalign{           -x' + B &\geq 0\cr
-                           -y' + B &\geq 0\cr
-                -x' + 3y' + 12 -2B &\geq 0\cr
-                  2x' - y' + 3 - B &\geq 0\cr}\right.
+\hbox{$ \cases{            -x' + B &$\geq 0$\cr
+                           -y' + B &$\geq 0$\cr
+                -x' + 3y' + 12 -2B &$\geq 0$\cr
+                  2x' - y' + 3 - B &$\geq 0$}$}
 $$
 @end tex
 @ifnottex

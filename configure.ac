@@ -224,6 +224,8 @@ AC_CONFIG_FILES(Makefile example/Makefile test/Makefile doc/Makefile)
 AC_CONFIG_FILES([genversion.sh], [chmod +x genversion.sh])
 AC_CONFIG_COMMANDS([version.h],
     [echo '#define PIPLIB_HEAD "'`./genversion.sh`'"' > version.h])
+AC_CONFIG_COMMANDS([doc/gitversion.texi],
+    [echo '@set VERSION '`./genversion.sh`'' > doc/gitversion.texi])
 AC_OUTPUT
 
 
