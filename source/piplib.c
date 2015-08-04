@@ -105,7 +105,10 @@ static char* create_temp_filename_xx()
     static char dump_name[sizeof(dump_name_template)];
 
     strcpy(dump_name, dump_name_template);
-    mkstemp(dump_name);
+    if (mkstemp(dump_name) == -1) {
+      fprintf(stderr, "Cannot create a temporary file\n");
+      exit(1);
+    }
     return dump_name;
 }
 #endif
@@ -580,7 +583,8 @@ PipMatrix_xx * pip_matrix_read_xx(FILE * foo) {
 
   while (fgets(s,1024,foo) == 0) ;
   while ((*s=='#' || *s=='\n') || (sscanf(s," %u %u",&NbRows,&NbColumns)<2))
-  fgets(s, 1024, foo) ;
+    if (fgets(s, 1024, foo))
+      continue;
   
   matrix = pip_matrix_alloc_xx(NbRows,NbColumns) ;
 

@@ -5,6 +5,7 @@
  */
 
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
 
@@ -56,7 +57,10 @@ int main(int argc, const char **argv)
   PIPLIB_NAME(pip_matrix_print)(stdout,context) ;
 
   printf("- the bignum column (start at 0, -1 if no bignum),\n") ;
-  fscanf(stdin," %d",&bignum) ;
+  if (fscanf(stdin, " %d", &bignum) != 1) {
+    fprintf(stderr, "Cannot read the bignum option value\n");
+    exit(1);
+  }
   printf("%d\n",bignum) ;
 
   printf("- the constraint matrix.\n") ;
