@@ -193,7 +193,7 @@ for tb in $TO_BUILD; do
          ;;
     _dp) cmakeconfigs="$cmakeconfigs piplib64"
          ;;
-    _gmp) cmakeconfigs="$cmakeconfigs piplibMP"
+    _gmp) cmakeconfigs="$cmakeconfigs piplibmp"
          ;;
     esac;
 done

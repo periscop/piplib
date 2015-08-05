@@ -74,7 +74,7 @@ EXTRA_DIST = \
 	autogen.sh \
 	cmake/piplib32-config.cmake \
 	cmake/piplib64-config.cmake \
-	cmake/piplibMP-config.cmake \
+	cmake/piplibmp-config.cmake \
 	cmake/piplib_sp-config.cmake \
 	cmake/piplib_dp-config.cmake \
 	cmake/piplib_mp-config.cmake
