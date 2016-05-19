@@ -19,6 +19,7 @@
 @c % release 4.5: November   8th 2005 (for PipLib 1.3.4, 1.3.5)
 @c % release 4.6: February  21th 2006 (for PipLib 1.3.6)
 @c % release 5.0: July       9th 2007 (Texinfo, for PipLib 1.4.0)
+@c % release 5.1: August     4th 2014 (more documentation)
 
 @c %
 @c %/**************************************************************************
@@ -35,9 +36,9 @@
 @setfilename piplib.info
 @settitle PIP/PipLib - Parametric Integer Programming
 
-@set EDITION 5.0
+@set EDITION 5.1
 @include gitversion.texi
-@set UPDATED July 9th 2007
+@set UPDATED August 4th 2014
 @setchapternewpage odd
 
 @c %**end of header
@@ -87,7 +88,10 @@ GNU Free Documentation License, write to the Free Software Foundation, Inc.,
 @subtitle A Solver for Parametric Integer Programming Problems
 @subtitle Edition @value{EDITION}, for PIP/PipLib @value{VERSION}
 @subtitle @value{UPDATED}
-@author Paul Feautrier, Jean-Fran@,{c}ois Collard, C@'edric Bastoul
+@author Paul Feautrier
+@author Jean-Fran@,{c}ois Collard
+@author C@'edric Bastoul
+@author Sven Verdoolaege
      
 @c The following two commands start the copyright page.
 @page
@@ -169,11 +173,11 @@ parameters (the symbolic constants).
 @noindent It is defined by the following set of constraints:
 @tex
 $$
-\left\{\eqalign{2i + 3j - 8 &\geq 0\cr
-                 4i - j - 4 &\geq 0\cr
-                     -i + n &\geq 0\cr
-                          j &\geq 0\cr
-                     -j + m &\geq 0}\right.
+\hbox{$ \cases{2i + 3j - 8 &$\geq 0$\cr
+               4i -  j - 4 &$\geq 0$\cr
+                    -i + n &$\geq 0$\cr
+                         j &$\geq 0$\cr
+                    -j + m &$\geq 0$}$}
 $$
 @end tex
 @ifnottex
@@ -443,11 +447,11 @@ parameters (the symbolic constants),
 defined by the following set of constraints:
 @tex
 $$
-\left\{\eqalign{2i + 3j - 8 &\geq 0\cr
-                 4i - j - 4 &\geq 0\cr
-                     -i + n &\geq 0\cr
-                          j &\geq 0\cr
-                     -j + m &\geq 0}\right.
+\hbox{$ \cases{2i + 3j - 8 &$\geq 0$\cr
+               4i -  j - 4 &$\geq 0$\cr
+                    -i + n &$\geq 0$\cr
+                         j &$\geq 0$\cr
+                    -j + m &$\geq 0$}$}
 $$
 @end tex
 @ifnottex
@@ -1060,6 +1064,8 @@ extended classes of problems:
 * Optimizing Linear Cost Functions::
 * Negative Unknowns and Parameters::
 * Mixed Programming::
+* Rational Parameters::
+* Strict Inequalities::
 @end menu
 
 @node Handling Equalities
@@ -1151,10 +1157,10 @@ These cases can be handled systematically in the following way. Suppose that
 we are asked for the integer maximum of the polyhedron:
 @tex
 $$
-\left\{\eqalign{x  &\geq 0\cr
-                y  &\geq 0\cr
-                3y &\leq x + 12\cr
-                y  &\geq 2x - 3\cr}\right.
+\hbox{$ \cases{ x  &$\geq 0$\cr
+                y  &$\geq 0$\cr
+                3y &$\leq$ x + 12\cr
+                y  &$\geq$ 2x - 3\cr}$}
 $$
 @end tex
 @ifnottex
@@ -1177,10 +1183,10 @@ $$ x'= B - x, \;\; y' = B - y ,$$
 where @math{B} is the big parameter. The system translates to:
 @tex
 $$
-\left\{\eqalign{           -x' + B &\geq 0\cr
-                           -y' + B &\geq 0\cr
-                -x' + 3y' + 12 -2B &\geq 0\cr
-                  2x' - y' + 3 - B &\geq 0\cr}\right.
+\hbox{$ \cases{            -x' + B &$\geq 0$\cr
+                           -y' + B &$\geq 0$\cr
+                -x' + 3y' + 12 -2B &$\geq 0$\cr
+                  2x' - y' + 3 - B &$\geq 0$}$}
 $$
 @end tex
 @ifnottex
@@ -1617,6 +1623,126 @@ in integers. The final result is the minimum of all @math{S_i}.
 Obviously, the method can accommodate parameters in the
 constraints. The @math{S_i} will be functions of these
 parameters, and the minimum must be computed symbolically.
+
+@node Rational Parameters
+@subsection Rational Parameters
+
+@menu
+* Rational Parameter Example::
+@end menu
+
+The core algorithm in PIP assumes that parameters are integers. The reason
+is simple: when executing the simplex algorithm, one has to decide the
+sign of the parametric part of each equation, which is of the form
+@math{u.z + v}, where @math{u} is a known integer vector, @math{v}
+is an integer, and @math{z} is the parameter vector. One has to distinguish two cases:
+@math{u.z + v \ge 0} and its opposite, which must be written @math{u.z + v < 0}
+if the parameters are rationals, but as @math{u.z +v \le -1} in integers. 
+The advantage of the second choice is that now, the two inequalities
+are of the same type. However, 
+rational parameters can be handled by changing to a homogeneous formulation:
+introduce a new parameter @math{w} and find the lexicographic minimum of:
+
+@tex
+$${\cal F}(z, w) = \{x | x \ge 0, Ax + Bz + cw \ge 0\}.$$
+@end tex
+
+Let @math{\phi(z,w)} be the solution as computed by PIP. One can prove that the
+solution when the parameters are assumed rational is @math{\phi(z, 1)}.
+
+The transformation can be effected symbolically, if a symbolic interface to 
+PIP has been implemented, or most simply in the PipLib representation, 
+by appending an all-zero column to the problem tableau, and adding one
+to the number of parameters. 
+
+@node Rational Parameter Example
+@subsubsection Rational Parameter Example
+Let us consider the system:
+
+@tex
+$$ x + \epsilon \le 2, \;\; 1 + \epsilon \le x, \;\; x \le 1.$$
+@end tex
+
+If we solve it as is, we obtain:
+
+@tex
+$$ \phi(\epsilon) = \textrm{if}\; 2 \epsilon \le 1 \;\textrm{then}\;
+ \epsilon + 1 \;\textrm{else}\; \bot ,$$
+@end tex
+
+which says that for @math{\epsilon = 0} the minimum is 1, and is undefined
+for all other @emph{integer} values of the parameter. However, we have
+no information on the existence of a solution for @math{0 < \epsilon < 1}.
+
+Let us now homogeneize the problem:
+
+@tex
+$$ x + \epsilon \le 2w, \;\; w + \epsilon \le x, \;\; x \le w.$$
+@end tex
+
+The solution is now:
+
+@tex
+$$ \psi(\epsilon, w) = \textrm{if}\;  2 \epsilon \le w \;\textrm{then}\; 
+             (\textrm{if}\; \epsilon \le 0 
+               \;\textrm{then}\; \epsilon + w \;\textrm{else}\; \bot) 
+                \;\textrm{else}\; \bot ,$$
+@end tex
+
+and, after setting @math{w} to 1:
+
+@tex
+$$ \psi(\epsilon, 1) = \textrm{if}\;  2 \epsilon \le 1 \;\textrm{then}\; 
+             (\textrm{if}\; \epsilon \le 0 
+               \;\textrm{then}\; \epsilon + 1 \;\textrm{else}\; \bot) 
+                \;\textrm{else}\; \bot ,$$
+@end tex
+
+which shows that the solution is undefined as soon as @math{\epsilon > 0}.
+
+@node Strict Inequalities
+@subsection Strict Inequalities
+
+@menu
+* Rational Parameter Example, Continued::
+@end menu
+
+In real life problems, one often encounters strict inequalities:
+
+@tex
+$$ a.x + b.z + c > 0 ,$$
+@end tex
+
+which cannot be handled directly by PIP. One solution is to introduce a
+``small'' parameter @math{\epsilon} and to solve for:
+
+@tex
+$$ a.x + b.z + c \ge \epsilon .$$
+@end tex
+
+PIP considers that all parameters are positive. Note also that if there are
+several strict inequalities, only one ``small'' parameter is necessary.
+Since @math{\epsilon} is small, it cannot be assumed to be integral, and the
+problem has to be homogeneized as in the previous section. The solution
+is a quast whose predicates may depend linearly on @math{\epsilon}. Let
+@math{u.z + v + k \epsilon \ge 0} be such a predicate. When @math{\epsilon} 
+``tends to zero'', its value is that of
+@math{(u. z + v > 0) \vee (u.z + v = 0 \wedge k \ge 0)}. 
+The quast can be simplified accordingly.
+
+@node Rational Parameter Example, Continued
+@subsubsection Rational Parameter Example, Continued
+
+The above example comes in fact from the problem:
+@tex
+$$ x < 2, \;\; 1 < x, \;\; x <= 1 ,$$
+@end tex
+whose solution has been given above.
+
+When @math{\epsilon \rightarrow 0}, the first predicate, @math{2 \epsilon \le 1}
+evaluates to @code{true}, and the second, @math{\epsilon \le 0}, evaluates 
+to @code{false}. Hence the quast simplifies to @math{\bot}, and the original
+problem is unfeasible, as could have been seen by inspection.
 
 
 @c %/*************************************************************************

@@ -11,15 +11,29 @@
 # makefile, you must run the 'configure' shellscript to generate the Makefile
 # thanks to this file. 
 
+#############################################################################
+
 AUTOMAKE_OPTIONS = subdir-objects
 SUBDIRS = . example doc test
-
 ACLOCAL_AMFLAGS = -I m4
+
+#############################################################################
 
 bin_PROGRAMS = @pips@
 EXTRA_PROGRAMS = pip_sp pip_dp pip_gmp
 lib_LTLIBRARIES = @piplibs@
 EXTRA_LTLIBRARIES = libpiplib_sp.la libpiplib_dp.la libpiplib_gmp.la
+
+#############################################################################
+
+pkginclude_HEADERS = \
+	include/piplib/piplib.h \
+	include/piplib/piplib_sp.h \
+	include/piplib/piplib_dp.h \
+	include/piplib/piplib_gmp.h \
+	include/piplib/piplib32.h \
+	include/piplib/piplib64.h \
+	include/piplib/piplibMP.h
 
 LIBRARY_FILES = \
 	source/integrer.c \
@@ -32,15 +46,6 @@ LIBRARY_FILES = \
 	source/sol.h \
 	source/tab.h \
 	source/type.h
-
-pkginclude_HEADERS = \
-	include/piplib/piplib.h \
-	include/piplib/piplib_sp.h \
-	include/piplib/piplib_dp.h \
-	include/piplib/piplib_gmp.h \
-	include/piplib/piplib32.h \
-	include/piplib/piplib64.h \
-	include/piplib/piplibMP.h
 
 libpiplib_sp_la_SOURCES = $(LIBRARY_FILES)
 libpiplib_sp_la_CPPFLAGS = @SP_DFLAGS@ -I$(srcdir)/include
@@ -69,7 +74,7 @@ EXTRA_DIST = \
 	autogen.sh \
 	cmake/piplib32-config.cmake \
 	cmake/piplib64-config.cmake \
-	cmake/piplibMP-config.cmake \
+	cmake/piplibmp-config.cmake \
 	cmake/piplib_sp-config.cmake \
 	cmake/piplib_dp-config.cmake \
 	cmake/piplib_mp-config.cmake

@@ -356,20 +356,25 @@ int pivoter_xx(
  int ff, fff;
  piplib_int_t_xx pivot, foo, z;
  piplib_int_t_xx ppivot, dppiv;
- piplib_int_t_xx new[MAXCOL], *p, *q;
+ piplib_int_t_xx *new, *p, *q;
  piplib_int_t_xx lpiv;
 
- if(ncol >= MAXCOL) {
-   fprintf(stdout, "Too much variables\n");
+ new = (piplib_int_t_xx *)malloc(ncol * sizeof(piplib_int_t_xx));
+ if(new == NULL) {
+   fprintf(stdout, "Memory overflow");
    exit(1);
  }
+
  if(0 > pivi || pivi >= nligne || Flag(tp, pivi) == Unit) {
    fprintf(stdout, "Syserr : pivoter_xx : wrong pivot row\n");
    exit(1);
  }
 
  pivj = choisir_piv_xx(tp, pivi, nvar, nligne);
- if(pivj < 0) return(-1);
+ if(pivj < 0) {
+   free(new);
+   return(-1);
+ }
  if(pivj >= nvar) {
    fprintf(stdout, "Syserr : pivoter_xx : wrong pivot\n");
    exit(1);
@@ -538,7 +543,7 @@ int pivoter_xx(
 
  for(i=0; i<ncol; i++)
    piplib_int_clear(new[i]);
-
+ free(new);
  return(0);
 }
 
@@ -575,7 +580,7 @@ static int *tab_sort_rows_xx(
 	d = piplib_int_get_d(Denom(tp, i));
 	for (j = 0; j < nvar; j++) {
 	    t = piplib_int_get_d(Index(tp,i,j))/d;
-	    s = piplib_max(s, abs(t));
+	    s = piplib_max(s, abs((int)t)); // NdCed: or fabs(t) ?
 	}
 	tp->row[i].size = s;
 	smax = piplib_max(s, smax);
