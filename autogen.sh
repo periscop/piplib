@@ -1,3 +1,6 @@
 #!/bin/sh
-test -d autoconf || mkdir autoconf
-autoreconf -i
+
+set -e
+
+# (Re)Generate autotools files
+autoreconf -vi
