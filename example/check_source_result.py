@@ -1,84 +1,70 @@
-#!/usr/bin/python 
-
-
+#!/usr/bin/python3
 import sys
 import os
 import subprocess
 import string
 
-
 # Check arguments
-if (len(sys.argv) < 3):
-	print 'Usage:', sys.argv[0], 'file.dat file.ll [pip_path]'
-	sys.exit(2)
+if len(sys.argv) < 3:
+    print('Usage:', sys.argv[0], 'file.dat file.ll [pip_path]')
+    print("  file.dat # input to the parallel integer programming solver")
+    print("  file.ll  # expected output from the solver")
+    sys.exit(2)
 
 # Get arguments
 source_filename = sys.argv[1]
 ll_filename = sys.argv[2]
-	
+pip = "exemple32" if len(sys.argv) < 4 else sys.argv[3]
+
 # Display arguments
-print sys.argv[0], source_filename, ll_filename
+print(sys.argv)
 
-# Check if source_filename and ll_filename exist
-if (os.path.exists(source_filename) == False):
-	print 'Error:', source_filename, ' file does not exist'
-	sys.exit(3)
-if (os.path.exists(ll_filename) == False):
-	print 'Error:', ll_filename, ' file does not exist'
-	sys.exit(4)
+def check_exists(filename):
+    if not os.path.exists(filename):
+        print(f"Error: file '{filename}' does not exist")
+        sys.exit(3)
 
-# Custom pip
-pip = ""
-if (len(sys.argv) >= 4):# and os.path.exists(sys.argv[3]) and os.access(sys.argv[3], os.X_OK)):
-	pip = sys.argv[3]
-else:
-	pip = "exemple32"
-# Final pip
-print "pip =", pip
+for f in [source_filename, ll_filename, pip]:
+    check_exists(f)
 
+def text_contents(filename):
+    with open(filename, "r") as f:
+        return f.read()
 
 # Get source
-source_file = open(source_filename, 'r')
-source = ""
-for line in source_file:
-	#sys.stdout.write(line)
-	source += line
-source_file.close()
+source = text_contents(source_filename)
 
 # Get ll form pip
-pip_output = subprocess.Popen([pip, source_filename], shell = True, stdout = subprocess.PIPE, stdin = subprocess.PIPE)
-pip_output_string = pip_output.communicate(input=source)[0]
+pip_output = subprocess.Popen([pip, source_filename], shell=True, stdout=subprocess.PIPE, stdin=subprocess.PIPE)
+pip_output_string = pip_output.communicate(input=source.encode())[0].decode()
 pip_output.stdin.close()
-#print pip_output
 
 # Get ll
-ll_file = open(ll_filename, 'r')
-ll = ""
-for line in ll_file:
-	#sys.stdout.write(line)
-	ll += line
-ll_file.close()
+ll = text_contents(ll_filename)
 
+def whitespace_normalized(s):
+    # trim lines and filter out empties
+    rv = ""
+    for line in s.split('\n'):
+        space_normed = ' '.join(line.split())
+        if space_normed:
+            rv = rv + space_normed
+    return rv
 
 # Compare pip_output and ll
-s0 = ""
-s1 = ""
-# Remove empty line
-for line in string.split(pip_output_string, '\n'):
-	line = line.replace(' ', '')
-	if line != '': s0 += line + '\n'
-for line in string.split(ll, '\n'):
-	line = line.replace(' ', '')
-	if line != '': s1 += line + '\n'
-# Print
-print s0
-print s1
+s0 = whitespace_normalized(pip_output_string)
+s1 = whitespace_normalized(ll)
+
 # Result
-if (s0 != s1):
-	print 'Result:', '"' + pip, '<', source_filename + '"', 'and', '"' + ll_filename + '"', 'are different'
-	sys.exit(1)
+if s0 != s1:
+    print(f"Result: {pip} < {source_filename} and {ll_filename} are different:")
+    print("Expected Output:")
+    print(s1)
+    print("Actual Output:")
+    print(s0)
+    sys.exit(1)
 else:
-	print 'Result:', '"' + pip, '<', source_filename + '"', 'and', '"' + ll_filename + '"', 'have no difference'
+    print(f"Result: {pip} < {source_filename} and {ll_filename} are identical")
 
 # End
 sys.exit(0)
