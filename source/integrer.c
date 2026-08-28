@@ -149,8 +149,6 @@ void bezout_xx(
   piplib_int_clear(r);
 }
 
-Tableau_xx *expanser_xx();
-
 /* cut: constant parameters denominator */
 #define add_parm_xx PIPLIB_NAME(add_parm)
 static void add_parm_xx(Tableau_xx** pcontext,
